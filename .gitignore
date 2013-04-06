@@ -2,3 +2,5 @@
 /obj
 *.layout
 *.depend
+*.objraw
+*.objunpacked

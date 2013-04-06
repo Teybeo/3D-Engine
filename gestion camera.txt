@@ -1,0 +1,173 @@
+﻿3 Modes de navigation
+	Caméra libre
+	Caméra première personne solidaire au Robot
+	Caméra troisième personne solidaire au Robot
+	
+	En mode 1ère ou 3eme personne, le joueur/caméra est quasiment au même endroit que le robot
+	En mode libre, la caméra est située librement dans l'espace, le robot ne bouge plus. 
+		Mais dans ce cas le joueur est-il la caméra où le robot ?
+		|
+		|
+		L--> En réalité, le joueur est à la fois la caméra et à la fois le robot. Il peut passer de l'un à l'autre quand il veut.
+		
+struct Player {
+
+	Camera cam;
+	Robot robot;
+	KeyState key[NB_KEYSTATE];
+	CameraMode camMode;
+	float angleY; // Angle autour de l'axe Y, horizontal
+	float angleX; // Angle autor de l'axe X, vertical
+	Vec3 frontalVec;
+	Vec3 lateralVec;
+	Vec3 position;
+};
+
+enum CameraMode {
+
+    CAMERAMODE_FREE,
+    CAMERAMODE_THIRD_PERSON,
+    CAMERAMODE_FIRST_PERSON,
+    NB_MODES
+} CameraMode;
+
+enum KeyState {
+
+    AVANCER,
+    RECULER,
+    GAUCHE,
+    DROITE,
+    NB_KEYSTATE
+
+} KeyState;
+
+void Player_keyEvent() {
+
+    switch (ev.keysym.sym) {
+
+    case SDLK_z:
+        key[AVANCER] = ev.state;
+        break;
+    case SDLK_s:
+        key[RECULER] = ev.state;
+        break;
+    case SDLK_q:
+        key[GAUCHE] = ev.state;
+        break;
+    case SDLK_d:
+        key[DROITE] = ev.state;
+        break;	
+	case SDLK_c:
+		if (keyEv.type == SDL_KEYDOWN) {
+			camMode++;
+			camMode %= NB_MODES;
+		}
+		break;
+    }
+}
+
+void Player_mouseEvent(float dPhi, float dTheta) {
+    angleY += dPhi * 0.1;
+    angleX += dTheta * 0.1;
+}
+
+void Player_update() {
+
+	computeBasisVectors();
+	applyVectors();
+	buildMatrix();
+
+}
+	
+void computeBasisVectors() {
+
+	float angleY = this.angleY * TAU/360;
+	float angleX = this.angleX * TAU/360;
+
+	// Calcul du vecteur x de la caméra
+	// Quelque soit le mode, se déplacer latéralement n'a pas d'effet sur l'altitude de la caméra
+	// étant donné qu'il n'existe meme pas d'angle de rotation autour de l'axe Z.
+	// Le vecteur latéral est indépendant de l'angle de rotation autour de l'axe X (angleX) car C'EST l'axe X.
+	cam->lateralVec.x = cos(angleY);
+	cam->lateralVec.y = 0;		      
+	cam->lateralVec.z = sin(angleY);
+
+	if (camMode == CAMERAMODE_FREE) {
+
+		// Calcul du vecteur -z de la caméra
+		// En mode libre, la caméra doit pouvoir monter dans l'air
+		// si on avance/recule avec un angleVertical non-nul
+		cam->frontalVec.x = sin(angleY) * cos(angleX);
+		cam->frontalVec.y = -sin(angleX);
+		cam->frontalVec.z = -cos(angleY) * cos(angleX);
+
+	}
+	else {
+
+		// Calcul du vecteur -z de la caméra
+		// En mode 1ère ou 3ème personne, la caméra ne doit pas pouvoir monter dans l'air
+		// si on avance/recule avec un angleVertical non-nul
+		// On n'utilise donc pas l'angleX dans le calcul
+		cam->frontalVec.x = sin(angleY);
+		cam->frontalVec.y = 0
+		cam->frontalVec.z = -cos(angleY);
+	
+	}
+
+}
+
+// Cette fonction utilise les vecteurs calculés précédement pour déplacer véritablement la position de la caméra	
+void applyVectors() {
+
+	// On avance la caméra
+    if (key[AVANCER])
+    {
+        Vec3_Add(&deplacement, frontalVec);
+    }
+
+    // On recule la caméra
+    if (key[RECULER])
+    {
+        Vec3 reculer = frontalVec;
+        Vec3_Mul_Scal(&reculer, -1);
+        Vec3_Add(&deplacement, reculer);
+    }
+
+    // On décale vers la droite la caméra
+    if (key[DROITE])
+    {
+        Vec3_Add(&deplacement, lateralVec);
+    }
+
+    // On décale vers la gauche la caméra
+    if (key[GAUCHE])
+    {
+        Vec3 left = lateralVec;
+        Vec3_Mul_Scal(&left, -1);
+        Vec3_Add(&deplacement, left);
+    }
+
+	Vec3_Add(&cam->pos, deplacement);
+}
+
+void computeMatrix() {
+	
+	Vec3 pos_temp = position;
+	
+	if (camMode == CAMERAMODE_FREE) {
+		
+		// On inverse le signe du déplacement car la caméra ne se déplace pas dans le monde,
+		// C'est elle qui doit déplacer le monde
+		Vec3_Mul_Scal(&pos_temp, -1);
+		loadIdentity(matrix);
+		rotate(matrix, angleX, angleY, 0);
+		translate(matrix, pos_temp.x, pos_temp.y, pos_temp.z);
+	}	
+	else if (camMode == CAMERAMODE_THIRDPERSON)
+	{
+		loadIdentity(robot->matrix);
+		translate(robot->matrix, -position.x, -position.y, -position.z);
+		rotate(robot->matrix, 0, -angleY, 0);
+	}
+	
+}
