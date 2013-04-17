@@ -35,7 +35,6 @@
 			<Add directory="header" />
 		</Compiler>
 		<Unit filename="header/app.h" />
-		<Unit filename="header/camera.h" />
 		<Unit filename="header/carre.h" />
 		<Unit filename="header/cube.h" />
 		<Unit filename="header/fenetre.h" />
@@ -46,6 +45,7 @@
 		<Unit filename="header/matrix.h" />
 		<Unit filename="header/model.h" />
 		<Unit filename="header/objLoader.h" />
+		<Unit filename="header/player.h" />
 		<Unit filename="header/robot.h" />
 		<Unit filename="header/shader.h" />
 		<Unit filename="header/texture.h" />
@@ -53,9 +53,6 @@
 		<Unit filename="header/vec3.h" />
 		<Unit filename="header/vec4.h" />
 		<Unit filename="source/app.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="source/camera.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/fenetre.c">
@@ -83,6 +80,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/objLoader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/player.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/robot.c">
@@ -120,7 +120,6 @@
 				<lib name="SDL2" />
 				<lib name="Glew" />
 				<lib name="OpenGL" />
-				<lib name="SDL_image" />
 			</lib_finder>
 			<DoxyBlocks>
 				<comment_style block="0" line="0" />

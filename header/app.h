@@ -1,11 +1,11 @@
 #ifndef _APP_GUARD
 #define _APP_GUARD
 
-#include "camera.h"
 #include "fenetre.h"
 #include "robot.h"
 #include "light.h"
 #include "instance.h"
+#include "player.h"
 
 #include <stdbool.h>
 
@@ -22,7 +22,7 @@ typedef struct App {
     GLuint texPerVertexDiffuseProgram;
     GLuint texPerFragmentDiffuseProgram;
     GLuint instanceTexPerFragmentDiffuseProgram;
-    Camera cam;
+    Player player;
     GLuint locProjMatrix;
     Robot robot;
     Instance objects[10000];
@@ -32,7 +32,7 @@ typedef struct App {
 
 } App;
 
-void App_Run(App app);
+void App_Run(App* app);
 bool App_Init(App* app);
 
 #endif // APP

@@ -10,6 +10,7 @@ typedef struct Vec3 {
 } Vec3;
 
 void Vec3_Mul_Scal(Vec3* vec, float scal);
+Vec3 Vec3_Mul_Scal_out(Vec3 vec, float scal);
 void Vec3_Mul(Vec3 *p, Vec3 a);
 void Vec3_Add(Vec3* a, Vec3 b);
 void Vec3_Normalise(Vec3* vec);

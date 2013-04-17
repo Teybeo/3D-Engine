@@ -22,22 +22,25 @@ void App_Draw(App* app) {
 
     glDisable(GL_DEPTH_TEST);
         loadIdentity(app->skybox.matrix);
-        translate(app->skybox.matrix, -app->cam.pos.x, -app->cam.pos.y, -app->cam.pos.z);
+        if (app->player.camMode == CAMERAMODE_FREE)
+            translateByVec(app->skybox.matrix, app->player.posCam);
+        else
+            translateByVec(app->skybox.matrix, app->player.posRobot);
         scale(app->skybox.matrix, 50, 50, 50);
-        Instance_Draw(app->skybox, app->cam.mondeToCam, app->fenetre.camToClip);
+        Instance_Draw(app->skybox, app->player.mondeToCam, app->fenetre.camToClip);
     glEnable(GL_DEPTH_TEST);
 
         int i;
-//    glUseProgram(app->instanceTexPerFragmentDiffuseProgram);
-//        for (i = 0 ; i < 6 ; i++ )
-//        {
-//            char name[50] = "";
-//            sprintf(name, "lightPos[%d]", i);
-//            glUniform3fv(glGetUniformLocation(app->instanceTexPerFragmentDiffuseProgram, name), 1, &app->halogene[i].pos.x);
-//            sprintf(name, "lightColor[%d]", i);
-//            glUniform3fv(glGetUniformLocation(app->instanceTexPerFragmentDiffuseProgram, name), 1, &app->halogene[i].color.x);
-//        }
-//    glUseProgram(0);
+    glUseProgram(app->instanceTexPerFragmentDiffuseProgram);
+        for (i = 0 ; i < 6 ; i++ )
+        {
+            char name[50] = "";
+            sprintf(name, "lightPos[%d]", i);
+            glUniform3fv(glGetUniformLocation(app->instanceTexPerFragmentDiffuseProgram, name), 1, &app->halogene[i].pos.x);
+            sprintf(name, "lightColor[%d]", i);
+            glUniform3fv(glGetUniformLocation(app->instanceTexPerFragmentDiffuseProgram, name), 1, &app->halogene[i].color.x);
+        }
+    glUseProgram(0);
     glUseProgram(app->texPerFragmentDiffuseProgram);
         for (i = 0 ; i < 6 ; i++ )
         {
@@ -49,9 +52,14 @@ void App_Draw(App* app) {
         }
     glUseProgram(0);
 
-//    InstanceGroupe_Draw(app->objectGroupe, app->cam.mondeToCam, app->fenetre.camToClip);
+    InstanceGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
 
-    Robot_draw(&app->robot, app->cam.mondeToCam, app->fenetre.camToClip);
+//        loadIdentity(app->robot.matrix);
+//        translate(app->robot.matrix, 20, 0, 0);
+//    memcpy(app->robot.matrix, app->player.robot, 16*4);
+//    for (i = 0 ; i < 16 ; i++ )
+//        app->robot.matrix[i] = app->player.robotMat[i];
+    Robot_draw(&app->robot, app->player.mondeToCam, app->fenetre.camToClip);
 
 //    for (i = 0 ; i < 1 ; i++ )
 //    {
@@ -61,10 +69,10 @@ void App_Draw(App* app) {
 //    }
 //
     for (i = 0 ; i < 1 ; i++ )
-        Instance_Draw(app->objects[i], app->cam.mondeToCam, app->fenetre.camToClip);
+        Instance_Draw(app->objects[i], app->player.mondeToCam, app->fenetre.camToClip);
 
     for (i = 0 ; i < 6 ; i++ )
-        Instance_Draw(app->halogene[i].instance, app->cam.mondeToCam, app->fenetre.camToClip);
+        Instance_Draw(app->halogene[i].instance, app->player.mondeToCam, app->fenetre.camToClip);
 
     SDL_GL_SwapWindow(app->fenetre.ecran);
 //    getchar();
@@ -75,12 +83,14 @@ void App_Draw(App* app) {
 
 void App_Logic(App* app) {
 
-    Camera_computeVectors(&app->cam);
-    Camera_move(&app->cam);
+//    Camera_computeVectors(&app->cam);
+//    Camera_move(&app->cam);
 
-    Robot_move(&app->robot);
+//    Robot_move(&app->robot);
 
-    Camera_computeMatrix(&app->cam, &app->robot, app->robot.pos);
+//    Camera_computeMatrix(&app->cam, &app->robot, app->robot.pos);
+
+    Player_update(&app->player);
 
     static float t = 0;
 
@@ -127,9 +137,9 @@ void App_Logic(App* app) {
     float scaleFactor;
     for (i = 0 ; i < app->objectGroupe.nbInstances ; i++ )
     {
-        scaleFactor = 1;
+        scaleFactor = 3+(i/100);
         loadIdentity(app->objectGroupe.matrix[i]);
-        translate(app->objectGroupe.matrix[i], 50*cos(0.5*i - t), 5 + i/50., 50*sin(i+-t));
+        translate(app->objectGroupe.matrix[i], 50*sin(0.3*i - t), 5 + i/10., 50*cos(i+-t));
         scale(app->objectGroupe.matrix[i], scaleFactor, scaleFactor, scaleFactor);
         transpose(app->objectGroupe.matrix[i]);
     }
@@ -140,11 +150,15 @@ void App_Logic(App* app) {
 }
 
 bool App_Init(App* app) {
-
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        puts("Erreur au chargement de SDL2");
+    int var;
+    var = SDL_Init(SDL_INIT_VIDEO);
+            printf("init: %d\n", var);
+    if (var != 0) {
+        printf("Erreur au chargement de SDL2 '%s'\n", SDL_GetError());
         return false;
     }
+
+//    printf("%s\n", SDL_GetError());
 
     if (initFenetre(&app->fenetre) == false)
         return false;
@@ -175,9 +189,11 @@ bool App_Init(App* app) {
 
 /////////////////////
 
-    Camera_init(&app->cam, app->mainProgram);
+//    Camera_init(&app->cam, app->mainProgram);
     if (Robot_init(&app->robot, app->texPerFragmentDiffuseProgram) == false)
         return false;
+
+    app->player = Player_init(&app->robot);
 
 //////////////////// SOL
 
@@ -228,7 +244,7 @@ bool App_Init(App* app) {
     if (initProgram(&app->instanceTexPerFragmentDiffuseProgram, "../source/shaders/instanceTexPerFragmentDiffuse.vert", "../source/shaders/texPerFragmentDiffuse.frag") == false)
         return false;
 
-    app->objectGroupe = InstanceGroupe_Create(cubeTexNorm, 500, app->instanceTexPerFragmentDiffuseProgram, stoneTexture);
+    app->objectGroupe = InstanceGroupe_Create(cubeTexNorm, 50, app->instanceTexPerFragmentDiffuseProgram, stoneTexture);
 
 ////////////////////////
 
@@ -288,18 +304,20 @@ void App_Event(App* app) {
     case SDL_KEYDOWN:
 
         if (app->fenetre.grab)
-            Camera_keyEvent(&app->cam, ev.key);
+            Player_keyEvent(&app->player, ev.key);
+//            Camera_keyEvent(&app->cam, ev.key);
         majFenetreKeys(&app->fenetre, ev.key);
-        Robot_keyEvent(&app->robot, ev.key);
+//        Robot_keyEvent(&app->robot, ev.key);
 
         break;
 
     case SDL_KEYUP:
 
         if (app->fenetre.grab)
-            Camera_keyEvent(&app->cam, ev.key);
+            Player_keyEvent(&app->player, ev.key);
+//            Camera_keyEvent(&app->cam, ev.key);
         majFenetreKeys(&app->fenetre, ev.key);
-        Robot_keyEvent(&app->robot, ev.key);
+//        Robot_keyEvent(&app->robot, ev.key);
 
         break;
 
@@ -307,8 +325,9 @@ void App_Event(App* app) {
 
         if (app->fenetre.grab)
         {
-            Camera_mouseEvent(&app->cam, ev.motion.xrel, ev.motion.yrel);
-            Robot_mouseEvent(&app->robot, ev.motion.xrel, ev.motion.yrel);
+            Player_mouseEvent(&app->player, ev.motion.xrel, ev.motion.yrel);
+//            Camera_mouseEvent(&app->cam, ev.motion.xrel, ev.motion.yrel);
+//            Robot_mouseEvent(&app->robot, ev.motion.xrel, ev.motion.yrel);
         }
         break;
 
@@ -324,19 +343,19 @@ void App_Event(App* app) {
 
 }
 
-void App_Run(App app) {
+void App_Run(App* app) {
 
     Uint32 debut = SDL_GetTicks();
 
-    while (app.fenetre.arret == false) {
+    while (app->fenetre.arret == false) {
 
-        App_Event(&app);
-        App_Logic(&app);
-        App_Draw(&app);
+        App_Event(app);
+        App_Logic(app);
+        App_Draw(app);
 
         char title[20] = "";
         sprintf(title, "%u ms", SDL_GetTicks() - debut);
-        SDL_SetWindowTitle(app.fenetre.ecran, title);
+        SDL_SetWindowTitle(app->fenetre.ecran, title);
 
         debut = SDL_GetTicks();
 

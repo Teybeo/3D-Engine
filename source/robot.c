@@ -7,89 +7,6 @@
 
 #include "glew.h"
 
-void computeVectorsRobot(Robot* robot);
-
-void Robot_move(Robot* robot) {
-
-    static float t = 0;
-    static float angle = 0;
-
-    computeVectorsRobot(robot);
-
-    Vec3 deplacement = {};
-
-    if (robot->state[AVANCER] == robot->state[RECULER])
-    {
-        robot->angleJambeDroite = 0;
-        robot->angleJambeGauche = 0;
-        t = 0;
-        return;
-    }
-
-    if (robot->state[AVANCER])
-    {
-        Vec3_Add(&deplacement, robot->frontalVec);
-
-//        translate(robot->matrix, 0, 0.01*sin(2*t), 0.1);
-
-        robot->angleJambeDroite = t;
-        robot->angleJambeGauche = t - M_PI;
-
-        t += 0.05;
-    }
-
-    if (robot->state[RECULER])
-    {
-        Vec3 recule = robot->frontalVec;
-        Vec3_Mul_Scal(&recule, -1);
-        Vec3_Add(&deplacement, recule);
-//        translate(robot->matrix, 0, 0.01*sin(2*t), -0.1);
-
-        robot->angleJambeDroite = t;
-        robot->angleJambeGauche = t - M_PI;
-
-        t -= 0.05;
-    }
-
-//    if (robot->state[GAUCHE])
-//    {
-//        rotate(robot->matrix, 0, 10, 0);
-//
-//        angle += 0.01;
-//    }
-//
-//    if (robot->state[DROITE])
-//    {
-//        rotate(robot->matrix, 0, -10, 0);
-//
-//        angle -= 0.01;
-//    }
-    Vec3_Mul_Scal(&deplacement, 0.1);
-    Vec3_Add(&robot->pos, deplacement);
-
-    loadIdentity(robot->matrix);
-    translate(robot->matrix, -robot->pos.x, -robot->pos.y, -robot->pos.z);
-    rotate(robot->matrix, 0, -robot->phi, 0);
-
-}
-
-void computeVectorsRobot(Robot* robot) {
-
-    float phi = robot->phi * M_PI*2/360;
-    float theta = robot->theta * M_PI*2/360;
-
-    // Calcul du vecteur -z du robot
-    robot->frontalVec.z = -cos(phi);
-    robot->frontalVec.x = sin(phi);
-    robot->frontalVec.y = 0;
-
-    // Calcul du vecteur x du robot
-    robot->lateralVec.z = sin(phi);
-    robot->lateralVec.x = cos(phi);
-    robot->lateralVec.y = 0;
-
-}
-
 void draw_jambe(Robot* robot, Partie jambe) {
 
     loadIdentity(robot->partie[jambe].matrix);
@@ -178,9 +95,6 @@ void Robot_draw(Robot* robot, float* worldCam, float* camClip) {
 
 bool Robot_init(Robot* robot, GLuint program) {
 
-    robot->phi = 0;
-    robot->theta = 0;
-
     robot->locModelWorld = glGetUniformLocation(program, "modelWorld");
 
     GLuint creeperTex = chargerTexture("../images/creeper.bmp", GL_NEAREST);
@@ -217,7 +131,6 @@ bool Robot_init(Robot* robot, GLuint program) {
     Instance bras = Instance_Create(brasModel, program, skin2Tex);
 
     loadIdentity(robot->matrix);
-    memset(robot->state, 0, sizeof(Keys)*KEYS_NB);
 
     int i;
     for (i = 0 ; i < PARTIE_NB ; i++ )
@@ -234,47 +147,5 @@ bool Robot_init(Robot* robot, GLuint program) {
     robot->partie[AVANT_BRAS_GAUCHE] = bras;
 
     return true;
-
-}
-
-void Robot_mouseEvent(Robot* robot, float dPhi, float dTheta) {
-
-    robot->phi += dPhi * 0.1; // OpenGL a un repère direct; angle++ -> regard vers la droite
-    robot->theta += dTheta * 0.1;
-
-}
-
-void Robot_keyEvent(Robot* robot, SDL_KeyboardEvent ev) {
-
-    switch (ev.keysym.sym) {
-
-    case SDLK_z:
-
-        robot->state[AVANCER] = ev.state;
-
-        break;
-
-    case SDLK_s:
-
-        robot->state[RECULER] = ev.state;
-
-        break;
-
-    case SDLK_q:
-
-        robot->state[GAUCHE] = ev.state;
-
-        break;
-
-    case SDLK_d:
-
-        robot->state[DROITE] = ev.state;
-
-        break;
-
-    default:
-        break;
-
-    }
 
 }

@@ -248,3 +248,9 @@ void transpose(float matrix[16]) {
 
     memcpy(matrix, temp, 16 * sizeof(float));
 }
+
+inline void translateByVec(float matrix[16], Vec3 vec) {
+
+    translate(matrix, vec.x, vec.y, vec.z);
+
+}

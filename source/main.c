@@ -7,7 +7,7 @@ int main() {
     if (App_Init(&Robot) == false)
         return -1;
 
-    App_Run(Robot);
+    App_Run(&Robot);
 
     return 0;
 }

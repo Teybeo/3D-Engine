@@ -5,7 +5,9 @@
 #include "vec3.h"
 #include "vec2.h"
 #include "objLoader.h"
+
 #include <stdio.h>
+#include <stdlib.h>
 
 void Model_CreateVAO(Model* model, int nbAttrib, int* attrib, int* offset, int* components) {
 

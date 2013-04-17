@@ -34,6 +34,18 @@ void Vec3_Normalise(Vec3* vec) {
     Vec3_Mul_Scal(vec, 1 / Vec3_Length(*vec));
 }
 
+Vec3 Vec3_Mul_Scal_out(Vec3 vec, float scal) {
+
+    Vec3 res = vec;
+
+    res.x *= scal;
+    res.y *= scal;
+    res.z *= scal;
+
+    return res;
+}
+
+
 void setVec3(Vec3* vec, float x, float y, float z) {
     vec->x = x;
     vec->y = y;
