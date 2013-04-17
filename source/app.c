@@ -10,9 +10,10 @@
 #include "SDL.h"
 #include "glew.h"
 #include "texture.h"
+#include "listeContact.h"
 
-Particule* initGroupeParticule(int nombre);
-void calcule(Particule* balle, float duree, bool const pause);
+Sphere* initGroupeSphere(int nombre);
+void calcule(Sphere* balle, CollisionSphere* robot, float duree, bool const pause);
 
 void App_Draw(App* app) {
 
@@ -55,7 +56,7 @@ void App_Draw(App* app) {
         }
     glUseProgram(0);
 
-    InstanceGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
+//    InstanceGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
 
     Robot_draw(&app->robot, app->player.mondeToCam, app->fenetre.camToClip);
 
@@ -68,8 +69,8 @@ void App_Draw(App* app) {
     for (i = 0 ; i < NB ; i++ )
     {
         loadIdentity(app->balle[i].instance.matrix);
-        translateByVec(app->balle[i].instance.matrix, app->balle[i].position);
-        scale(app->balle[i].instance.matrix, app->balle[i].rayon, app->balle[i].rayon, app->balle[i].rayon);
+        translateByVec(app->balle[i].instance.matrix, app->balle[i].collisionData.particule.position);
+        scale(app->balle[i].instance.matrix, app->balle[i].collisionData.rayon, app->balle[i].collisionData.rayon, app->balle[i].collisionData.rayon);
         Instance_Draw(app->balle[i].instance, app->player.mondeToCam, app->fenetre.camToClip);
     }
 
@@ -138,7 +139,9 @@ void App_Logic(App* app, float duree) {
 
     uploadMatrix(app->objectGroupe);
 
-    calcule(app->balle, duree*0.01, false);
+    app->robot.collisionSphere.particule.position = app->player.posRobot;
+
+    calcule(app->balle, &app->robot.collisionSphere, duree*0.01, false);
 
     t += 0.01;
 }
@@ -274,16 +277,99 @@ bool App_Init(App* app) {
 
 //////////// BALLES
 
-    app->balle = initGroupeParticule(NB);
+    app->balle = initGroupeSphere(NB);
     Instance balle = Instance_Create(sphere, app->texPerFragmentDiffuseProgram, solTexture);
 
     for (i = 0 ; i < NB ; i++ )
     {
         loadIdentity(app->balle[i].instance.matrix);
         app->balle[i].instance = balle;
+        app->balle[i].collisionData.rayon = 2;
     }
 
     return true;
+
+}
+
+void calcule(Sphere* balle, CollisionSphere* robot, float duree, bool const pause) {
+
+    Contact* contact = NULL;
+    ElemContact* pile = NULL;
+    int nbObjects = NB + 1;
+
+    CollisionSphere** objet = malloc(sizeof(CollisionSphere*) * nbObjects );
+
+    int i;
+    for (i = 0 ; i < nbObjects - 1 ; i++ )
+        objet[i] = &balle[i].collisionData;
+    objet[i] = robot;
+
+    if (pause == false) {
+
+        int i, j;
+
+        for (i = 0; i < nbObjects; i++) {
+
+            Particule_Integre(&objet[i]->particule, duree);
+            resoudCollisionCercleMur(objet[i]);
+
+            for (j = i + 1; j < nbObjects; j++) {
+
+                contact = CollisionGenerator_SphereSphere(objet[i], objet[j]);
+                if (contact != NULL)
+                {
+                    pile = empilerContact(pile, *contact);
+                    free(contact);
+                }
+
+            }
+
+        }
+
+        CollisionResolver_Resolve(pile);
+
+    }
+
+    liberePileContact(pile);
+}
+
+Sphere* initGroupeSphere(int nombre) {
+
+    Sphere* balle = calloc(nombre, sizeof(Sphere));
+
+    int i, j;
+    bool superposition = false;
+
+    for (i = 0 ; i < nombre ; i++ )
+    {
+
+        balle[i].collisionData.particule = Particule_Init(0.8, 10 + i % 12);
+        Particule_AjouteForceRand(&balle[i].collisionData.particule, true, true);
+//        Particule_SetPosition(&balle[i], (-FEN_L/2) + rand() % FEN_L, (-FEN_H/2) + rand() % FEN_H);
+//        Particule_SetPosition(&balle[0].collisionData.particule, -5, 0, 0);
+//        Particule_SetPosition(&balle[1].collisionData.particule, -5, 0, 1);
+//        balle[1].collisionData.particule.vitesse.z = -1;
+
+        do {
+
+            Particule_SetPosition(&balle[i].collisionData.particule, MUR_GAUCHE + rand() % (abs(MUR_GAUCHE)+MUR_DROIT), rand() % MUR_HAUT, MUR_ARRIERE + rand() % (abs(MUR_ARRIERE)+MUR_AVANT));
+
+            superposition = false; // On suppose qu'on l'a bien placé
+
+            for (j = 0 ; j < nombre ; j++ ) // On verifie pour chaque balle
+
+                if (i != j && CollisionGenerator_AreCollidingSphere(balle[i].collisionData, balle[j].collisionData) == true)
+                {
+                    superposition = true; // Il y a un problème
+                    break;
+                }
+
+
+        } while (superposition == true); // Si un problème on recommence
+
+    }
+
+    return balle;
 
 }
 
@@ -340,67 +426,6 @@ void App_Event(App* app) {
     }
 
     }
-
-}
-
-void calcule(Particule* balle, float duree, bool const pause) {
-
-    if (pause == false) {
-
-        int i, j;
-
-        for (i = 0; i < NB; i++) {
-
-            resoudCollisionCercleMur(&balle[i]);
-
-            for (j = i + 1; j < NB; j++) {
-
-                resoudCollisionCercleCercle(&balle[i], &balle[j]);
-
-            }
-
-        }
-
-        for (i = 0; i < NB; i++)
-            Particule_Integre(&balle[i], duree);
-
-    }
-}
-
-Particule* initGroupeParticule(int nombre) {
-
-    Particule* balle = calloc(nombre,sizeof(Particule));
-
-    int i, j;
-    bool superposition = false;
-
-    for (i = 0 ; i < nombre ; i++ )
-    {
-
-        balle[i] = Particule_Init(7, 0.8, 10+i%12);
-        //Particule_AjouteForceRand(&balle[i], true, true);
-        //Particule_SetPosition(&balle[i], (-FEN_L/2) + rand() % FEN_L, (-FEN_H/2) + rand() % FEN_H);
-
-        do {
-
-            Particule_SetPosition(&balle[i], MUR_GAUCHE + rand() % (abs(MUR_GAUCHE)+MUR_DROIT), rand() % MUR_HAUT, MUR_ARRIERE + rand() % (abs(MUR_ARRIERE)+MUR_AVANT));
-
-            superposition = false; // On suppose qu'on l'a bien placé
-
-            for (j = 0 ; j < nombre ; j++ ) // On verifie pour chaque balle
-
-                if (i != j && testCollisionCercleCercle(balle[i], balle[j]) == true)
-                {
-                    superposition = true; // Il y a un problème
-                    break;
-                }
-
-
-        } while (superposition == true); // Si un problème on recommence
-
-    }
-
-    return balle;
 
 }
 

@@ -3,6 +3,7 @@
 
 #include "instance.h"
 #include "vec3.h"
+#include "collision.h"
 
 #include "SDL_events.h"
 
@@ -29,6 +30,7 @@ typedef struct Robot {
     float angleJambeDroite;
     float angleJambeGauche;
     int locModelWorld;
+    CollisionSphere collisionSphere;
 
 } Robot;
 

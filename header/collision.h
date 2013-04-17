@@ -3,22 +3,30 @@
 
 #include <stdbool.h>
 
-#define MUR_DROIT 400
-#define MUR_GAUCHE -400
-#define MUR_HAUT 400
+#define MUR_DROIT 100
+#define MUR_GAUCHE -100
+#define MUR_HAUT 100
 #define MUR_BAS 0
-#define MUR_AVANT 400
-#define MUR_ARRIERE -400
+#define MUR_AVANT 100
+#define MUR_ARRIERE -100
 
-typedef struct Particule Particule;
+#include "particule.h"
+#include "contact.h"
+
+typedef struct CollisionSphere {
+
+    Particule particule;
+    float rayon;
+
+} CollisionSphere;
+
 typedef struct Vec3 Vec3;
 
-void resoudCollisionCercleCercle(Particule* a, Particule*b);
-void resoudCollisionCercleMur(Particule* a);
+Contact* CollisionGenerator_SphereSphere(CollisionSphere* a, CollisionSphere* b);
 
 void rameneEnContact(Particule* a, Particule* b, Vec3 normale, float valPenetration);
 
-bool testCollisionCercleCercle(Particule a, Particule b);
+bool CollisionGenerator_AreCollidingSphere(CollisionSphere a, CollisionSphere b);
 
 #endif // Collision
 

@@ -4,11 +4,10 @@
 #include <stdlib.h>
 #include <math.h>
 
-Particule Particule_Init(int rayon, float elasticite, float masse) {
+Particule Particule_Init(float elasticite, float masse) {
 
     Particule balle = {};
 
-    balle.rayon = rayon;
     balle.coeffRebond = elasticite;
     balle.masse = masse;
 
@@ -56,11 +55,6 @@ void Particule_SetPosition(Particule*a, float x, float y, float z) {
 void Particule_SetMasse(Particule*a, float masse) {
 
     a->masse = masse;
-}
-
-void Particule_SetRayon(Particule*a, float rayon) {
-
-    a->rayon = rayon;
 }
 
 void Particule_Debug(Particule balle) {

@@ -23,12 +23,13 @@ void Vec3_Mul_Scal(Vec3* vec, float scal);
 Vec3 Vec3_Mul_Scal_out(Vec3 vec, float scal);
 
 void Vec3_Div_Scal(Vec3* vec, float scal);
+Vec3 Vec3_Div_Scal_Out(Vec3 const vec, float scal);
 
 void Vec3_Normalise(Vec3* vec);
 Vec3 Vec3_Normalise_Out(Vec3 const vec);
 
-inline float Vec3_Distance2Points(Vec3 const a, Vec3 const b);
-inline float Vec3_Distance2PointsCarree(Vec3 const a, Vec3 const b);
+float Vec3_Distance2Points(Vec3 const a, Vec3 const b);
+float Vec3_Distance2PointsCarree(Vec3 const a, Vec3 const b);
 
 Vec3 Vec3_Project(Vec3 a, Vec3 b);
 

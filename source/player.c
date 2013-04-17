@@ -112,6 +112,10 @@ void applyVectors(Player* player) {
         Vec3_Add(&deplacement, left);
     }
 
+    if (player->key[RALENTI])
+    {
+        Vec3_Mul_Scal(&deplacement, 0.1);
+    }
     if (player->camMode == CAMERAMODE_FREE)
         Vec3_Add(&player->posCam, deplacement);
     else
@@ -183,6 +187,9 @@ void Player_keyEvent(Player* player, SDL_KeyboardEvent keyEv) {
         break;
     case SDLK_d:
         player->key[DROITE] = keyEv.state;
+        break;
+    case SDLK_LSHIFT:
+        player->key[RALENTI] = keyEv.state;
         break;
 	case SDLK_c:
 		if (keyEv.type == SDL_KEYDOWN) {

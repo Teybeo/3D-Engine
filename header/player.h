@@ -7,8 +7,6 @@
 #include <GL/gl.h>
 #include <math.h>
 
-
-
 #include "SDL_events.h"
 
 typedef enum CameraMode {
@@ -26,6 +24,7 @@ typedef enum KeyState {
     RECULER,
     GAUCHE,
     DROITE,
+    RALENTI,
     NB_KEYSTATE
 
 } KeyState;

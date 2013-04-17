@@ -37,12 +37,14 @@
 		<Unit filename="header/app.h" />
 		<Unit filename="header/carre.h" />
 		<Unit filename="header/collision.h" />
+		<Unit filename="header/contact.h" />
 		<Unit filename="header/cube.h" />
 		<Unit filename="header/fenetre.h" />
 		<Unit filename="header/gl_debug.h" />
 		<Unit filename="header/instance.h" />
 		<Unit filename="header/light.h" />
 		<Unit filename="header/liste.h" />
+		<Unit filename="header/listeContact.h" />
 		<Unit filename="header/matrix.h" />
 		<Unit filename="header/model.h" />
 		<Unit filename="header/objLoader.h" />
@@ -60,6 +62,9 @@
 		<Unit filename="source/collision.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="source/contact.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="source/fenetre.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -73,6 +78,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/liste.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/listeContact.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/main.c">

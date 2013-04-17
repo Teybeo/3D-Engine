@@ -9,6 +9,7 @@ ElemVec3* empiler(ElemVec3 *tetepile, Vec3 vec) {
     return nouveau;
 
 }
+
 ElemVec3* empilerFin(ElemVec3 *tetepile, Vec3 vec) {
 
     ElemVec3 *nouveau = malloc(sizeof(ElemVec3));
@@ -104,3 +105,4 @@ Vec3 getElemByNumber(ElemVec3* tetepile, int nb) {
     return curseur->vec;
 
 }
+

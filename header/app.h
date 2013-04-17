@@ -14,7 +14,14 @@
 #include "SDL.h"
 #include "glew.h"
 
-#define NB 100
+#define NB 1000
+
+typedef struct Sphere {
+
+    CollisionSphere collisionData;
+    Instance instance;
+
+} Sphere;
 
 typedef struct App {
 
@@ -33,7 +40,7 @@ typedef struct App {
     InstanceGroupe objectGroupe;
     Instance skybox;
     Light lampe[10];
-    Particule* balle;
+    Sphere* balle;
 
 } App;
 
