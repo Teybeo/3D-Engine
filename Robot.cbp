@@ -36,6 +36,7 @@
 		</Compiler>
 		<Unit filename="header/app.h" />
 		<Unit filename="header/carre.h" />
+		<Unit filename="header/collision.h" />
 		<Unit filename="header/cube.h" />
 		<Unit filename="header/fenetre.h" />
 		<Unit filename="header/gl_debug.h" />
@@ -45,6 +46,7 @@
 		<Unit filename="header/matrix.h" />
 		<Unit filename="header/model.h" />
 		<Unit filename="header/objLoader.h" />
+		<Unit filename="header/particule.h" />
 		<Unit filename="header/player.h" />
 		<Unit filename="header/robot.h" />
 		<Unit filename="header/shader.h" />
@@ -53,6 +55,9 @@
 		<Unit filename="header/vec3.h" />
 		<Unit filename="header/vec4.h" />
 		<Unit filename="source/app.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/collision.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/fenetre.c">
@@ -80,6 +85,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/objLoader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/particule.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/player.c">

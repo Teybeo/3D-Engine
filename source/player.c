@@ -73,8 +73,11 @@ void applyVectors(Player* player) {
     {
         Vec3_Add(&deplacement, player->frontalVec);
 
-        player->robot->angleJambeDroite = t;
-        player->robot->angleJambeGauche = t - M_PI;
+        if (player->camMode != CAMERAMODE_FREE)
+        {
+            player->robot->angleJambeDroite = t;
+            player->robot->angleJambeGauche = t - M_PI;
+        }
 
         t += 0.05;
     }
@@ -86,8 +89,11 @@ void applyVectors(Player* player) {
         Vec3_Mul_Scal(&reculer, -1);
         Vec3_Add(&deplacement, reculer);
 
-        player->robot->angleJambeDroite = t;
-        player->robot->angleJambeGauche = t - M_PI;
+        if (player->camMode != CAMERAMODE_FREE)
+        {
+            player->robot->angleJambeDroite = t;
+            player->robot->angleJambeGauche = t - M_PI;
+        }
 
         t -= 0.05;
     }
@@ -129,7 +135,7 @@ void buildMatrix(Player* player) {
     {
         rotate        (player->mondeToCam, player->angleX, player->angleY , 0);
         translateByVec(player->mondeToCam, Vec3_Mul_Scal_out(player->posRobot, -1));
-//        rotate        (player->mondeToCam, 0, -180 , 0);
+        //rotate        (player->mondeToCam, 0, -180 , 0);
     }
 
 	if (player->camMode != CAMERAMODE_FREE)
@@ -190,10 +196,16 @@ void Player_keyEvent(Player* player, SDL_KeyboardEvent keyEv) {
     }
 }
 
-void Player_mouseEvent(Player* player, float dPhi, float dTheta) {
+void Player_mouseMotionEvent(Player* player, float dPhi, float dTheta) {
 
     player->angleY += dPhi * 0.1;
     player->angleX += dTheta * 0.1;
+}
+
+void Player_mouseButtonEvent(Player* player, SDL_MouseButtonEvent ev) {
+
+    if (player && ev.button) {}
+
 }
 
 void Player_update(Player* player) {

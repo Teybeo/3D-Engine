@@ -7,7 +7,7 @@
 #include <GL/gl.h>
 #include <math.h>
 
-#define TAU 6.283185307179586476925286766559
+
 
 #include "SDL_events.h"
 
@@ -45,11 +45,13 @@ typedef struct Player {
 	Vec3 posRobot;
 	Vec3 posCam;
 	Vec3 position;
+
 } Player;
 
 Player Player_init(Robot* robotMatrix);
 void Player_update(Player* player);
-void Player_mouseEvent(Player* player, float dPhi, float dTheta);
+void Player_mouseMotionEvent(Player* player, float dPhi, float dTheta);
+void Player_mouseButtonEvent(Player* player, SDL_MouseButtonEvent ev);
 void Player_keyEvent(Player* player, SDL_KeyboardEvent ev);
 
 

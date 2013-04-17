@@ -6,11 +6,15 @@
 #include "light.h"
 #include "instance.h"
 #include "player.h"
+#include "particule.h"
+#include "collision.h"
 
 #include <stdbool.h>
 
 #include "SDL.h"
 #include "glew.h"
+
+#define NB 10000
 
 typedef struct App {
 
@@ -28,7 +32,8 @@ typedef struct App {
     Instance objects[10000];
     InstanceGroupe objectGroupe;
     Instance skybox;
-    Light halogene[10];
+    Light lampe[10];
+    Particule* balle;
 
 } App;
 

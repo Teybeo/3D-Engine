@@ -4,13 +4,14 @@
 #include "matrix.h"
 #include "vec3.h"
 #include "vec2.h"
-    static GLuint activeProgram = -1;
-    static GLuint activeVAO = -1;
-    static GLuint activeTexture = -1;
 
-    static GLuint modelWorldLoc = -1;
-    static GLuint worldCamLoc = -1;
-    static GLuint camClipLoc = -1;
+static GLuint activeProgram = -1;
+static GLuint activeVAO = -1;
+static GLuint activeTexture = -1;
+
+static GLuint modelWorldLoc = -1;
+static GLuint worldCamLoc = -1;
+static GLuint camClipLoc = -1;
 
 void Instance_Draw(Instance object, float* mondeToCam, float* camToClip) {
 
@@ -34,7 +35,6 @@ void Instance_Draw(Instance object, float* mondeToCam, float* camToClip) {
         glBindTexture(GL_TEXTURE_2D, object.texture);
         activeTexture = object.texture;
     }
-
 
     glUniformMatrix4fv(modelWorldLoc, 1, GL_TRUE, object.matrix);
 
