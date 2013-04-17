@@ -4,11 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <GL/glu.h>
-
-#include "fenetre.h"
-
-Particule initParticule(int rayon, float elasticite, float masse) {
+Particule Particule_Init(int rayon, float elasticite, float masse) {
 
     Particule balle = {};
 
@@ -19,7 +15,7 @@ Particule initParticule(int rayon, float elasticite, float masse) {
     return balle;
 }
 
-void integreParticule(Particule* const balle, float facteur) {
+void Particule_Integre(Particule* const balle, float facteur) {
 
     Vec3 accelerationFinale = balle->forceAccum; // On récupère les forces reçues pendant ce cycle
     accelerationFinale.y += (-.5 * facteur); // On y ajoute la gravité
@@ -32,21 +28,7 @@ void integreParticule(Particule* const balle, float facteur) {
 
 }
 
-void dessineParticule(Particule balle) {
-    if (balle.rayon) {}
-//    glPushMatrix();
-//
-//        glTranslatef(balle.position.x, balle.position.y, balle.position.z);
-//        GLUquadric* params = gluNewQuadric();
-//        gluQuadricDrawStyle(params, GLU_FILL);
-//
-//        gluSphere(params, balle.rayon, 20, 20);
-//
-//    glPopMatrix();
-
-}
-
-void ajouteForceRand(Particule* const balle, bool randAngle, bool randMagnitude) {
+void Particule_AjouteForceRand(Particule* const balle, bool randAngle, bool randMagnitude) {
 
     float angle = 0, magnitude = 0;
 
@@ -56,34 +38,32 @@ void ajouteForceRand(Particule* const balle, bool randAngle, bool randMagnitude)
     if (randMagnitude == true)
         magnitude = 1 + (rand() % 2000)*0.01;
 
-    ajouteForce(balle, angle, magnitude);
+    Particule_AjouteForce(balle, angle, magnitude);
 
 }
 
-void ajouteForce(Particule* a, float angle, float magnitude) {
+void Particule_AjouteForce(Particule* a, float angle, float magnitude) {
 
     a->forceAccum.x += cos(angle)*magnitude;
     a->forceAccum.y += sin(angle)*magnitude;
 }
 
-void setPosition(Particule*a, float x, float y, float z) {
+void Particule_SetPosition(Particule*a, float x, float y, float z) {
 
-    a->position.x = x;
-    a->position.y = y;
-    a->position.z = z;
+    setVec3(&a->position, x, y, z);
 }
 
-void setMasse(Particule*a, float masse) {
+void Particule_SetMasse(Particule*a, float masse) {
 
     a->masse = masse;
 }
 
-void setRayon(Particule*a, float rayon) {
+void Particule_SetRayon(Particule*a, float rayon) {
 
     a->rayon = rayon;
 }
 
-void afficheParticule(Particule balle) {
+void Particule_Debug(Particule balle) {
 
     puts("   Position         Vitesse        Acceleration");
     printf("%.2f %.2f   %.4f %.4f   %.4f %.4f\n", balle.position.x, balle.position.y,

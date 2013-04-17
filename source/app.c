@@ -362,7 +362,7 @@ void calcule(Particule* balle, float duree, bool const pause) {
         }
 
         for (i = 0; i < NB; i++)
-            integreParticule(&balle[i], duree);
+            Particule_Integre(&balle[i], duree);
 
     }
 }
@@ -377,13 +377,13 @@ Particule* initGroupeParticule(int nombre) {
     for (i = 0 ; i < nombre ; i++ )
     {
 
-        balle[i] = initParticule(7, 0.8, 10+i%12);
-        //ajouteForceRand(&balle[i], true, true);
-        //setPosition(&balle[i], (-FEN_L/2) + rand() % FEN_L, (-FEN_H/2) + rand() % FEN_H);
+        balle[i] = Particule_Init(7, 0.8, 10+i%12);
+        //Particule_AjouteForceRand(&balle[i], true, true);
+        //Particule_SetPosition(&balle[i], (-FEN_L/2) + rand() % FEN_L, (-FEN_H/2) + rand() % FEN_H);
 
         do {
 
-            setPosition(&balle[i], MUR_GAUCHE + rand() % (abs(MUR_GAUCHE)+MUR_DROIT), rand() % MUR_HAUT, MUR_ARRIERE + rand() % (abs(MUR_ARRIERE)+MUR_AVANT));
+            Particule_SetPosition(&balle[i], MUR_GAUCHE + rand() % (abs(MUR_GAUCHE)+MUR_DROIT), rand() % MUR_HAUT, MUR_ARRIERE + rand() % (abs(MUR_ARRIERE)+MUR_AVANT));
 
             superposition = false; // On suppose qu'on l'a bien placé
 

@@ -14,7 +14,7 @@
 #include "SDL.h"
 #include "glew.h"
 
-#define NB 10000
+#define NB 100
 
 typedef struct App {
 

@@ -6,8 +6,6 @@
 #include "instance.h"
 #include "vec3.h"
 
-typedef struct SDL_Surface SDL_Surface;
-
 typedef struct Particule {
 
     Vec3 position;
@@ -22,19 +20,18 @@ typedef struct Particule {
 
 } Particule;
 
-void afficheParticule(Particule);
+Particule Particule_Init(int rayon, float elasticite, float masse);
 
-Particule initParticule(int rayon, float elasticite, float masse);
-void ajouteForce(Particule* a, float angle, float magnitude);
-void ajouteForceRand(Particule* const balle, bool randAngle, bool randMagnitude);
-void setPosition(Particule*a, float x, float y, float z);
-void setMasse(Particule*a, float masse);
-void setRayon(Particule*a, float rayon);
+void Particule_Integre(Particule* const balle, float facteur);
 
-void integreParticule(Particule* const balle, float facteur);
+void Particule_AjouteForce(Particule* a, float angle, float magnitude);
+void Particule_AjouteForceRand(Particule* const balle, bool randAngle, bool randMagnitude);
 
-void dessineParticule(Particule balle);
+void Particule_SetPosition(Particule*a, float x, float y, float z);
+void Particule_SetMasse(Particule*a, float masse);
+void Particule_SetRayon(Particule*a, float rayon);
 
+void Particule_Debug(Particule);
 
 #endif // Particule
 
