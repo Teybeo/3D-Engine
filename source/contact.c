@@ -26,13 +26,13 @@ void CollisionResolver_Resolve(ElemContact* tetepile) {
 
         Vec3 impulsionB = impulsionA;
 
-        // En dessous d'un certain seuil de vitesse verticale, on annule l'élasticité pour réduire les instabilités
+        // En dessous d'un certain seuil de vitesse, on annule l'élasticité pour réduire les instabilités
         float coeffA = a->coeffRebond, coeffB = b->coeffRebond;
-        if (abs(a->vitesse.y) + abs(a->vitesse.x) + abs(a->vitesse.z) < 0.001)
-            coeffA = 0;
-
-        if (abs(b->vitesse.y) + abs(b->vitesse.x) + abs(b->vitesse.z) < 0.001)
-            coeffB = 0;
+//        if (abs(a->vitesse.y) + abs(a->vitesse.x) + abs(a->vitesse.z) < 0.001)
+//            coeffA = 0;
+//
+//        if (abs(b->vitesse.y) + abs(b->vitesse.x) + abs(b->vitesse.z) < 0.001)
+//            coeffB = 0;
 
         Vec3_Mul_Scal(&impulsionA, (1 + coeffA) / a->masse);
         Vec3_Mul_Scal(&impulsionB, (1 + coeffB) / b->masse);

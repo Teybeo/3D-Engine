@@ -8,20 +8,14 @@
 #include "player.h"
 #include "particule.h"
 #include "collision.h"
+#include "sphere.h"
 
 #include <stdbool.h>
 
 #include "SDL.h"
 #include "glew.h"
 
-#define NB 1000
-
-typedef struct Sphere {
-
-    CollisionSphere collisionData;
-    Instance instance;
-
-} Sphere;
+#define NB_MAX 100
 
 typedef struct App {
 
@@ -40,7 +34,7 @@ typedef struct App {
     InstanceGroupe objectGroupe;
     Instance skybox;
     Light lampe[10];
-    Sphere* balle;
+    SphereGroupe sphereGroupe;
 
 } App;
 

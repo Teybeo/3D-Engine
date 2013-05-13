@@ -149,8 +149,8 @@ void buildMatrix(Player* player) {
         // Comme pour le placement de la caméra, les transformations sont inversées
         if (player->camMode == CAMERAMODE_FIRST_PERSON)
 		{
-			translate(player->mondeToCam, 0, -8, 0);
-			translateByVec(player->mondeToCam, Vec3_Mul_Scal_out(player->frontalVec, -2));
+			translate(player->mondeToCam, 0, -11, 0);
+			translateByVec(player->mondeToCam, Vec3_Mul_Scal_out(player->frontalVec, -4));
 		}
 	    else if (player->camMode == CAMERAMODE_THIRD_PERSON )
 		{

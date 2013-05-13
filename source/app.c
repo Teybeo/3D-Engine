@@ -12,8 +12,7 @@
 #include "texture.h"
 #include "listeContact.h"
 
-Sphere* initGroupeSphere(int nombre);
-void calcule(Sphere* balle, CollisionSphere* robot, float duree, bool const pause);
+void calcule(CollisionSphere* balle, int nb, CollisionSphere* robot, float duree, bool const pause);
 
 void App_Draw(App* app) {
 
@@ -66,15 +65,13 @@ void App_Draw(App* app) {
     for (i = 0 ; i < 6 ; i++ )
         Instance_Draw(app->lampe[i].instance, app->player.mondeToCam, app->fenetre.camToClip);
 
-    for (i = 0 ; i < NB ; i++ )
-    {
-        loadIdentity(app->balle[i].instance.matrix);
-        translateByVec(app->balle[i].instance.matrix, app->balle[i].collisionData.particule.position);
-        scale(app->balle[i].instance.matrix, app->balle[i].collisionData.rayon, app->balle[i].collisionData.rayon, app->balle[i].collisionData.rayon);
-        Instance_Draw(app->balle[i].instance, app->player.mondeToCam, app->fenetre.camToClip);
-    }
+    SphereGroupe_Draw(app->sphereGroupe, app->player.mondeToCam, app->fenetre.camToClip);
+
+//    for (i = 0 ; i < app->nb ; i++ )
+//        Sphere_Draw(app->balle[i], app->player.mondeToCam, app->fenetre.camToClip);
 
     SDL_GL_SwapWindow(app->fenetre.ecran);
+
 //    getchar();
 //    }
 
@@ -141,7 +138,7 @@ void App_Logic(App* app, float duree) {
 
     app->robot.collisionSphere.particule.position = app->player.posRobot;
 
-    calcule(app->balle, &app->robot.collisionSphere, duree*0.01, false);
+    calcule(app->sphereGroupe.collisionData, app->sphereGroupe.nbSpheres, &app->robot.collisionSphere, duree*0.01, false);
 
     t += 0.01;
 }
@@ -152,8 +149,6 @@ bool App_Init(App* app) {
         printf("Erreur au chargement de SDL2 '%s'\n", SDL_GetError());
         return false;
     }
-
-//    printf("%s\n", SDL_GetError());
 
     if (initFenetre(&app->fenetre) == false)
         return false;
@@ -277,32 +272,28 @@ bool App_Init(App* app) {
 
 //////////// BALLES
 
-    app->balle = initGroupeSphere(NB);
-    Instance balle = Instance_Create(sphere, app->texPerFragmentDiffuseProgram, solTexture);
+    Model* sphereModel = Model_Load(MODEL_OBJ, "../models/sphere.obj");
+    if (sphereModel == NULL)
+        return false;
 
-    for (i = 0 ; i < NB ; i++ )
-    {
-        loadIdentity(app->balle[i].instance.matrix);
-        app->balle[i].instance = balle;
-        app->balle[i].collisionData.rayon = 2;
-    }
+    app->sphereGroupe = SphereGroupe_Create(NB_MAX, sphereModel, app->texPerFragmentDiffuseProgram, solTexture);
 
     return true;
 
 }
 
-void calcule(Sphere* balle, CollisionSphere* robot, float duree, bool const pause) {
+void calcule(CollisionSphere* balle, int nb, CollisionSphere* robot, float duree, bool const pause) {
 
     Contact* contact = NULL;
     ElemContact* pile = NULL;
-    int nbObjects = NB + 1;
+    int nbObjects = nb;// + 1;
 
     CollisionSphere** objet = malloc(sizeof(CollisionSphere*) * nbObjects );
 
     int i;
-    for (i = 0 ; i < nbObjects - 1 ; i++ )
-        objet[i] = &balle[i].collisionData;
-    objet[i] = robot;
+    for (i = 0 ; i < nbObjects ; i++ )
+        objet[i] = &balle[i];
+//    objet[i] = robot;
 
     if (pause == false) {
 
@@ -331,46 +322,6 @@ void calcule(Sphere* balle, CollisionSphere* robot, float duree, bool const paus
     }
 
     liberePileContact(pile);
-}
-
-Sphere* initGroupeSphere(int nombre) {
-
-    Sphere* balle = calloc(nombre, sizeof(Sphere));
-
-    int i, j;
-    bool superposition = false;
-
-    for (i = 0 ; i < nombre ; i++ )
-    {
-
-        balle[i].collisionData.particule = Particule_Init(0.8, 10 + i % 12);
-        Particule_AjouteForceRand(&balle[i].collisionData.particule, true, true);
-//        Particule_SetPosition(&balle[i], (-FEN_L/2) + rand() % FEN_L, (-FEN_H/2) + rand() % FEN_H);
-//        Particule_SetPosition(&balle[0].collisionData.particule, -5, 0, 0);
-//        Particule_SetPosition(&balle[1].collisionData.particule, -5, 0, 1);
-//        balle[1].collisionData.particule.vitesse.z = -1;
-
-        do {
-
-            Particule_SetPosition(&balle[i].collisionData.particule, MUR_GAUCHE + rand() % (abs(MUR_GAUCHE)+MUR_DROIT), rand() % MUR_HAUT, MUR_ARRIERE + rand() % (abs(MUR_ARRIERE)+MUR_AVANT));
-
-            superposition = false; // On suppose qu'on l'a bien placé
-
-            for (j = 0 ; j < nombre ; j++ ) // On verifie pour chaque balle
-
-                if (i != j && CollisionGenerator_AreCollidingSphere(balle[i].collisionData, balle[j].collisionData) == true)
-                {
-                    superposition = true; // Il y a un problème
-                    break;
-                }
-
-
-        } while (superposition == true); // Si un problème on recommence
-
-    }
-
-    return balle;
-
 }
 
 void App_Event(App* app) {
@@ -414,6 +365,26 @@ void App_Event(App* app) {
     case SDL_MOUSEBUTTONDOWN:
 
         Player_mouseButtonEvent(&app->player, ev.button);
+
+        if (ev.button.button == SDL_BUTTON_LEFT) {
+
+            float angleY = (app->player.angleY) * M_PI/180;
+            float angleX = (app->player.angleX) * M_PI/180;
+
+            Vec3 direction = {};
+
+            direction.x =  sin(angleY) * cos(angleX);
+            direction.y = -sin(angleX);
+            direction.z = -cos(angleY) * cos(angleX);
+            Vec3_Mul_Scal(&direction, 10);
+
+            Vec3 pos = app->player.posRobot;
+            printf("Pos %f %f %f\n", pos.x, pos.y, pos.z);
+            Vec3_Add(&pos, direction);
+            pos.y += 11;
+            Sphere_Add(&app->sphereGroupe, pos, direction);
+
+        }
 
         break;
 

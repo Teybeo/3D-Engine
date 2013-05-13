@@ -23,10 +23,28 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-march=corei7" />
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Profile">
+				<Option output="bin/Profile/Robot" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin" />
+				<Option object_output="obj/Profile/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-march=corei7" />
+					<Add option="-O3" />
+					<Add option="-pg" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
 				</Linker>
 			</Target>
 		</Build>
@@ -52,6 +70,7 @@
 		<Unit filename="header/player.h" />
 		<Unit filename="header/robot.h" />
 		<Unit filename="header/shader.h" />
+		<Unit filename="header/sphere.h" />
 		<Unit filename="header/texture.h" />
 		<Unit filename="header/vec2.h" />
 		<Unit filename="header/vec3.h" />
@@ -116,6 +135,9 @@
 		<Unit filename="source/shaders/texPerVertexDiffuse.vert" />
 		<Unit filename="source/shaders/texture.frag" />
 		<Unit filename="source/shaders/texture.vert" />
+		<Unit filename="source/sphere.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="source/texture.c">
 			<Option compilerVar="CC" />
 		</Unit>
