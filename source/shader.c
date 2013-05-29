@@ -9,29 +9,20 @@ char* chargerSource(const char *filename);
 
 bool createProgram(unsigned int* program, int vert, int frag) {
 
+    printf("Linkage des shaders %d et %d...", vert, frag);
+
     *program = glCreateProgram();
     glAttachShader(*program, vert);
     glAttachShader(*program, frag);
     glLinkProgram(*program);
 
-    int link_status = true;
-
-    glGetProgramiv(*program, GL_LINK_STATUS, &link_status);
-
-    if (link_status == GL_TRUE)
-        fprintf(stderr, "Linkage reussi\n");
-
     // On récupère la taille du log du linkage */
     GLsizei logsize = 0;
     glGetProgramiv(*program, GL_INFO_LOG_LENGTH, &logsize);
 
-    // Aucun message, on considère que le link est OK (sur ?)
-    if (logsize == 0)
+    // Si messages de link, le linkage est traité comme raté
+    if (logsize != 0)
     {
-        fprintf(stderr, "Aucun log de linkage\n");
-    }
-    else {
-
         char *log = malloc(logsize + 1);
         if (log == NULL)
         {
@@ -53,20 +44,14 @@ bool createProgram(unsigned int* program, int vert, int frag) {
         return false;
     }
 
-    glValidateProgram(*program);
-    int validate_status;
-    glGetProgramiv(*program, GL_VALIDATE_STATUS, &validate_status);
+    puts("Ok");
 
-    if (validate_status == GL_FALSE)
-        fprintf(stderr, "Programme invalide\n");
+    glValidateProgram(*program);
 
     glGetProgramiv(*program, GL_INFO_LOG_LENGTH, &logsize);
-    if (logsize == 0)
-    {
-        fprintf(stderr, "Aucun log de validation\n");
-    }
-    else {
 
+    if (logsize != 0)
+    {
         char *log = malloc(logsize + 1);
         if (log == NULL)
         {
@@ -78,21 +63,18 @@ bool createProgram(unsigned int* program, int vert, int frag) {
 
         // On récupère et on affiche le message
         glGetProgramInfoLog(*program, logsize, &logsize, log);
+
         fprintf(stderr, "%s", log);
 
         free(log);
     }
-//    int nb_uniforms;
-
-//    glGetProgramiv(*program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &nb_uniforms);
-//    fprintf(stderr, "Uniforms actifs: %d\n", nb_uniforms);
-
-//    glUseProgram(*program);
 
     return true;
-
 }
+
 bool initShader(int* shaderID, GLenum type, const char* chemin) {
+
+    printf("Compilation de '%s'...", chemin);
 
     *shaderID = glCreateShader(type);
     if (shaderID == NULL) {
@@ -100,40 +82,24 @@ bool initShader(int* shaderID, GLenum type, const char* chemin) {
         return false;
     }
 
-    char* source1 = chargerSource(chemin);
-    if (source1 == NULL)
-        return false;
-    char source2[50] = "";
-//    sprintf(source2, "#define NB_CUBES %d\n", NB_CUBES);
-    const char *sources[2] = {source2, source1};
+    char* source = chargerSource(chemin);
 
-//    glShaderSource(*shaderID, 1, (const char**)&source, NULL);
-    glShaderSource(*shaderID, 2, sources, NULL);
+    if (source == NULL)
+        return false;
+
+    glShaderSource(*shaderID, 1, (const char**)&source, NULL);
 
     glCompileShader(*shaderID);
 
-    free(source1);
-
-    GLint compile_status = GL_TRUE;
-
-    // Vérification du succès de la compilation
-    glGetShaderiv(*shaderID, GL_COMPILE_STATUS, &compile_status);
-
-    if(compile_status == GL_TRUE)
-        fprintf(stderr, "Compilation reussie\n");
+    free(source);
 
     // On récupère la taille du log de la compilation */
     GLsizei logsize = 0;
     glGetShaderiv(*shaderID, GL_INFO_LOG_LENGTH, &logsize);
 
-    // Aucun message, on considère que la compil est OK (sur ?)
-    if (logsize == 0)
+    // Si messages de compil, la compil est traitée comme ratée
+    if (logsize != 0)
     {
-        fprintf(stderr, "Aucun log de compilation\n");
-        return true;
-    }
-    else {
-
         char *log = malloc(logsize + 1);
         if (log == NULL)
         {
@@ -155,12 +121,16 @@ bool initShader(int* shaderID, GLenum type, const char* chemin) {
         return false;
     }
 
+    puts("Ok");
+
     return true;
 
 }
 
 
 bool initProgram(GLuint* program, const char* vertexShaderFile, const char* fragmentShaderFile) {
+
+    puts("\n----------- Shader ---------------------");
 
     GLint vertexShader, fragShader;
     if (initShader(&vertexShader, GL_VERTEX_SHADER, vertexShaderFile) == false)

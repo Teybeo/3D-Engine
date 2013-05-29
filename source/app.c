@@ -202,7 +202,7 @@ bool App_Init(App* app) {
     if ((stoneTexture = chargerTexture("../images/stone.bmp", GL_NEAREST)) == 0)
         return false;
 
-    if ((solTexture = chargerTexture("../images/floor.bmp", GL_LINEAR)) == 0)
+    if ((solTexture = chargerTexture("../images/cyclopean.jpg", GL_LINEAR)) == 0)
         return false;
 
     Model* carre = Model_Load(MODEL_CARRE_TEX_NORM, NULL);

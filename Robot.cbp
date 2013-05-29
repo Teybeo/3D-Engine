@@ -33,7 +33,9 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add directory="header" />
+			<Add directory="header/SDL2_image" />
 		</Compiler>
+			<Add library="SDL2_image" />
 		<Unit filename="header/app.h" />
 		<Unit filename="header/carre.h" />
 		<Unit filename="header/cube.h" />

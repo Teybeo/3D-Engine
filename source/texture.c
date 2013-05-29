@@ -3,15 +3,24 @@
 #include "glew.h"
 
 #include "SDL.h"
+#include "SDL_image.h"
 
 SDL_Surface* inverserPixels(SDL_Surface *src);
 
 GLuint chargerTexture(const char* filename, GLenum filter) {
 
-    SDL_Surface* raw = SDL_LoadBMP(filename);
+    puts("\n----------- Texture -------");
+    printf("Loading '%s' ... ", filename);
+
+    SDL_Surface* raw = NULL;
+    raw = SDL_LoadBMP(filename);
+
+    if (raw == NULL)
+        raw = IMG_Load(filename);
+
     if (raw == NULL)
     {
-        fprintf(stderr, "Erreur ouverture du fichier '%s'\n", filename);
+        puts("Error");
         return 0;
     }
 
@@ -42,7 +51,7 @@ GLuint chargerTexture(const char* filename, GLenum filter) {
     }
     else {
 
-        printf("Format d'image non supporté pour '%s'\n", filename);
+        printf("Format d'image non supporté\n");
 
         return -1;
     }
@@ -64,6 +73,8 @@ GLuint chargerTexture(const char* filename, GLenum filter) {
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    puts("Ok");
 
     return texture;
 }
