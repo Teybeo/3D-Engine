@@ -29,8 +29,6 @@ typedef struct Model {
 
 Model* Model_Load(int type, const char* filename);
 void Model_Draw(Model* model);
-//void Model_SetTexture(Model* model, GLuint texture);
-//void Model_SetProgram(Model* model, GLuint program);
 
 #endif // MODEL
 

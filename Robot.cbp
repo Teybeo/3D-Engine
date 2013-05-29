@@ -23,38 +23,74 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-march=corei7" />
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Profile">
+				<Option output="bin/Profile/Robot" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin" />
+				<Option object_output="obj/Profile/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-march=corei7" />
+					<Add option="-O3" />
+					<Add option="-pg" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 			<Add directory="header" />
-			<Add directory="header/SDL2_image" />
+            <Add directory="header/SDL2_image" />
+			<Add directory="header/SDL2" />
 		</Compiler>
+		<Linker>
+			<Add library="glew32" />
+			<Add library="SDL2" />
+			<Add library="opengl32" />
 			<Add library="SDL2_image" />
+			<Add directory="bin" />
+		</Linker>
 		<Unit filename="header/app.h" />
 		<Unit filename="header/carre.h" />
+		<Unit filename="header/collision.h" />
+		<Unit filename="header/contact.h" />
 		<Unit filename="header/cube.h" />
 		<Unit filename="header/fenetre.h" />
 		<Unit filename="header/gl_debug.h" />
 		<Unit filename="header/instance.h" />
 		<Unit filename="header/light.h" />
 		<Unit filename="header/liste.h" />
+		<Unit filename="header/listeContact.h" />
 		<Unit filename="header/matrix.h" />
 		<Unit filename="header/model.h" />
 		<Unit filename="header/objLoader.h" />
+		<Unit filename="header/particule.h" />
 		<Unit filename="header/player.h" />
 		<Unit filename="header/robot.h" />
 		<Unit filename="header/shader.h" />
+		<Unit filename="header/sphere.h" />
 		<Unit filename="header/texture.h" />
 		<Unit filename="header/vec2.h" />
 		<Unit filename="header/vec3.h" />
 		<Unit filename="header/vec4.h" />
 		<Unit filename="source/app.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/collision.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/contact.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/fenetre.c">
@@ -72,6 +108,9 @@
 		<Unit filename="source/liste.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="source/listeContact.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="source/main.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -82,6 +121,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/objLoader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/particule.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/player.c">
@@ -102,6 +144,9 @@
 		<Unit filename="source/shaders/texPerVertexDiffuse.vert" />
 		<Unit filename="source/shaders/texture.frag" />
 		<Unit filename="source/shaders/texture.vert" />
+		<Unit filename="source/sphere.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="source/texture.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -118,7 +163,7 @@
 			<code_completion />
 			<envvars />
 			<debugger />
-			<lib_finder>
+			<lib_finder disable_auto="1">
 				<lib name="SDL2" />
 				<lib name="Glew" />
 				<lib name="OpenGL" />

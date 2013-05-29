@@ -10,6 +10,9 @@
 #include "SDL.h"
 #include "glew.h"
 #include "texture.h"
+#include "listeContact.h"
+
+void calcule(CollisionSphere* balle, int nb, CollisionSphere* robot, float duree, bool const pause);
 
 void App_Draw(App* app) {
 
@@ -36,9 +39,9 @@ void App_Draw(App* app) {
         {
             char name[50] = "";
             sprintf(name, "lightPos[%d]", i);
-            glUniform3fv(glGetUniformLocation(app->instanceTexPerFragmentDiffuseProgram, name), 1, &app->halogene[i].pos.x);
+            glUniform3fv(glGetUniformLocation(app->instanceTexPerFragmentDiffuseProgram, name), 1, &app->lampe[i].pos.x);
             sprintf(name, "lightColor[%d]", i);
-            glUniform3fv(glGetUniformLocation(app->instanceTexPerFragmentDiffuseProgram, name), 1, &app->halogene[i].color.x);
+            glUniform3fv(glGetUniformLocation(app->instanceTexPerFragmentDiffuseProgram, name), 1, &app->lampe[i].color.x);
         }
     glUseProgram(0);
     glUseProgram(app->texPerFragmentDiffuseProgram);
@@ -46,83 +49,70 @@ void App_Draw(App* app) {
         {
             char name[50] = "";
             sprintf(name, "lightPos[%d]", i);
-            glUniform3fv(glGetUniformLocation(app->texPerFragmentDiffuseProgram, name), 1, &app->halogene[i].pos.x);
+            glUniform3fv(glGetUniformLocation(app->texPerFragmentDiffuseProgram, name), 1, &app->lampe[i].pos.x);
             sprintf(name, "lightColor[%d]", i);
-            glUniform3fv(glGetUniformLocation(app->texPerFragmentDiffuseProgram, name), 1, &app->halogene[i].color.x);
+            glUniform3fv(glGetUniformLocation(app->texPerFragmentDiffuseProgram, name), 1, &app->lampe[i].color.x);
         }
     glUseProgram(0);
 
-    InstanceGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
+//    InstanceGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
 
-//        loadIdentity(app->robot.matrix);
-//        translate(app->robot.matrix, 20, 0, 0);
-//    memcpy(app->robot.matrix, app->player.robot, 16*4);
-//    for (i = 0 ; i < 16 ; i++ )
-//        app->robot.matrix[i] = app->player.robotMat[i];
     Robot_draw(&app->robot, app->player.mondeToCam, app->fenetre.camToClip);
 
-//    for (i = 0 ; i < 1 ; i++ )
-//    {
-//        loadIdentity(app->robot.matrix);
-//        translate(app->robot.matrix, 0.1*i*cos(i), 0, 0.1*i*sin(i));
-//        drawRobot(&app->robot, app->cam.mondeToCam, app->fenetre.camToClip);
-//    }
-//
     for (i = 0 ; i < 1 ; i++ )
         Instance_Draw(app->objects[i], app->player.mondeToCam, app->fenetre.camToClip);
 
     for (i = 0 ; i < 6 ; i++ )
-        Instance_Draw(app->halogene[i].instance, app->player.mondeToCam, app->fenetre.camToClip);
+        Instance_Draw(app->lampe[i].instance, app->player.mondeToCam, app->fenetre.camToClip);
+
+    SphereGroupe_Draw(app->sphereGroupe, app->player.mondeToCam, app->fenetre.camToClip);
+
+//    for (i = 0 ; i < app->nb ; i++ )
+//        Sphere_Draw(app->balle[i], app->player.mondeToCam, app->fenetre.camToClip);
 
     SDL_GL_SwapWindow(app->fenetre.ecran);
+
 //    getchar();
 //    }
 
 }
 
 
-void App_Logic(App* app) {
-
-//    Camera_computeVectors(&app->cam);
-//    Camera_move(&app->cam);
-
-//    Robot_move(&app->robot);
-
-//    Camera_computeMatrix(&app->cam, &app->robot, app->robot.pos);
+void App_Logic(App* app, float duree) {
 
     Player_update(&app->player);
 
     static float t = 0;
 
-    app->halogene[0].pos.x = -300 + 20*sin(t);
-    app->halogene[0].pos.z = 20*cos(t);
-    app->halogene[0].pos.y = 30;
+    app->lampe[0].pos.x = -300 + 20*sin(t);
+    app->lampe[0].pos.z = 20*cos(t);
+    app->lampe[0].pos.y = 30;
 
-    app->halogene[1].pos.x = 200+(20*cos(t));
-    app->halogene[1].pos.z = 0;
-    app->halogene[1].pos.y = 30 + 20*sin(t*0.01);
+    app->lampe[1].pos.x = 200+(20*cos(t));
+    app->lampe[1].pos.z = 0;
+    app->lampe[1].pos.y = 30 + 20*sin(t*0.01);
 
-    app->halogene[2].pos.x = 200*(cos(t+3));
-    app->halogene[2].pos.z = 20+20 * sin(t+3);
-    app->halogene[2].pos.y = 35;
+    app->lampe[2].pos.x = 200*(cos(t+3));
+    app->lampe[2].pos.z = 20+20 * sin(t+3);
+    app->lampe[2].pos.y = 35;
 
-    app->halogene[3].pos.x = 60;
-    app->halogene[3].pos.z = 300 + 20*cos(t+.5);
-    app->halogene[3].pos.y = 30 + 20*sin(t*0.5);
+    app->lampe[3].pos.x = 60;
+    app->lampe[3].pos.z = 300 + 20*cos(t+.5);
+    app->lampe[3].pos.y = 30 + 20*sin(t*0.5);
 
-    app->halogene[4].pos.x = 60*cos(t+0.1);
-    app->halogene[4].pos.z = -400;
-    app->halogene[4].pos.y = 20 + 20*sin(t*0.1);
+    app->lampe[4].pos.x = 60*cos(t+0.1);
+    app->lampe[4].pos.z = -400;
+    app->lampe[4].pos.y = 20 + 20*sin(t*0.1);
 
-    app->halogene[5].pos.x = 50*cos(t+0.4);
-    app->halogene[5].pos.z = 50*sin(t+.6);
-    app->halogene[5].pos.y = 30 + 20*sin(t*0.8);
+    app->lampe[5].pos.x = 50*cos(t+0.4);
+    app->lampe[5].pos.z = 50*sin(t+.6);
+    app->lampe[5].pos.y = 30 + 20*sin(t*0.8);
 
     int i;
     for (i = 0 ; i < 6 ; i++ )
     {
-        loadIdentity(app->halogene[i].instance.matrix);
-        translate(app->halogene[i].instance.matrix, app->halogene[i].pos.x, app->halogene[i].pos.y, app->halogene[i].pos.z);
+        loadIdentity(app->lampe[i].instance.matrix);
+        translate(app->lampe[i].instance.matrix, app->lampe[i].pos.x, app->lampe[i].pos.y, app->lampe[i].pos.z);
     }
 
     for (i = 1 ; i < 100 ; i++ )
@@ -146,19 +136,19 @@ void App_Logic(App* app) {
 
     uploadMatrix(app->objectGroupe);
 
+    app->robot.collisionSphere.particule.position = app->player.posRobot;
+
+    calcule(app->sphereGroupe.collisionData, app->sphereGroupe.nbSpheres, &app->robot.collisionSphere, duree*0.01, false);
+
     t += 0.01;
 }
 
 bool App_Init(App* app) {
-    int var;
-    var = SDL_Init(SDL_INIT_VIDEO);
-            printf("init: %d\n", var);
-    if (var != 0) {
+
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         printf("Erreur au chargement de SDL2 '%s'\n", SDL_GetError());
         return false;
     }
-
-//    printf("%s\n", SDL_GetError());
 
     if (initFenetre(&app->fenetre) == false)
         return false;
@@ -187,9 +177,8 @@ bool App_Init(App* app) {
     if (initProgram(&app->texPerFragmentDiffuseProgram, "../source/shaders/texPerFragmentDiffuse.vert", "../source/shaders/texPerFragmentDiffuse.frag") == false)
         return false;
 
-/////////////////////
+///////////////////// ROBOT
 
-//    Camera_init(&app->cam, app->mainProgram);
     if (Robot_init(&app->robot, app->texPerFragmentDiffuseProgram) == false)
         return false;
 
@@ -216,6 +205,8 @@ bool App_Init(App* app) {
     scale(app->objects[0].matrix, 500, 1, 500);
     rotate(app->objects[0].matrix, -90, 0, 0);
 
+////////////////////  GROUPE D'INSTANCES SANS INSTACIATION GEOMETRIQUE
+
     Model* sphere = Model_Load(MODEL_OBJ , "../models/sphere.obj");
     if (sphere == NULL)
         return false;
@@ -235,7 +226,7 @@ bool App_Init(App* app) {
     }
     loadIdentity(app->objects[1].matrix);
 
-////////////////////////
+//////////////////////// GROUPE D'INSTANCES
 
     Model* cubeTexNorm = Model_Load(MODEL_OBJ , "../models/sphere.obj");
     if (cubeTexNorm == 0)
@@ -246,7 +237,7 @@ bool App_Init(App* app) {
 
     app->objectGroupe = InstanceGroupe_Create(cubeTexNorm, 50, app->instanceTexPerFragmentDiffuseProgram, stoneTexture);
 
-////////////////////////
+//////////////////////// SKYBOX
 
     if ((skyboxTexture = chargerTexture("../images/skybox.bmp", GL_NEAREST)) == 0)
         return false;
@@ -259,7 +250,7 @@ bool App_Init(App* app) {
     loadIdentity(app->skybox.matrix);
     scale(app->skybox.matrix, 5, 5, 5);
 
-////////////////
+//////////////// LUMIERES
 
     Model* lightBox = Model_Load(MODEL_OBJ, "../models/sphere.obj");
     if (lightBox == NULL)
@@ -268,24 +259,69 @@ bool App_Init(App* app) {
     Instance light = Instance_Create(lightBox, app->texPerFragmentDiffuseProgram, stoneTexture);
 
     for (i = 0 ; i < 10 ; i++ )
-        app->halogene[i].instance = light;
+        app->lampe[i].instance = light;
 
-    Light_SetPosColor(&app->halogene[0], (Vec3){-15, 2, 0}, (Vec3){0, 1, 0});
-    Light_SetPosColor(&app->halogene[1], (Vec3){15, 2, 0}, (Vec3){1, 0, 0});
-    Light_SetPosColor(&app->halogene[2], (Vec3){-25, 5, 15}, (Vec3){0, 0, 1});
-    Light_SetPosColor(&app->halogene[3], (Vec3){-15, 1, -15}, (Vec3){1, 1, 0});
-    Light_SetPosColor(&app->halogene[4], (Vec3){-15, 2, -10}, (Vec3){1, 0, 1});
-    Light_SetPosColor(&app->halogene[5], (Vec3){-15, 2, -60}, (Vec3){0, 1, 1});
-//    Light_SetPosColor(&app->halogene[7], (Vec3){-5, 2, 4}, (Vec3){0, 1, 1});
-//    Light_SetPosColor(&app->halogene[8], (Vec3){-15, 2, 80}, (Vec3){0, 0, 1});
-//    Light_SetPosColor(&app->halogene[9], (Vec3){-15, 2, -80}, (Vec3){1, 0, 1});
+    Light_SetPosColor(&app->lampe[0], (Vec3){-15, 2, 0}, (Vec3){0, 1, 0});
+    Light_SetPosColor(&app->lampe[1], (Vec3){15, 2, 0}, (Vec3){1, 0, 0});
+    Light_SetPosColor(&app->lampe[2], (Vec3){-25, 5, 15}, (Vec3){0, 0, 1});
+    Light_SetPosColor(&app->lampe[3], (Vec3){-15, 1, -15}, (Vec3){1, 1, 0});
+    Light_SetPosColor(&app->lampe[4], (Vec3){-15, 2, -10}, (Vec3){1, 0, 1});
+    Light_SetPosColor(&app->lampe[5], (Vec3){-15, 2, -60}, (Vec3){0, 1, 1});
 
     app->locProjMatrix = glGetUniformLocation(app->mainProgram, "camClip");
 
-////////////
+//////////// BALLES
+
+    Model* sphereModel = Model_Load(MODEL_OBJ, "../models/sphere.obj");
+    if (sphereModel == NULL)
+        return false;
+
+    app->sphereGroupe = SphereGroupe_Create(NB_MAX, sphereModel, app->texPerFragmentDiffuseProgram, solTexture);
 
     return true;
 
+}
+
+void calcule(CollisionSphere* balle, int nb, CollisionSphere* robot, float duree, bool const pause) {
+
+    Contact* contact = NULL;
+    ElemContact* pile = NULL;
+    int nbObjects = nb;// + 1;
+
+    CollisionSphere** objet = malloc(sizeof(CollisionSphere*) * nbObjects );
+
+    int i;
+    for (i = 0 ; i < nbObjects ; i++ )
+        objet[i] = &balle[i];
+//    objet[i] = robot;
+
+    if (pause == false) {
+
+        int i, j;
+
+        for (i = 0; i < nbObjects; i++) {
+
+            Particule_Integre(&objet[i]->particule, duree);
+            resoudCollisionCercleMur(objet[i]);
+
+            for (j = i + 1; j < nbObjects; j++) {
+
+                contact = CollisionGenerator_SphereSphere(objet[i], objet[j]);
+                if (contact != NULL)
+                {
+                    pile = empilerContact(pile, *contact);
+                    free(contact);
+                }
+
+            }
+
+        }
+
+        CollisionResolver_Resolve(pile);
+
+    }
+
+    liberePileContact(pile);
 }
 
 void App_Event(App* app) {
@@ -305,9 +341,8 @@ void App_Event(App* app) {
 
         if (app->fenetre.grab)
             Player_keyEvent(&app->player, ev.key);
-//            Camera_keyEvent(&app->cam, ev.key);
+
         majFenetreKeys(&app->fenetre, ev.key);
-//        Robot_keyEvent(&app->robot, ev.key);
 
         break;
 
@@ -315,20 +350,42 @@ void App_Event(App* app) {
 
         if (app->fenetre.grab)
             Player_keyEvent(&app->player, ev.key);
-//            Camera_keyEvent(&app->cam, ev.key);
+
         majFenetreKeys(&app->fenetre, ev.key);
-//        Robot_keyEvent(&app->robot, ev.key);
 
         break;
 
     case SDL_MOUSEMOTION:
 
         if (app->fenetre.grab)
-        {
-            Player_mouseEvent(&app->player, ev.motion.xrel, ev.motion.yrel);
-//            Camera_mouseEvent(&app->cam, ev.motion.xrel, ev.motion.yrel);
-//            Robot_mouseEvent(&app->robot, ev.motion.xrel, ev.motion.yrel);
+            Player_mouseMotionEvent(&app->player, ev.motion.xrel, ev.motion.yrel);
+
+        break;
+
+    case SDL_MOUSEBUTTONDOWN:
+
+        Player_mouseButtonEvent(&app->player, ev.button);
+
+        if (ev.button.button == SDL_BUTTON_LEFT) {
+
+            float angleY = (app->player.angleY) * M_PI/180;
+            float angleX = (app->player.angleX) * M_PI/180;
+
+            Vec3 direction = {};
+
+            direction.x =  sin(angleY) * cos(angleX);
+            direction.y = -sin(angleX);
+            direction.z = -cos(angleY) * cos(angleX);
+            Vec3_Mul_Scal(&direction, 10);
+
+            Vec3 pos = app->player.posRobot;
+            printf("Pos %f %f %f\n", pos.x, pos.y, pos.z);
+            Vec3_Add(&pos, direction);
+            pos.y += 11;
+            Sphere_Add(&app->sphereGroupe, pos, direction);
+
         }
+
         break;
 
     case SDL_WINDOWEVENT:
@@ -346,15 +403,17 @@ void App_Event(App* app) {
 void App_Run(App* app) {
 
     Uint32 debut = SDL_GetTicks();
+    float duree = 0;
 
     while (app->fenetre.arret == false) {
 
         App_Event(app);
-        App_Logic(app);
+        App_Logic(app, duree);
         App_Draw(app);
 
         char title[20] = "";
-        sprintf(title, "%u ms", SDL_GetTicks() - debut);
+        duree = SDL_GetTicks() - debut;
+        sprintf(title, "%.0f ms", duree);
         SDL_SetWindowTitle(app->fenetre.ecran, title);
 
         debut = SDL_GetTicks();

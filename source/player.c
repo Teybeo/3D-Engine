@@ -73,8 +73,11 @@ void applyVectors(Player* player) {
     {
         Vec3_Add(&deplacement, player->frontalVec);
 
-        player->robot->angleJambeDroite = t;
-        player->robot->angleJambeGauche = t - M_PI;
+        if (player->camMode != CAMERAMODE_FREE)
+        {
+            player->robot->angleJambeDroite = t;
+            player->robot->angleJambeGauche = t - M_PI;
+        }
 
         t += 0.05;
     }
@@ -86,8 +89,11 @@ void applyVectors(Player* player) {
         Vec3_Mul_Scal(&reculer, -1);
         Vec3_Add(&deplacement, reculer);
 
-        player->robot->angleJambeDroite = t;
-        player->robot->angleJambeGauche = t - M_PI;
+        if (player->camMode != CAMERAMODE_FREE)
+        {
+            player->robot->angleJambeDroite = t;
+            player->robot->angleJambeGauche = t - M_PI;
+        }
 
         t -= 0.05;
     }
@@ -106,6 +112,10 @@ void applyVectors(Player* player) {
         Vec3_Add(&deplacement, left);
     }
 
+    if (player->key[RALENTI])
+    {
+        Vec3_Mul_Scal(&deplacement, 0.1);
+    }
     if (player->camMode == CAMERAMODE_FREE)
         Vec3_Add(&player->posCam, deplacement);
     else
@@ -129,7 +139,7 @@ void buildMatrix(Player* player) {
     {
         rotate        (player->mondeToCam, player->angleX, player->angleY , 0);
         translateByVec(player->mondeToCam, Vec3_Mul_Scal_out(player->posRobot, -1));
-//        rotate        (player->mondeToCam, 0, -180 , 0);
+        //rotate        (player->mondeToCam, 0, -180 , 0);
     }
 
 	if (player->camMode != CAMERAMODE_FREE)
@@ -139,8 +149,8 @@ void buildMatrix(Player* player) {
         // Comme pour le placement de la caméra, les transformations sont inversées
         if (player->camMode == CAMERAMODE_FIRST_PERSON)
 		{
-			translate(player->mondeToCam, 0, -8, 0);
-			translateByVec(player->mondeToCam, Vec3_Mul_Scal_out(player->frontalVec, -2));
+			translate(player->mondeToCam, 0, -11, 0);
+			translateByVec(player->mondeToCam, Vec3_Mul_Scal_out(player->frontalVec, -4));
 		}
 	    else if (player->camMode == CAMERAMODE_THIRD_PERSON )
 		{
@@ -178,6 +188,9 @@ void Player_keyEvent(Player* player, SDL_KeyboardEvent keyEv) {
     case SDLK_d:
         player->key[DROITE] = keyEv.state;
         break;
+    case SDLK_LSHIFT:
+        player->key[RALENTI] = keyEv.state;
+        break;
 	case SDLK_c:
 		if (keyEv.type == SDL_KEYDOWN) {
 			player->camMode++;
@@ -190,10 +203,16 @@ void Player_keyEvent(Player* player, SDL_KeyboardEvent keyEv) {
     }
 }
 
-void Player_mouseEvent(Player* player, float dPhi, float dTheta) {
+void Player_mouseMotionEvent(Player* player, float dPhi, float dTheta) {
 
     player->angleY += dPhi * 0.1;
     player->angleX += dTheta * 0.1;
+}
+
+void Player_mouseButtonEvent(Player* player, SDL_MouseButtonEvent ev) {
+
+    if (player && ev.button) {}
+
 }
 
 void Player_update(Player* player) {
