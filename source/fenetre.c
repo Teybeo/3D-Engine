@@ -12,6 +12,9 @@
 #define FEN_L 1100
 #define FEN_H 750
 
+#define GL_MAJOR 3
+#define GL_MINOR 3
+
 void setPleinEcran(Fenetre* fen, bool pleinEcran);
 void grabMouse(Fenetre* fen, bool grabState);
 
@@ -24,8 +27,8 @@ bool initFenetre(Fenetre* fen) {
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 3);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 3);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2 );
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, GL_MINOR);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, GL_MAJOR);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
@@ -35,7 +38,7 @@ bool initFenetre(Fenetre* fen) {
     fen->ecran = SDL_CreateWindow("Vertex Sending", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, fen->largeur, fen->hauteur, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_GRABBED);
     if (fen->ecran == NULL)
     {
-        printf("La fenetre n'a pas pu etre creee: %s\n", SDL_GetError());
+        printf("La fenetre n'a pas pu etre creee\n");
         return false;
     }
 
@@ -47,6 +50,7 @@ bool initFenetre(Fenetre* fen) {
     if (contexte == NULL)
     {
         printf("Le contexte OpenGL n'a pas pu etre cree\n");
+        printf("Version du contexte OpenGL demandee: %d.%d\n", GL_MAJOR, GL_MINOR);
         return false;
     }
 

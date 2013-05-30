@@ -32,7 +32,7 @@
 #include <execinfo.h>
 #endif
 
-void init() {
+int Init_DebugOutput() {
 
     // check if the extension is there
     char* s;
@@ -40,22 +40,24 @@ void init() {
     glGetIntegerv (GL_NUM_EXTENSIONS, &max);
 
     do {
+        s = NULL;
         s = (char*) glGetStringi (GL_EXTENSIONS, i++);
     }
     while (i < max && strcmp (s, "GL_ARB_debug_output") != 0);
 
     // if we have the extension then ...
-    if (s != NULL) {
+    if (strcmp (s, "GL_ARB_debug_output") == 0) {
         // enable sync mode and set the callback
         glEnable (GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
         glDebugMessageCallbackARB (DebugLog, spUserParam);
+
+        return true;
     }
-    else
-        // extension has not been loaded
-        // report it back
-        printf("gl_debug Error: OpenGL Debug Context not enabled\n");
-
-
+    else // extension has not been loaded
+    {
+        printf("Note: GL_ARB_debug_output unsupported by your videocard\n");
+        return false;
+    }
 }
 
 // Sets the pointer to user data

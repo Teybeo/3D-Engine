@@ -161,9 +161,11 @@ bool App_Init(App* app) {
         return false;
     }
 
-    init();
-    enableLowSeverityMessages(true);
-    enableCallback(true);
+    if (Init_DebugOutput() == true)
+    {
+        enableLowSeverityMessages(true);
+        enableCallback(true);
+    }
 
     if (initProgram(&app->mainProgram, "../source/shaders/main.vert", "../source/shaders/main.frag") == false)
         return false;

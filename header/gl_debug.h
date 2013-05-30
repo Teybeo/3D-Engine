@@ -51,7 +51,7 @@ void STDCALL DebugLog(GLenum source,
  * NULL means cout
  *
 */
-void init();
+int Init_DebugOutput();
 
 /** Adds an application event to the log
  *
