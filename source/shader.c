@@ -5,9 +5,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SHADER 0
+#define PROGRAM 1
+
 char* chargerSource(const char *filename);
+bool linkShaders(unsigned int* program, int vert, int frag);
+bool validateProgram(unsigned int program);
+void printLog(int object, int type);
 
 bool createProgram(unsigned int* program, int vert, int frag) {
+
+    return linkShaders(program, vert, frag) == true && validateProgram(*program) == true;
+
+}
+
+bool linkShaders(unsigned int* program, int vert, int frag) {
 
     printf("Linkage des shaders %d et %d...", vert, frag);
 
@@ -16,60 +28,32 @@ bool createProgram(unsigned int* program, int vert, int frag) {
     glAttachShader(*program, frag);
     glLinkProgram(*program);
 
-    // On récupère la taille du log du linkage */
-    GLsizei logsize = 0;
-    glGetProgramiv(*program, GL_INFO_LOG_LENGTH, &logsize);
+    int link_status = true;
 
-    // Si messages de link, le linkage est traité comme raté
-    if (logsize != 0)
-    {
-        char *log = malloc(logsize + 1);
-        if (log == NULL)
-        {
-            fprintf(stderr, "impossible d'allouer de la memoire !\n");
-            return false;
-        }
+    glGetProgramiv(*program, GL_LINK_STATUS, &link_status);
 
-        memset(log, '\0', logsize + 1);
+    link_status ? puts("Ok") : puts("Error");
 
-        // On récupère le message
-        glGetProgramInfoLog(*program, logsize, &logsize, log);
-        fprintf(stderr, "impossible de lier les shader :\n%s", log);
+    printLog(*program, PROGRAM);
 
-        free(log);
-        glDeleteProgram(*program);
+    return link_status;
+}
 
-        // On met en pause
+bool validateProgram(unsigned int program) {
 
-        return false;
-    }
+    printf("Validation du programme %d...", program);
 
-    puts("Ok");
+    glValidateProgram(program);
 
-    glValidateProgram(*program);
+    int validate_status = false;
 
-    glGetProgramiv(*program, GL_INFO_LOG_LENGTH, &logsize);
+    glGetProgramiv(program, GL_VALIDATE_STATUS, &validate_status);
 
-    if (logsize != 0)
-    {
-        char *log = malloc(logsize + 1);
-        if (log == NULL)
-        {
-            fprintf(stderr, "impossible d'allouer de la memoire !\n");
-            return false;
-        }
+    validate_status ? puts("Ok") : puts("Error");
 
-        memset(log, '\0', logsize + 1);
+    printLog(program, PROGRAM);
 
-        // On récupère et on affiche le message
-        glGetProgramInfoLog(*program, logsize, &logsize, log);
-
-        fprintf(stderr, "%s", log);
-
-        free(log);
-    }
-
-    return true;
+    return validate_status;
 }
 
 bool initShader(int* shaderID, GLenum type, const char* chemin) {
@@ -83,7 +67,6 @@ bool initShader(int* shaderID, GLenum type, const char* chemin) {
     }
 
     char* source = chargerSource(chemin);
-
     if (source == NULL)
         return false;
 
@@ -93,40 +76,48 @@ bool initShader(int* shaderID, GLenum type, const char* chemin) {
 
     free(source);
 
-    // On récupère la taille du log de la compilation */
-    GLsizei logsize = 0;
-    glGetShaderiv(*shaderID, GL_INFO_LOG_LENGTH, &logsize);
+    GLint compile_status = true;
+    glGetShaderiv(*shaderID, GL_COMPILE_STATUS, &compile_status);
 
-    // Si messages de compil, la compil est traitée comme ratée
+    compile_status ? puts("Ok") : puts("Error");
+
+    printLog(*shaderID, SHADER);
+
+    return compile_status;
+}
+
+void printLog(int object, int type) {
+
+    GLsizei logsize = 0;
+
+    if (type == SHADER)
+        glGetShaderiv(object, GL_INFO_LOG_LENGTH, &logsize);
+    else if (type == PROGRAM)
+        glGetProgramiv(object, GL_INFO_LOG_LENGTH, &logsize);
+
+    // On affiche les messages
     if (logsize != 0)
     {
         char *log = malloc(logsize + 1);
         if (log == NULL)
         {
             fprintf(stderr, "impossible d'allouer de la memoire !\n");
-            return false;
+            return;
         }
 
         memset(log, '\0', logsize + 1);
 
         // On récupère le message
-        glGetShaderInfoLog(*shaderID, logsize, &logsize, log);
-        fprintf(stderr, "impossible de compiler le shader '%s' :\n%s",  chemin, log);
+        if (type == SHADER)
+            glGetShaderInfoLog(object, logsize, &logsize, log);
+        else if (type == PROGRAM)
+            glGetProgramInfoLog(object,  logsize, &logsize, log);
+
+        printf("%s", log);
 
         free(log);
-        glDeleteShader(*shaderID);
-
-        // On met en pause
-
-        return false;
     }
-
-    puts("Ok");
-
-    return true;
-
 }
-
 
 bool initProgram(GLuint* program, const char* vertexShaderFile, const char* fragmentShaderFile) {
 
