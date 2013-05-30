@@ -51,8 +51,9 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add directory="header" />
-            <Add directory="header/SDL2_image" />
+			<Add directory="header/SDL2_image" />
 			<Add directory="header/SDL2" />
+			<Add directory="header/Glew" />
 		</Compiler>
 		<Linker>
 			<Add library="glew32" />
