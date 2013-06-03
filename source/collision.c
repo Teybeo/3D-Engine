@@ -33,3 +33,22 @@ bool CollisionGenerator_AreCollidingSphere(CollisionSphere a, CollisionSphere b)
 
 }
 
+int indexContainer = 0;
+
+void Container_AddCollisionsToCheck(CollisionSphere** container, CollisionSphere* tab, int nb) {
+
+    if (nb == 0)
+        return;
+
+    int i;
+    for (i = 0 ; i < nb ; i++ )
+        container[indexContainer + i] = &tab[i];
+
+    indexContainer += i;
+}
+
+void Container_Clear() {
+
+    indexContainer = 0;
+
+}

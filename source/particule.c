@@ -22,7 +22,7 @@ void Particule_Integre(Particule* const balle, float facteur) {
     Vec3_Add(&balle->vitesse, accelerationFinale);
 
     Vec3_Add(&balle->position, Vec3_Mul_Scal_out(balle->vitesse, facteur));
-    printf("Pos %f %f %f\n", balle->position.x, balle->position.y, balle->position.z);
+//    printf("Pos %f %f %f\n", balle->position.x, balle->position.y, balle->position.z);
 
     setVec3(&balle->forceAccum, 0, 0, 0); // On supprime les forces après application
 

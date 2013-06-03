@@ -9,6 +9,7 @@
 #include "particule.h"
 #include "collision.h"
 #include "sphere.h"
+#include "bullet.h"
 
 #include <stdbool.h>
 
@@ -16,6 +17,7 @@
 #include "glew.h"
 
 #define NB_BALLS_MAX 1000
+#define NB_BULLETS_MAX 5
 
 typedef struct App {
 
@@ -35,6 +37,7 @@ typedef struct App {
     Instance skybox;
     Light lampe[10];
     SphereGroupe sphereGroupe;
+    BulletGroupe bulletGroupe;
 
 } App;
 

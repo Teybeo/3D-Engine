@@ -18,6 +18,14 @@ typedef enum CameraMode {
 
 } CameraMode;
 
+typedef enum WeaponMode {
+
+    WEAPONMODE_BALL,
+    WEAPONMODE_GUN,
+    NB_WEAPONMODES
+
+} WeaponMode;
+
 typedef enum KeyState {
 
     AVANCER,
@@ -36,6 +44,7 @@ typedef struct Player {
 	Robot* robot;
 	KeyState key[NB_KEYSTATE];
 	CameraMode camMode;
+	WeaponMode weapon;
 	float angleY; // Angle autour de l'axe Y, horizontal
 	float angleX; // Angle autor de l'axe X, vertical
 	float angleYRobot; // Orientation du robot, elle est appliquée seulement si déplacement

@@ -13,6 +13,7 @@
 #include "listeContact.h"
 
 void calcule(CollisionSphere* balle, int nb, CollisionSphere* robot, float duree, bool const pause);
+void container_update(CollisionSphere** objet, int nb, float duree, bool const pause);
 
 void App_Draw(App* app) {
 
@@ -21,7 +22,7 @@ void App_Draw(App* app) {
 //    }
 //    else {
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT);
 
     glDisable(GL_DEPTH_TEST);
         loadIdentity(app->skybox.matrix);
@@ -66,7 +67,7 @@ void App_Draw(App* app) {
         Instance_Draw(app->lampe[i].instance, app->player.mondeToCam, app->fenetre.camToClip);
 
     SphereGroupe_Draw(app->sphereGroupe, app->player.mondeToCam, app->fenetre.camToClip);
-
+    BulletGroupe_Draw(app->bulletGroupe, app->player.mondeToCam, app->fenetre.camToClip);
 //    for (i = 0 ; i < app->nb ; i++ )
 //        Sphere_Draw(app->balle[i], app->player.mondeToCam, app->fenetre.camToClip);
 
@@ -138,7 +139,17 @@ void App_Logic(App* app, float duree) {
 
     app->robot.collisionSphere.particule.position = app->player.posRobot;
 
-    calcule(app->sphereGroupe.collisionData, app->sphereGroupe.nbSpheres, &app->robot.collisionSphere, duree*0.01, false);
+    int nbObjects = app->sphereGroupe.nbSpheres + app->bulletGroupe.nbBullets + 1;// enlever +1;
+
+    CollisionSphere** container = malloc(sizeof(CollisionSphere*) * nbObjects );
+
+    Container_Clear();
+    Container_AddCollisionsToCheck(container, app->sphereGroupe.collisionData, app->sphereGroupe.nbSpheres);
+    Container_AddCollisionsToCheck(container, app->bulletGroupe.collisionData, app->bulletGroupe.nbBullets);
+    Container_AddCollisionsToCheck(container, &app->robot.collisionSphere, 1);
+
+//    calcule(app->sphereGroupe.collisionData, app->sphereGroupe.nbSpheres, &app->robot.collisionSphere, duree*0.01, false);
+    container_update(container, nbObjects, duree*0.01, false);
 
     t += 0.01;
 }
@@ -279,35 +290,40 @@ bool App_Init(App* app) {
 
     app->sphereGroupe = SphereGroupe_Create(NB_BALLS_MAX, sphereModel, app->perFragmentProgram, solTexture);
 
+//////////// BULLETS
+
+    /*Model* sphereModel = Model_Load(MODEL_OBJ, "../models/sphere.obj");
+    if (sphereModel == NULL)
+        return false;*/
+
+    int bulletTex = chargerTexture("../images/bulletTex.png", GL_NEAREST);
+    if (bulletTex == 0)
+        return false;
+
+    app->bulletGroupe = BulletGroupe_Create(NB_BULLETS_MAX, sphereModel, app->perFragmentProgram, bulletTex);
+
+////////////////////////
 
     app->locProjMatrix = glGetUniformLocation(app->noTexNoLightProgram, "camClip");
 
     return true;
 }
 
-void calcule(CollisionSphere* balle, int nb, CollisionSphere* robot, float duree, bool const pause) {
+void container_update(CollisionSphere** objet, int nb, float duree, bool const pause) {
 
     Contact* contact = NULL;
     ElemContact* pile = NULL;
-    int nbObjects = nb;// + 1;
-
-    CollisionSphere** objet = malloc(sizeof(CollisionSphere*) * nbObjects );
-
-    int i;
-    for (i = 0 ; i < nbObjects ; i++ )
-        objet[i] = &balle[i];
-//    objet[i] = robot;
 
     if (pause == false) {
 
         int i, j;
 
-        for (i = 0; i < nbObjects; i++) {
+        for (i = 0; i < nb; i++) {
 
             Particule_Integre(&objet[i]->particule, duree);
             resoudCollisionCercleMur(objet[i]);
 
-            for (j = i + 1; j < nbObjects; j++) {
+            for (j = i + 1; j < nb; j++) {
 
                 contact = CollisionGenerator_SphereSphere(objet[i], objet[j]);
                 if (contact != NULL)
@@ -374,21 +390,43 @@ void App_Event(App* app) {
             float angleY = (app->player.angleY) * M_PI/180;
             float angleX = (app->player.angleX) * M_PI/180;
 
+            // On compense le regard plus bas du mode 3ème personne
+            if (app->player.camMode == CAMERAMODE_THIRD_PERSON)
+                angleX -= 0.1;
+
             Vec3 direction = {};
 
             direction.x =  sin(angleY) * cos(angleX);
             direction.y = -sin(angleX);
             direction.z = -cos(angleY) * cos(angleX);
-            Vec3_Mul_Scal(&direction, 10);
 
             Vec3 pos = app->player.posRobot;
-            printf("Pos %f %f %f\n", pos.x, pos.y, pos.z);
-            Vec3_Add(&pos, direction);
-            pos.y += 11;
-            Sphere_Add(&app->sphereGroupe, pos, direction);
+            pos.y += 11; // On tire à hauteur de la tete
+            Vec3_Add(&pos, Vec3_Mul_Scal_out(direction, 15)); // On avance pour sortir de la hitsphere
 
+            if (app->player.weapon == WEAPONMODE_BALL)
+            {
+                Vec3_Mul_Scal(&direction, 30); // On donne une force au tir
+                Sphere_Add(&app->sphereGroupe, pos, direction);
+            }
+            else if (app->player.weapon == WEAPONMODE_GUN)
+            {
+                Vec3_Mul_Scal(&direction, 100); // On donne une force au tir
+                Bullet_Add(&app->bulletGroupe, pos, direction);
+            }
         }
 
+        break;
+
+    case SDL_MOUSEWHEEL:
+
+        if (ev.wheel.y > 0)
+            app->player.weapon++;
+        else if (ev.wheel.y < 0)
+            app->player.weapon--;
+
+        app->player.weapon %= NB_WEAPONMODES;
+        printf("%s\n", app->player.weapon == 0 ? "BALL" : "GUN");
         break;
 
     case SDL_WINDOWEVENT:
