@@ -11,7 +11,7 @@ Player Player_init(Robot* robot) {
     player.robotMat = malloc(16*4);
     player.robot = robot;
     loadIdentity(player.robotMat);
-    memset(player.key, 0, 5*sizeof(bool));
+    memset(player.key, 0, sizeof(player.key));
 
     return player;
 
@@ -30,8 +30,8 @@ void computeBasisVectors(Player* player) {
 	player->lateralVec.y = 0;
 	player->lateralVec.z = sin(angleY);
 
-	if (player->camMode == CAMERAMODE_FREE) {
-
+	if (player->camMode == CAMERAMODE_FREE)
+    {
 		// Calcul du vecteur -z de la caméra
 		// En mode libre, la caméra doit pouvoir monter dans l'air
 		// si on avance/recule avec un angleVertical non-nul
@@ -40,8 +40,8 @@ void computeBasisVectors(Player* player) {
 		player->frontalVec.z = -cos(angleY) * cos(angleX);
 
 	}
-	else {
-
+	else
+    {
 		// Calcul du vecteur -z de la caméra
 		// En mode 1ère ou 3ème personne, la caméra ne doit pas pouvoir monter dans l'air
 		// si on avance/recule avec un angleVertical non-nul
@@ -61,12 +61,19 @@ void applyVectors(Player* player) {
     Vec3 deplacement = {};
 
     static float t = 0;
+    static float vitesseAnim = 0.1;
+
     if (!player->key[AVANCER] && !player->key[RECULER])
     {
         player->robot->angleJambeDroite = 0;
         player->robot->angleJambeGauche = 0;
         t = 0;
     }
+
+    if (player->key[RALENTI])
+        vitesseAnim = 0.09;
+    else
+        vitesseAnim = 0.2;
 
 	// On avance la caméra
     if (player->key[AVANCER])
@@ -79,7 +86,7 @@ void applyVectors(Player* player) {
             player->robot->angleJambeGauche = t - M_PI;
         }
 
-        t += 0.05;
+        t += vitesseAnim;
     }
 
     // On recule la caméra
@@ -95,7 +102,7 @@ void applyVectors(Player* player) {
             player->robot->angleJambeGauche = t - M_PI;
         }
 
-        t -= 0.05;
+        t -= vitesseAnim;
     }
 
     // On décale vers la droite la caméra
@@ -114,8 +121,9 @@ void applyVectors(Player* player) {
 
     if (player->key[RALENTI])
     {
-        Vec3_Mul_Scal(&deplacement, 0.1);
+        Vec3_Mul_Scal(&deplacement, 0.09);
     }
+
     if (player->camMode == CAMERAMODE_FREE)
         Vec3_Add(&player->posCam, deplacement);
     else
@@ -194,7 +202,7 @@ void Player_keyEvent(Player* player, SDL_KeyboardEvent keyEv) {
 	case SDLK_c:
 		if (keyEv.type == SDL_KEYDOWN) {
 			player->camMode++;
-			player->camMode %= NB_MODES;
+			player->camMode %= NB_CAMERAMODES;
             (player->camMode == CAMERAMODE_FREE) ? puts("Camera libre") :
             player->camMode == CAMERAMODE_THIRD_PERSON ? puts("Camera 3eme personne") : puts("Camera 1ere personne");
 

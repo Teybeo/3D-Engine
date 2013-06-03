@@ -14,7 +14,7 @@ typedef enum CameraMode {
     CAMERAMODE_THIRD_PERSON,
     CAMERAMODE_FIRST_PERSON,
     CAMERAMODE_FREE,
-    NB_MODES
+    NB_CAMERAMODES
 
 } CameraMode;
 
