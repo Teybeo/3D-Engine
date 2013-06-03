@@ -190,7 +190,7 @@ bool App_Init(App* app) {
 
     GLuint stoneTexture, solTexture, skyboxTexture;
 
-    if ((stoneTexture = chargerTexture("../images/stone.bmp", GL_NEAREST)) == 0)
+    if ((stoneTexture = chargerTexture("../images/stone.png", GL_NEAREST)) == 0)
         return false;
 
     if ((solTexture = chargerTexture("../images/cyclopean.jpg", GL_LINEAR)) == 0)
@@ -241,7 +241,7 @@ bool App_Init(App* app) {
 
 //////////////////////// SKYBOX
 
-    if ((skyboxTexture = chargerTexture("../images/skybox.bmp", GL_NEAREST)) == 0)
+    if ((skyboxTexture = chargerTexture("../images/skybox.png", GL_NEAREST)) == 0)
         return false;
 
     Model* cubeTex = Model_Load(MODEL_OBJ, "../models/skybox.obj");

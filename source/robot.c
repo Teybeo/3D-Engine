@@ -101,12 +101,12 @@ bool Robot_init(Robot* robot, GLuint program) {
     if (creeperTex == 0)
         return false;
 
-    GLuint skinTex = chargerTexture("../images/skin_math.bmp", GL_LINEAR);
-    if (skinTex == 0)
+    GLuint teteTex = chargerTexture("../images/tete.png", GL_LINEAR);
+    if (teteTex == 0)
         return false;
 
-    GLuint skin2Tex = chargerTexture("../images/skin.bmp", GL_LINEAR);
-    if (skin2Tex == 0)
+    GLuint skinTex = chargerTexture("../images/skin.bmp", GL_LINEAR);
+    if (skinTex == 0)
         return false;
 
     Model* cubeModel = Model_Load(MODEL_CUBE_TEX_NORM, NULL);
@@ -126,9 +126,9 @@ bool Robot_init(Robot* robot, GLuint program) {
         return false;
 
     Instance cube = Instance_Create(cubeModel, program, creeperTex);
-    Instance tete = Instance_Create(teteModel, program, skinTex);
-    Instance corps = Instance_Create(corpsModel, program, skin2Tex);
-    Instance bras = Instance_Create(brasModel, program, skin2Tex);
+    Instance tete = Instance_Create(teteModel, program, teteTex);
+    Instance corps = Instance_Create(corpsModel, program, skinTex);
+    Instance bras = Instance_Create(brasModel, program, skinTex);
 
     loadIdentity(robot->matrix);
 
