@@ -15,18 +15,18 @@
 #include "SDL.h"
 #include "glew.h"
 
-#define NB_MAX 100
+#define NB_BALLS_MAX 1000
 
 typedef struct App {
 
     Fenetre fenetre;
     GLint vertexShader;
     GLint fragmentShader;
-    GLuint mainProgram;
+    GLuint noTexNoLightProgram;
     GLuint texProgram;
-    GLuint texPerVertexDiffuseProgram;
-    GLuint texPerFragmentDiffuseProgram;
-    GLuint instanceTexPerFragmentDiffuseProgram;
+    GLuint perVertexProgram;
+    GLuint perFragmentProgram;
+    GLuint instancePerFragmentProgram;
     Player player;
     GLuint locProjMatrix;
     Robot robot;

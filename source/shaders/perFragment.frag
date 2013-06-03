@@ -28,7 +28,7 @@ void main() {
     vec4 camPosition = frag_worldCam * vec4(position, 1);
 
     int i;
-    for (i = 0; i < 6 ; i++)
+    for (i = 0; i < 10 ; i++)
     {
 //        if (lightPos[i].y < -2)
 //            continue;

@@ -34,24 +34,24 @@ void App_Draw(App* app) {
     glEnable(GL_DEPTH_TEST);
 
         int i;
-    glUseProgram(app->instanceTexPerFragmentDiffuseProgram);
+    glUseProgram(app->instancePerFragmentProgram);
         for (i = 0 ; i < 6 ; i++ )
         {
             char name[50] = "";
             sprintf(name, "lightPos[%d]", i);
-            glUniform3fv(glGetUniformLocation(app->instanceTexPerFragmentDiffuseProgram, name), 1, &app->lampe[i].pos.x);
+            glUniform3fv(glGetUniformLocation(app->instancePerFragmentProgram, name), 1, &app->lampe[i].pos.x);
             sprintf(name, "lightColor[%d]", i);
-            glUniform3fv(glGetUniformLocation(app->instanceTexPerFragmentDiffuseProgram, name), 1, &app->lampe[i].color.x);
+            glUniform3fv(glGetUniformLocation(app->instancePerFragmentProgram, name), 1, &app->lampe[i].color.x);
         }
     glUseProgram(0);
-    glUseProgram(app->texPerFragmentDiffuseProgram);
+    glUseProgram(app->perFragmentProgram);
         for (i = 0 ; i < 6 ; i++ )
         {
             char name[50] = "";
             sprintf(name, "lightPos[%d]", i);
-            glUniform3fv(glGetUniformLocation(app->texPerFragmentDiffuseProgram, name), 1, &app->lampe[i].pos.x);
+            glUniform3fv(glGetUniformLocation(app->perFragmentProgram, name), 1, &app->lampe[i].pos.x);
             sprintf(name, "lightColor[%d]", i);
-            glUniform3fv(glGetUniformLocation(app->texPerFragmentDiffuseProgram, name), 1, &app->lampe[i].color.x);
+            glUniform3fv(glGetUniformLocation(app->perFragmentProgram, name), 1, &app->lampe[i].color.x);
         }
     glUseProgram(0);
 
@@ -167,21 +167,21 @@ bool App_Init(App* app) {
         enableCallback(true);
     }
 
-    if (initProgram(&app->mainProgram, "../source/shaders/main.vert", "../source/shaders/main.frag") == false)
+    if (initProgram(&app->noTexNoLightProgram, "../source/shaders/noTexNoLight.vert", "../source/shaders/noTexNoLight.frag") == false)
         return false;
 
-    if (initProgram(&app->texProgram, "../source/shaders/texture.vert", "../source/shaders/texture.frag") == false)
+    if (initProgram(&app->texProgram, "../source/shaders/noLight.vert", "../source/shaders/noLight.frag") == false)
         return false;
 
-//    if (initProgram(&app->texPerVertexDiffuseProgram, "../source/shaders/texPerVertexDiffuse.vert", "../source/shaders/texPerVertexDiffuse.frag") == false)
+//    if (initProgram(&app->perVertexProgram, "../source/shaders/perVertex.vert", "../source/shaders/perVertex.frag") == false)
 //        return false;
 
-    if (initProgram(&app->texPerFragmentDiffuseProgram, "../source/shaders/texPerFragmentDiffuse.vert", "../source/shaders/texPerFragmentDiffuse.frag") == false)
+    if (initProgram(&app->perFragmentProgram, "../source/shaders/perFragment.vert", "../source/shaders/perFragment.frag") == false)
         return false;
 
 ///////////////////// ROBOT
 
-    if (Robot_init(&app->robot, app->texPerFragmentDiffuseProgram) == false)
+    if (Robot_init(&app->robot, app->perFragmentProgram) == false)
         return false;
 
     app->player = Player_init(&app->robot);
@@ -200,7 +200,7 @@ bool App_Init(App* app) {
     if (carre == NULL)
         return false;
 
-    app->objects[0] = Instance_Create(carre, app->texPerFragmentDiffuseProgram, solTexture);
+    app->objects[0] = Instance_Create(carre, app->perFragmentProgram, solTexture);
 
     loadIdentity(app->objects[0].matrix);
     translate(app->objects[0].matrix, 0, -3, 0);
@@ -213,7 +213,7 @@ bool App_Init(App* app) {
     if (sphere == NULL)
         return false;
 
-    Instance object = Instance_Create(sphere, app->texPerFragmentDiffuseProgram, solTexture);
+    Instance object = Instance_Create(sphere, app->perFragmentProgram, solTexture);
 
     srand(time(NULL));
 
@@ -234,10 +234,10 @@ bool App_Init(App* app) {
     if (cubeTexNorm == 0)
         return false;
 
-    if (initProgram(&app->instanceTexPerFragmentDiffuseProgram, "../source/shaders/instanceTexPerFragmentDiffuse.vert", "../source/shaders/texPerFragmentDiffuse.frag") == false)
+    if (initProgram(&app->instancePerFragmentProgram, "../source/shaders/instancePerFragment.vert", "../source/shaders/perFragment.frag") == false)
         return false;
 
-    app->objectGroupe = InstanceGroupe_Create(cubeTexNorm, 50, app->instanceTexPerFragmentDiffuseProgram, stoneTexture);
+    app->objectGroupe = InstanceGroupe_Create(cubeTexNorm, 50, app->instancePerFragmentProgram, stoneTexture);
 
 //////////////////////// SKYBOX
 
@@ -258,7 +258,7 @@ bool App_Init(App* app) {
     if (lightBox == NULL)
         return false;
 
-    Instance light = Instance_Create(lightBox, app->texPerFragmentDiffuseProgram, stoneTexture);
+    Instance light = Instance_Create(lightBox, app->perFragmentProgram, stoneTexture);
 
     for (i = 0 ; i < 10 ; i++ )
         app->lampe[i].instance = light;
@@ -270,7 +270,6 @@ bool App_Init(App* app) {
     Light_SetPosColor(&app->lampe[4], (Vec3){-15, 2, -10}, (Vec3){1, 0, 1});
     Light_SetPosColor(&app->lampe[5], (Vec3){-15, 2, -60}, (Vec3){0, 1, 1});
 
-    app->locProjMatrix = glGetUniformLocation(app->mainProgram, "camClip");
 
 //////////// BALLES
 
@@ -278,10 +277,12 @@ bool App_Init(App* app) {
     if (sphereModel == NULL)
         return false;
 
-    app->sphereGroupe = SphereGroupe_Create(NB_MAX, sphereModel, app->texPerFragmentDiffuseProgram, solTexture);
+    app->sphereGroupe = SphereGroupe_Create(NB_BALLS_MAX, sphereModel, app->perFragmentProgram, solTexture);
+
+
+    app->locProjMatrix = glGetUniformLocation(app->noTexNoLightProgram, "camClip");
 
     return true;
-
 }
 
 void calcule(CollisionSphere* balle, int nb, CollisionSphere* robot, float duree, bool const pause) {

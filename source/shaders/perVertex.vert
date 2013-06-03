@@ -12,13 +12,13 @@ uniform vec3 lightDir;
 out vec2 TexCoord;
 out float diffuseFactor;
 
-void main(void){
+void main(void) {
 
     gl_Position = camClip * worldCam * modelWorld * position;
 
     TexCoord = texcoord;
 
-    vec3 lightVec = lightDir - (modelWorld*position);
+    vec3 lightVec = lightDir - (modelWorld * position);
 
     diffuseFactor = dot(normalize(lightVec), normal);
     diffuseFactor /= ( lightVec.length());

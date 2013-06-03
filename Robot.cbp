@@ -136,15 +136,15 @@
 		<Unit filename="source/shader.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="source/shaders/instanceTexPerFragmentDiffuse.vert" />
-		<Unit filename="source/shaders/main.frag" />
-		<Unit filename="source/shaders/main.vert" />
-		<Unit filename="source/shaders/texPerFragmentDiffuse.frag" />
-		<Unit filename="source/shaders/texPerFragmentDiffuse.vert" />
-		<Unit filename="source/shaders/texPerVertexDiffuse.frag" />
-		<Unit filename="source/shaders/texPerVertexDiffuse.vert" />
-		<Unit filename="source/shaders/texture.frag" />
-		<Unit filename="source/shaders/texture.vert" />
+		<Unit filename="source/shaders/instancePerFragment.vert" />
+		<Unit filename="source/shaders/noLight.frag" />
+		<Unit filename="source/shaders/noLight.vert" />
+		<Unit filename="source/shaders/noTexNoLight.frag" />
+		<Unit filename="source/shaders/noTexNoLight.vert" />
+		<Unit filename="source/shaders/perFragment.frag" />
+		<Unit filename="source/shaders/perFragment.vert" />
+		<Unit filename="source/shaders/perVertex.frag" />
+		<Unit filename="source/shaders/perVertex.vert" />
 		<Unit filename="source/sphere.c">
 			<Option compilerVar="CC" />
 		</Unit>
