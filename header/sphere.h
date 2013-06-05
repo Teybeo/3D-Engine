@@ -12,7 +12,7 @@ typedef struct Sphere {
 
 typedef struct SphereGroupe {
 
-    CollisionSphere* collisionData;
+    CollisionObject* collisionData;
     int nbSpheres;
     int nbMax;
     Model* model;

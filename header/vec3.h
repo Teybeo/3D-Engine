@@ -18,12 +18,13 @@ Vec3 Vec3_SubOut(Vec3 const a, Vec3 const b);
 void Vec3_Mul(Vec3 *p, Vec3 a);
 float Vec3_Mul_Out(Vec3 const a, Vec3 const b);
 
-
 void Vec3_Mul_Scal(Vec3* vec, float scal);
 Vec3 Vec3_Mul_Scal_out(Vec3 vec, float scal);
 
 void Vec3_Div_Scal(Vec3* vec, float scal);
 Vec3 Vec3_Div_Scal_Out(Vec3 const vec, float scal);
+
+inline float Vec3_Length(Vec3 vec);
 
 void Vec3_Normalise(Vec3* vec);
 Vec3 Vec3_Normalise_Out(Vec3 const vec);

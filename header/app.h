@@ -38,6 +38,7 @@ typedef struct App {
     Light lampe[10];
     SphereGroupe sphereGroupe;
     BulletGroupe bulletGroupe;
+    CollisionObject wall[6];
 
 } App;
 

@@ -146,9 +146,10 @@ bool Robot_init(Robot* robot, GLuint program) {
     robot->partie[AVANT_BRAS_DROIT] = bras;
     robot->partie[AVANT_BRAS_GAUCHE] = bras;
 
-    robot->collisionSphere.rayon = 10;
-    robot->collisionSphere.particule = Particule_Init(0.9, 99999);
-    setVec3(&robot->collisionSphere.particule.position, 0, 2, 0);
+    robot->collisionObject.type = COLLISION_SPHERE;
+    robot->collisionObject.sphere.rayon = 10;
+    robot->collisionObject.sphere.particule = Particule_Init(0.9, 99999);
+    setVec3(&robot->collisionObject.sphere.particule.position, 0, 2, 0);
 
     return true;
 

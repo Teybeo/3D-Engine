@@ -14,7 +14,7 @@ SphereGroupe SphereGroupe_Create(int nbMax, Model* model, GLuint program, GLuint
     groupe.nbMax = nbMax;
     groupe.nbSpheres = 0;
 
-    groupe.collisionData = calloc(nbMax, sizeof(CollisionSphere));
+    groupe.collisionData = calloc(nbMax, sizeof(CollisionObject));
 
     return groupe;
 
@@ -31,7 +31,8 @@ void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction) {
     Particule_SetPosition(&newSphere.particule, position);
     Particule_SetVitesse(&newSphere.particule, direction);
 
-    sphereGroupe->collisionData[index] = newSphere;
+    sphereGroupe->collisionData[index].sphere = newSphere;
+    sphereGroupe->collisionData[index].type = COLLISION_SPHERE;
 
     index++;
 
@@ -49,8 +50,8 @@ void SphereGroupe_Draw(SphereGroupe sphereGroupe, float* mondeToCam, float* camT
     for (i = 0 ; i < sphereGroupe.nbSpheres ; i++ )
     {
         loadIdentity(balleInstance.matrix);
-        translateByVec(balleInstance.matrix, sphereGroupe.collisionData[i].particule.position);
-        scale(balleInstance.matrix, sphereGroupe.collisionData[i].rayon, sphereGroupe.collisionData[i].rayon, sphereGroupe.collisionData[i].rayon);
+        translateByVec(balleInstance.matrix, sphereGroupe.collisionData[i].sphere.particule.position);
+        scale(balleInstance.matrix, sphereGroupe.collisionData[i].sphere.rayon, sphereGroupe.collisionData[i].sphere.rayon, sphereGroupe.collisionData[i].sphere.rayon);
 
         Instance_Draw(balleInstance, mondeToCam, camToClip);
     }

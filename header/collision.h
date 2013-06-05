@@ -14,6 +14,13 @@
 #include "particule.h"
 #include "contact.h"
 
+typedef enum CollisionObjectType {
+
+    COLLISION_SPHERE,
+    COLLISION_PLAN,
+
+} CollisionObjectType;
+
 typedef struct CollisionSphere {
 
     Particule particule;
@@ -23,12 +30,33 @@ typedef struct CollisionSphere {
 
 typedef struct Vec3 Vec3;
 
+typedef struct CollisionPlanInfini {
+
+    Particule Particule;
+    Vec3 pos;
+    Vec3 normale;
+
+} CollisionPlanInfini;
+
+typedef struct CollisionObject {
+
+    CollisionObjectType type;
+    union {
+        CollisionSphere sphere;
+        CollisionPlanInfini plan;
+    };
+
+} CollisionObject;
+
 Contact* CollisionGenerator_SphereSphere(CollisionSphere* a, CollisionSphere* b);
+Contact* CollisionGenerator_PlanInfiniSphere(CollisionPlanInfini* a, CollisionSphere* b);
 
 void rameneEnContact(Particule* a, Particule* b, Vec3 normale, float valPenetration);
 
 bool CollisionGenerator_AreCollidingSphere(CollisionSphere a, CollisionSphere b);
-void Container_AddCollisionsToCheck(CollisionSphere** container, CollisionSphere* tab, int nb);
+
+void Container_Process(CollisionObject** objet, int nb, float duree, bool const pause);
+void Container_AddCollisionsToCheck(CollisionObject** container, CollisionObject* tab, int nb);
 void Container_Clear();
 
 #endif // Collision

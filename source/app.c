@@ -10,10 +10,6 @@
 #include "SDL.h"
 #include "glew.h"
 #include "texture.h"
-#include "listeContact.h"
-
-void calcule(CollisionSphere* balle, int nb, CollisionSphere* robot, float duree, bool const pause);
-void container_update(CollisionSphere** objet, int nb, float duree, bool const pause);
 
 void App_Draw(App* app) {
 
@@ -137,19 +133,19 @@ void App_Logic(App* app, float duree) {
 
     uploadMatrix(app->objectGroupe);
 
-    app->robot.collisionSphere.particule.position = app->player.posRobot;
+    app->robot.collisionObject.sphere.particule.position = app->player.posRobot;
 
-    int nbObjects = app->sphereGroupe.nbSpheres + app->bulletGroupe.nbBullets + 1;// enlever +1;
+    int nbObjects = app->sphereGroupe.nbSpheres + app->bulletGroupe.nbBullets + 5;// enlever +1;
 
-    CollisionSphere** container = malloc(sizeof(CollisionSphere*) * nbObjects );
+    CollisionObject** container = malloc(sizeof(CollisionObject*) * nbObjects );
 
     Container_Clear();
     Container_AddCollisionsToCheck(container, app->sphereGroupe.collisionData, app->sphereGroupe.nbSpheres);
     Container_AddCollisionsToCheck(container, app->bulletGroupe.collisionData, app->bulletGroupe.nbBullets);
-    Container_AddCollisionsToCheck(container, &app->robot.collisionSphere, 1);
+    Container_AddCollisionsToCheck(container, app->wall, 5);
+//    Container_AddCollisionsToCheck(container, &app->robot.collisionObject, 1);
 
-//    calcule(app->sphereGroupe.collisionData, app->sphereGroupe.nbSpheres, &app->robot.collisionSphere, duree*0.01, false);
-    container_update(container, nbObjects, duree*0.01, false);
+    Container_Process(container, nbObjects, duree*0.01, false);
 
     t += 0.01;
 }
@@ -306,41 +302,27 @@ bool App_Init(App* app) {
 
     app->locProjMatrix = glGetUniformLocation(app->noTexNoLightProgram, "camClip");
 
-    return true;
-}
+    CollisionPlanInfini plan[5] = {};
 
-void container_update(CollisionSphere** objet, int nb, float duree, bool const pause) {
+    plan[0].normale = (Vec3){1 , 0,  0};
+    plan[1].normale = (Vec3){-1, 0,  0};
+    plan[2].normale = (Vec3){0 , 0,  1};
+    plan[3].normale = (Vec3){0 , 0, -1};
+    plan[4].normale = (Vec3){0.1 , .9,  0};
 
-    Contact* contact = NULL;
-    ElemContact* pile = NULL;
+    plan[0].pos = (Vec3){-500, 0,  0};
+    plan[1].pos = (Vec3){ 500, 0,  0};
+    plan[2].pos = (Vec3){0 , 0,  -500};
+    plan[3].pos = (Vec3){0 , 0, 500};
+    plan[4].pos = (Vec3){0 , 0,  0};
 
-    if (pause == false) {
-
-        int i, j;
-
-        for (i = 0; i < nb; i++) {
-
-            Particule_Integre(&objet[i]->particule, duree);
-            resoudCollisionCercleMur(objet[i]);
-
-            for (j = i + 1; j < nb; j++) {
-
-                contact = CollisionGenerator_SphereSphere(objet[i], objet[j]);
-                if (contact != NULL)
-                {
-                    pile = empilerContact(pile, *contact);
-                    free(contact);
-                }
-
-            }
-
-        }
-
-        CollisionResolver_Resolve(pile);
-
+    for (i = 0 ; i < 5 ; i++ )
+    {
+        app->wall[i].plan = plan[i];
+        app->wall[i].type = COLLISION_PLAN;
     }
 
-    liberePileContact(pile);
+    return true;
 }
 
 void App_Event(App* app) {

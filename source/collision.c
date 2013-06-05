@@ -6,7 +6,7 @@
 #include "particule.h"
 #include "fenetre.h"
 #include "vec3.h"
-#include "contact.h"
+#include "listeContact.h"
 
 Contact* CollisionGenerator_SphereSphere(CollisionSphere* a, CollisionSphere* b) {
 
@@ -33,9 +33,34 @@ bool CollisionGenerator_AreCollidingSphere(CollisionSphere a, CollisionSphere b)
 
 }
 
+Contact* CollisionGenerator_PlanInfiniSphere(CollisionPlanInfini* a, CollisionSphere* b) {
+
+    Vec3 ab = Vec3_SubOut(a->pos, b->particule.position);
+
+    Vec3 planToSphere = Vec3_Project(ab, a->normale);
+
+    float interpenetration = b->rayon - Vec3_Length(planToSphere);
+
+    if (interpenetration > 0)
+    {
+        //printf("Normale: %.1f %.1f %.1f\n", a->normale.x, a->normale.y, a->normale.z);
+
+        Contact* contact = malloc(sizeof(Contact));
+        contact->interpenetration = interpenetration;
+        contact->normale = a->normale;
+        contact->a = &b->particule;
+        contact->b = NULL;
+
+        return contact;
+    }
+    else
+        return NULL;
+}
+
+
 int indexContainer = 0;
 
-void Container_AddCollisionsToCheck(CollisionSphere** container, CollisionSphere* tab, int nb) {
+void Container_AddCollisionsToCheck(CollisionObject** container, CollisionObject* tab, int nb) {
 
     if (nb == 0)
         return;
@@ -51,4 +76,47 @@ void Container_Clear() {
 
     indexContainer = 0;
 
+}
+
+void Container_Process(CollisionObject** objet, int nb, float duree, bool const pause) {
+
+    Contact* contact = NULL;
+    ElemContact* pile = NULL;
+
+    if (pause == false) {
+
+        int i, j;
+
+        for (i = 0; i < nb; i++) {
+
+            if (objet[i]->type == COLLISION_SPHERE)
+                Particule_Integre(&objet[i]->sphere.particule, duree);
+//            resoudCollisionCercleMur(objet[i]);
+
+            for (j = i + 1; j < nb; j++) {
+
+                if (objet[i]->type == COLLISION_SPHERE && objet[j]->type == COLLISION_SPHERE)
+                    contact = CollisionGenerator_SphereSphere(&objet[i]->sphere, &objet[j]->sphere);
+
+                else if (objet[i]->type == COLLISION_SPHERE && objet[j]->type == COLLISION_PLAN)
+                    contact = CollisionGenerator_PlanInfiniSphere(&objet[j]->plan, &objet[i]->sphere);
+
+                else if (objet[i]->type == COLLISION_PLAN && objet[j]->type == COLLISION_SPHERE)
+                    contact = CollisionGenerator_PlanInfiniSphere(&objet[i]->plan, &objet[j]->sphere);
+
+                if (contact != NULL)
+                {
+                    pile = empilerContact(pile, *contact);
+                    free(contact);
+                }
+
+            }
+
+        }
+
+        CollisionResolver_Resolve(pile);
+
+    }
+
+    liberePileContact(pile);
 }

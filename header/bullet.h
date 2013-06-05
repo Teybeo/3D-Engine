@@ -14,7 +14,7 @@ typedef struct Bullet {
 
 typedef struct BulletGroupe {
 
-    CollisionSphere* collisionData;
+    CollisionObject* collisionData;
     int nbBullets;
     int nbMax;
     Model* model;

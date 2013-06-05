@@ -14,7 +14,7 @@ BulletGroupe BulletGroupe_Create(int nbMax, Model* model, GLuint program, GLuint
     groupe.nbMax = nbMax;
     groupe.nbBullets = 0;
 
-    groupe.collisionData = calloc(nbMax, sizeof(CollisionSphere));
+    groupe.collisionData = calloc(nbMax, sizeof(CollisionObject));
 
     return groupe;
 
@@ -31,7 +31,8 @@ void Bullet_Add(BulletGroupe* bulletGroupe, Vec3 position, Vec3 direction) {
     Particule_SetPosition(&newBullet.particule, position);
     Particule_SetVitesse(&newBullet.particule, direction);
 
-    bulletGroupe->collisionData[index] = newBullet;
+    bulletGroupe->collisionData[index].sphere = newBullet;
+    bulletGroupe->collisionData[index].type = COLLISION_SPHERE;
 
     index++;
 
@@ -49,12 +50,12 @@ void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camT
     for (i = 0 ; i < bulletGroupe.nbBullets ; i++ )
     {
         loadIdentity(bulletInstance.matrix);
-        translateByVec(bulletInstance.matrix, bulletGroupe.collisionData[i].particule.position);
-        scale(bulletInstance.matrix, bulletGroupe.collisionData[i].rayon, bulletGroupe.collisionData[i].rayon, bulletGroupe.collisionData[i].rayon);
+        translateByVec(bulletInstance.matrix, bulletGroupe.collisionData[i].sphere.particule.position);
+        scale(bulletInstance.matrix, bulletGroupe.collisionData[i].sphere.rayon, bulletGroupe.collisionData[i].sphere.rayon, bulletGroupe.collisionData[i].sphere.rayon);
 
         char name[50] = "";
         sprintf(name, "lightPos[%d]", i+5);
-        glUniform3fv(glGetUniformLocation(bulletGroupe.program, name), 1, &bulletGroupe.collisionData[i].particule.position.x);
+        glUniform3fv(glGetUniformLocation(bulletGroupe.program, name), 1, &bulletGroupe.collisionData[i].sphere.particule.position.x);
         sprintf(name, "lightColor[%d]", i+5);
         glUniform3fv(glGetUniformLocation(bulletGroupe.program, name), 1, &color.x);
 

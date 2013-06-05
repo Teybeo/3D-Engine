@@ -30,7 +30,7 @@ typedef struct Robot {
     float angleJambeDroite;
     float angleJambeGauche;
     int locModelWorld;
-    CollisionSphere collisionSphere;
+    CollisionObject collisionObject;
 
 } Robot;
 
