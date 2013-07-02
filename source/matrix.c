@@ -254,3 +254,11 @@ inline void translateByVec(float matrix[16], Vec3 vec) {
     translate(matrix, vec.x, vec.y, vec.z);
 
 }
+
+void matTo3Vec(float matrix[16], Vec3* x, Vec3* y, Vec3* z) {
+
+    setVec3(x, matrix[0], matrix[4], matrix[8]);
+    setVec3(y, matrix[1], matrix[5], matrix[9]);
+    setVec3(z, matrix[2], matrix[6], matrix[10]);
+
+}

@@ -17,6 +17,7 @@ void rotateZ(float matrix[16], float angle);
 void projection(float matrix[16], float angle, float ratio, float zFar, float zNear);
 void transpose(float matrix[16]);
 void translateByVec(float matrix[16], Vec3 vec);
+void matTo3Vec(float matrix[16], Vec3* x, Vec3* y, Vec3* z);
 
 #endif // MATRIX
 

@@ -10,6 +10,7 @@
 #include "collision.h"
 #include "sphere.h"
 #include "bullet.h"
+#include "plan.h"
 
 #include <stdbool.h>
 
@@ -39,6 +40,7 @@ typedef struct App {
     SphereGroupe sphereGroupe;
     BulletGroupe bulletGroupe;
     CollisionObject wall[6];
+    Plan planes[3];
 
 } App;
 

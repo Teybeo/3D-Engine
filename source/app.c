@@ -30,6 +30,7 @@ void App_Draw(App* app) {
         Instance_Draw(app->skybox, app->player.mondeToCam, app->fenetre.camToClip);
     glEnable(GL_DEPTH_TEST);
 
+
         int i;
     glUseProgram(app->instancePerFragmentProgram);
         for (i = 0 ; i < 6 ; i++ )
@@ -56,17 +57,19 @@ void App_Draw(App* app) {
 
     Robot_draw(&app->robot, app->player.mondeToCam, app->fenetre.camToClip);
 
-    for (i = 0 ; i < 1 ; i++ )
-        Instance_Draw(app->objects[i], app->player.mondeToCam, app->fenetre.camToClip);
+//    for (i = 0 ; i < 1 ; i++ )
+//        Instance_Draw(app->objects[i], app->player.mondeToCam, app->fenetre.camToClip);
 
     for (i = 0 ; i < 6 ; i++ )
         Instance_Draw(app->lampe[i].instance, app->player.mondeToCam, app->fenetre.camToClip);
+
+    for (i = 0 ; i < 3 ; i++ )
+        Plan_Draw(app->planes[i], app->player.mondeToCam, app->fenetre.camToClip);
 
     SphereGroupe_Draw(app->sphereGroupe, app->player.mondeToCam, app->fenetre.camToClip);
     BulletGroupe_Draw(app->bulletGroupe, app->player.mondeToCam, app->fenetre.camToClip);
 //    for (i = 0 ; i < app->nb ; i++ )
 //        Sphere_Draw(app->balle[i], app->player.mondeToCam, app->fenetre.camToClip);
-
     SDL_GL_SwapWindow(app->fenetre.ecran);
 
 //    getchar();
@@ -131,11 +134,18 @@ void App_Logic(App* app, float duree) {
         transpose(app->objectGroupe.matrix[i]);
     }
 
+    app->planes[0].collisionData->plan.angleZ = 5*cos(t/2.);
+    app->planes[0].collisionData->plan.angleX = 5*sin(t/2.);
+    app->planes[2].collisionData->plan.angleZ -= 2;
+    Plan_RotateBase(&app->planes[0]);
+    Plan_RotateBase(&app->planes[2]);
+//    Plan_RotateBase(&app->planes[3]);
+
     uploadMatrix(app->objectGroupe);
 
     app->robot.collisionObject.sphere.particule.position = app->player.posRobot;
 
-    int nbObjects = app->sphereGroupe.nbSpheres + app->bulletGroupe.nbBullets + 5;// enlever +1;
+    int nbObjects = app->sphereGroupe.nbSpheres + app->bulletGroupe.nbBullets + 5 + 3;// enlever +1;
 
     CollisionObject** container = malloc(sizeof(CollisionObject*) * nbObjects );
 
@@ -143,10 +153,13 @@ void App_Logic(App* app, float duree) {
     Container_AddCollisionsToCheck(container, app->sphereGroupe.collisionData, app->sphereGroupe.nbSpheres);
     Container_AddCollisionsToCheck(container, app->bulletGroupe.collisionData, app->bulletGroupe.nbBullets);
     Container_AddCollisionsToCheck(container, app->wall, 5);
+    for (i = 0 ; i < 3 ; i++ )
+        Container_AddCollisionsToCheck(container, app->planes[i].collisionData, 1);
+
 //    Container_AddCollisionsToCheck(container, &app->robot.collisionObject, 1);
 
     Container_Process(container, nbObjects, duree*0.01, false);
-
+    free(container);
     t += 0.01;
 }
 
@@ -203,16 +216,14 @@ bool App_Init(App* app) {
     if ((solTexture = chargerTexture("../images/cyclopean.jpg", GL_LINEAR)) == 0)
         return false;
 
-    Model* carre = Model_Load(MODEL_CARRE_TEX_NORM, NULL);
-    if (carre == NULL)
+    Model* carre20 = Model_Load(MODEL_CARRE_TEX_NORM2, NULL);
+    if (carre20 == NULL)
         return false;
 
-    app->objects[0] = Instance_Create(carre, app->perFragmentProgram, solTexture);
+    app->objects[0] = Instance_Create(carre20, app->perFragmentProgram, solTexture);
 
     loadIdentity(app->objects[0].matrix);
-    translate(app->objects[0].matrix, 0, -3, 0);
     scale(app->objects[0].matrix, 500, 1, 500);
-    rotate(app->objects[0].matrix, -90, 0, 0);
 
 ////////////////////  GROUPE D'INSTANCES SANS INSTACIATION GEOMETRIQUE
 
@@ -302,26 +313,68 @@ bool App_Init(App* app) {
 
     app->locProjMatrix = glGetUniformLocation(app->noTexNoLightProgram, "camClip");
 
-    CollisionPlanInfini plan[5] = {};
+    CollisionPlanInfini planInfini[5] = {};
 
-    plan[0].normale = (Vec3){1 , 0,  0};
-    plan[1].normale = (Vec3){-1, 0,  0};
-    plan[2].normale = (Vec3){0 , 0,  1};
-    plan[3].normale = (Vec3){0 , 0, -1};
-    plan[4].normale = (Vec3){0.1 , .9,  0};
+    planInfini[0].normale = (Vec3){1 , 0,  0};
+    planInfini[1].normale = (Vec3){-1, 0,  0};
+    planInfini[2].normale = (Vec3){0 , 0,  1};
+    planInfini[3].normale = (Vec3){0 , 0, -1};
+    planInfini[4].normale = (Vec3){0, 1,  0};
 
-    plan[0].pos = (Vec3){-500, 0,  0};
-    plan[1].pos = (Vec3){ 500, 0,  0};
-    plan[2].pos = (Vec3){0 , 0,  -500};
-    plan[3].pos = (Vec3){0 , 0, 500};
-    plan[4].pos = (Vec3){0 , 0,  0};
+    planInfini[0].pos = (Vec3){-500, 0,  0};
+    planInfini[1].pos = (Vec3){ 500, 0,  0};
+    planInfini[2].pos = (Vec3){0 , 0,  -500};
+    planInfini[3].pos = (Vec3){0 , 0, 500};
+    planInfini[4].pos = (Vec3){  0, -200,  0};
 
     for (i = 0 ; i < 5 ; i++ )
     {
-        app->wall[i].plan = plan[i];
-        app->wall[i].type = COLLISION_PLAN;
+        app->wall[i].planInfini = planInfini[i];
+        app->wall[i].type = COLLISION_PLAN_INFINI;
     }
 
+//////////////////////////////////
+
+    CollisionPlan plan[3] = {};
+
+    plan[0].normale = (Vec3){0, 1,  0};
+    plan[1].normale = (Vec3){0, 1,  0};
+    plan[2].normale = (Vec3){0, 1,  0};
+
+    plan[0].pos = (Vec3){ 0, 0, 0};
+    plan[1].pos = (Vec3){-20, 4, -20};
+    plan[2].pos = (Vec3){-50, 100,  20};
+
+    plan[0].x = (Vec3){1, 0,  0};
+    plan[1].x = (Vec3){1, 0,  0};
+    plan[2].x = (Vec3){1, 0,  0};
+
+    plan[0].z = (Vec3){0, 0, 1};
+    plan[1].z = (Vec3){0, 0, 1};
+    plan[2].z = (Vec3){0, 0, 1};
+
+    plan[2].angleX = 90;
+
+    plan[0].xLength = 500;
+    plan[1].xLength = 20;
+    plan[2].xLength = 20;
+    plan[0].zLength = 500;
+    plan[1].zLength = 20;
+    plan[2].zLength = 20;
+
+    Model* carre = Model_Load(MODEL_CARRE_TEX_NORM, NULL);
+    if (carre == NULL)
+        return false;
+
+    GLuint planTex = chargerTexture("../images/skin.bmp", GL_LINEAR);
+    if (planTex == 0)
+        return false;
+
+    for (i = 0 ; i < 3 ; i++ )
+    {
+        app->planes[i] = Plan_Create(carre, plan[i], app->perFragmentProgram, planTex);
+    }
+    app->planes[0] = Plan_Create(carre20, plan[0], app->perFragmentProgram, solTexture);
     return true;
 }
 

@@ -124,6 +124,15 @@ Model* Model_Load(int type, const char* filename) {
 
         break;
 
+    case MODEL_CARRE_TEX_NORM2: // CARRE TEXTURE * 20 + NORMAL
+
+        model->drawStart = 0;
+        model->drawCount = 6;
+        Model_CreateVBO(model, sizeof(carreNorm20), (void*)carreNorm20);
+        Model_CreateVAO(model, 3, (int[3]){0, 1, 2}, (int[3]){0, VBO_NORMAL_OFFSET, VBO_TEXCOORD_OFFSET}, (int[3]){3, 3, 2});
+
+        break;
+
     default:
         printf("Erreur: ModelType inconnu: %d\n", type);
         return NULL;

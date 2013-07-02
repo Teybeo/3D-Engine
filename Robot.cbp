@@ -77,6 +77,7 @@
 		<Unit filename="header/model.h" />
 		<Unit filename="header/objLoader.h" />
 		<Unit filename="header/particule.h" />
+		<Unit filename="header/plan.h" />
 		<Unit filename="header/player.h" />
 		<Unit filename="header/robot.h" />
 		<Unit filename="header/shader.h" />
@@ -128,6 +129,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/particule.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/plan.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/player.c">
