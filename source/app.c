@@ -296,6 +296,7 @@ bool App_Init(App* app) {
         return false;
 
     app->sphereGroupe = SphereGroupe_Create(NB_BALLS_MAX, sphereModel, app->perFragmentProgram, solTexture);
+    SphereGroupe_Randomize(&app->sphereGroupe);
 
 //////////// BULLETS
 

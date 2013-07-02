@@ -2,6 +2,7 @@
 #define _SPHERE_GUARD
 
 #include "collision.h"
+#define NB_BALLS_MAX 200
 
 typedef struct Sphere {
 
@@ -24,6 +25,7 @@ typedef struct SphereGroupe {
 SphereGroupe SphereGroupe_Create(int nbMax, Model* model, GLuint program, GLuint texture);
 void SphereGroupe_Draw(SphereGroupe sphereGroupe, float* mondeToCam, float* camToClip);
 void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction);
+void SphereGroupe_Randomize(SphereGroupe* groupe);
 
 void Sphere_Draw(Sphere sphere, float* mondeToCam, float* camToClip);
 Sphere* initGroupeSphere(Instance instance, int nombre);

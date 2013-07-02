@@ -2,8 +2,9 @@
 
 #include "listeContact.h"
 #include "particule.h"
-#include <stdlib.h>
 #include "collision.h"
+
+#include <stdlib.h>
 
 void CollisionResolver_Resolve(ElemContact* tetepile) {
 
@@ -27,6 +28,7 @@ void CollisionResolver_Resolve(ElemContact* tetepile) {
         float totalInverseMass = 1 / a->masse;
         if (b != NULL)
             totalInverseMass += (1 / b->masse);
+
         Vec3_Div_Scal(&impulsionA, totalInverseMass);
 
         Vec3 impulsionB = impulsionA;
@@ -92,5 +94,6 @@ void rameneEnContact(Particule* a, Particule* b, Vec3 normale, float valPenetrat
     Vec3_Sub(&a->position, separateur);
     if (b != NULL)
         Vec3_Add(&b->position, separateur);
-
+    else
+        Vec3_Sub(&a->position, separateur);
 }

@@ -17,7 +17,6 @@
 #include "SDL.h"
 #include "glew.h"
 
-#define NB_BALLS_MAX 1000
 #define NB_BULLETS_MAX 5
 
 typedef struct App {

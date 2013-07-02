@@ -5,6 +5,7 @@ Player Player_init(Robot* robot) {
     Player player = {};
 
     setVec3(&player.posCam, 0, 10, 10);
+//    setVec3(&player.posRobot, 0, 50, 0);
     player.angleY = 0;
     player.angleX = 0;
     player.camMode = CAMERAMODE_FREE;

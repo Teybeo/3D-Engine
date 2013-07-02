@@ -64,15 +64,39 @@ inline void Vec3_Mul(Vec3 *p, Vec3 a) {
 
 inline float Vec3_Length(Vec3 vec) {
 
-    return sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
+//    return sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
+    return sqrtf(Vec3_Mul_Out(vec, vec));
 
 }
-//  [v projeté sur u] = (v.u / u.u) * u
-Vec3 Vec3_Project(Vec3 a, Vec3 b) {
 
-    float coef = (Vec3_Mul_Out(a, b) / Vec3_Mul_Out(b, b) );
+//  [u projeté sur v] = (u.v / v.v) * v
+Vec3 Vec3_Project(Vec3 u, Vec3 v) {
 
-    return Vec3_Mul_Scal_out(b, coef);
+    float coef = Vec3_LenghtFromProjection(u, v);
+
+    return Vec3_Mul_Scal_out(v, coef);
+}
+
+//  [u projeté sur v normal] = (u.v) * v
+// Si v normal
+Vec3 Vec3_ProjectOnNormal(Vec3 u, Vec3 v) {
+
+    float coef = Vec3_LenghtFromProjectionOnNormal(u, v);
+
+    return Vec3_Mul_Scal_out(v, coef);
+}
+
+//  longueur de [u projeté sur v] = (u.v / v.v)
+float Vec3_LenghtFromProjection(Vec3 u, Vec3 v) {
+
+    return Vec3_Mul_Out(u, v) / Vec3_Mul_Out(v, v);
+}
+
+//  longueur de [u projeté sur v normale] = (u.v)
+// Si v est normal, v.v = |v|² = |1|² = 1
+float Vec3_LenghtFromProjectionOnNormal(Vec3 u, Vec3 v) {
+
+    return Vec3_Mul_Out(u, v);
 }
 
 inline float Vec3_Distance2Points(Vec3 const a, Vec3 const b) {
@@ -109,6 +133,32 @@ Vec3 Vec3_Mul_Scal_out(Vec3 vec, float scal) {
     return res;
 }
 
+Vec3 Vec3_Random() {
+
+    float angleX = (rand() % 360) * (TAU/360);
+    float angleY = (rand() % 360) * (TAU/360);
+    float magnitude = 1 + (rand() % 2000)*0.01;
+
+    Vec3 vec = {};
+    vec.x =  sin(angleY) * cos(angleX) * magnitude;
+    vec.y = -sin(angleX) * magnitude;
+    vec.z = -cos(angleY) * cos(angleX) * magnitude;
+
+    return vec;
+
+}
+
+Vec3 Vec3_RandomPos(int xMin, int xMax, int yMin, int yMax, int zMin, int zMax) {
+
+    Vec3 vec = {};
+
+    vec.x = xMin + rand() % (abs(xMin) + xMax);
+    vec.y = yMin + rand() % (abs(yMin) + yMax);
+    vec.z = zMin + rand() % (abs(zMin) + zMax);
+
+    return vec;
+
+}
 
 void setVec3(Vec3* vec, float x, float y, float z) {
     vec->x = x;

@@ -64,10 +64,10 @@ void Sphere_Draw(Sphere sphere, float* mondeToCam, float* camToClip) {
     scale(sphere.instance.matrix, sphere.collisionData.rayon, sphere.collisionData.rayon, sphere.collisionData.rayon);
     Instance_Draw(sphere.instance, mondeToCam, camToClip);
 }
-//
+
 //Sphere* initGroupeSphere(Instance instance, int nombre) {
 //
-//    Sphere* balle = calloc(NB_MAX, sizeof(Sphere));
+//    Sphere* balle = calloc(NB_BALLS_MAX, sizeof(Sphere));
 //
 //    int i, j;
 //    bool superposition = false;
@@ -87,6 +87,7 @@ void Sphere_Draw(Sphere sphere, float* mondeToCam, float* camToClip) {
 //        do {
 //
 //            Particule_SetPosition(&balle[i].collisionData.particule, MUR_GAUCHE + rand() % (abs(MUR_GAUCHE)+MUR_DROIT), rand() % MUR_HAUT, MUR_ARRIERE + rand() % (abs(MUR_ARRIERE)+MUR_AVANT));
+//            Particule_SetPosition(&balle[i].collisionData.particule, (Vec3){-500 + rand() % (abs(-500)+500), rand() % 500, -500 + rand() % (abs(-500)+500)});
 //
 //            superposition = false; // On suppose qu'on l'a bien placé
 //
@@ -106,3 +107,46 @@ void Sphere_Draw(Sphere sphere, float* mondeToCam, float* camToClip) {
 //    return balle;
 //
 //}
+
+void SphereGroupe_Randomize(SphereGroupe* groupe) {
+
+    int i, j;
+    bool superposition = false;
+    Vec3 pos;
+
+    for (i = 0 ; i < groupe->nbMax ; i++ )
+    {
+        pos = Vec3_RandomPos(-20, 20, 50, 510, -20, 20);
+
+        Sphere_Add(groupe, pos, (Vec3){0, 0, 0});
+        //groupe.collisionData[i].sphere.particule = Particule_Init(0.8, 10 + i % 12);
+        //groupe.collisionData[i].sphere.rayon = 2;
+
+        //Particule_AjouteForceRand(&groupe.collisionData[i].sphere.particule, true, true);
+        //Particule_SetPosition(&balle[i], (-FEN_L/2) + rand() % FEN_L, (-FEN_H/2) + rand() % FEN_H);
+        //Particule_SetPosition(&balle[0].collisionData.particule, -5, 0, 0);
+        //Particule_SetPosition(&balle[1].collisionData.particule, -5, 0, 1);
+        //balle[1].collisionData.particule.vitesse.z = -1;
+
+        do {
+
+            //Particule_SetPosition(&balle[i].collisionData.particule, MUR_GAUCHE + rand() % (abs(MUR_GAUCHE)+MUR_DROIT), rand() % MUR_HAUT, MUR_ARRIERE + rand() % (abs(MUR_ARRIERE)+MUR_AVANT));
+            pos = Vec3_RandomPos(-30, 30, 50, 510, -30, 30);
+
+            Sphere_Add(groupe, pos, (Vec3){0, 0, 0});
+            superposition = false; // On suppose qu'on l'a bien placé
+
+            for (j = 0 ; j < groupe->nbMax ; j++ ) // On verifie pour chaque balle
+
+                if (i != j && CollisionGenerator_AreCollidingSphere(groupe->collisionData[i].sphere, groupe->collisionData[j].sphere) == true)
+                {
+                    superposition = true; // Il y a un problème
+                    break;
+                }
+
+
+        } while (superposition == true); // Si un problème on recommence
+
+    }
+
+}
