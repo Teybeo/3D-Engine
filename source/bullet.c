@@ -27,9 +27,9 @@ void Bullet_Add(BulletGroupe* bulletGroupe, Vec3 position, Vec3 direction) {
     CollisionSphere newBullet = {};
 
     newBullet.particule = Particule_Init(0.8, 1);
-    newBullet.rayon = 10.2;
+    newBullet.rayon = 5;
     Particule_SetPosition(&newBullet.particule, position);
-    Particule_SetVitesse(&newBullet.particule, direction);
+    Particule_SetVitesse(&newBullet.particule, Vec3_Div_Scal_Out(direction, newBullet.particule.masse));
 
     bulletGroupe->collisionData[index].sphere = newBullet;
     bulletGroupe->collisionData[index].type = COLLISION_SPHERE;

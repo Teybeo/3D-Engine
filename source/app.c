@@ -20,19 +20,8 @@ void App_Draw(App* app) {
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    glDisable(GL_DEPTH_TEST);
-        loadIdentity(app->skybox.matrix);
-        if (app->player.camMode == CAMERAMODE_FREE)
-            translateByVec(app->skybox.matrix, app->player.posCam);
-        else
-            translateByVec(app->skybox.matrix, app->player.posRobot);
-        scale(app->skybox.matrix, 50, 50, 50);
-        Instance_Draw(app->skybox, app->player.mondeToCam, app->fenetre.camToClip);
-    glEnable(GL_DEPTH_TEST);
-
-
         int i;
-    glUseProgram(app->instancePerFragmentProgram);
+    /*glUseProgram(app->instancePerFragmentProgram);
         for (i = 0 ; i < 6 ; i++ )
         {
             char name[50] = "";
@@ -42,7 +31,7 @@ void App_Draw(App* app) {
             glUniform3fv(glGetUniformLocation(app->instancePerFragmentProgram, name), 1, &app->lampe[i].color.x);
         }
     glUseProgram(0);
-    glUseProgram(app->perFragmentProgram);
+    */glUseProgram(app->perFragmentProgram);
         for (i = 0 ; i < 6 ; i++ )
         {
             char name[50] = "";
@@ -53,9 +42,10 @@ void App_Draw(App* app) {
         }
     glUseProgram(0);
 
-//    InstanceGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
+    for (i = 1 ; i <2 ; i++ )
+        Plan_Draw(app->planes[i], app->player.mondeToCam, app->fenetre.camToClip);
 
-    Robot_draw(&app->robot, app->player.mondeToCam, app->fenetre.camToClip);
+//    InstanceGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
 
 //    for (i = 0 ; i < 1 ; i++ )
 //        Instance_Draw(app->objects[i], app->player.mondeToCam, app->fenetre.camToClip);
@@ -63,13 +53,23 @@ void App_Draw(App* app) {
     for (i = 0 ; i < 6 ; i++ )
         Instance_Draw(app->lampe[i].instance, app->player.mondeToCam, app->fenetre.camToClip);
 
-    for (i = 0 ; i < 3 ; i++ )
-        Plan_Draw(app->planes[i], app->player.mondeToCam, app->fenetre.camToClip);
+    Robot_draw(&app->robot, app->player.mondeToCam, app->fenetre.camToClip);
 
     SphereGroupe_Draw(app->sphereGroupe, app->player.mondeToCam, app->fenetre.camToClip);
     BulletGroupe_Draw(app->bulletGroupe, app->player.mondeToCam, app->fenetre.camToClip);
 //    for (i = 0 ; i < app->nb ; i++ )
 //        Sphere_Draw(app->balle[i], app->player.mondeToCam, app->fenetre.camToClip);
+
+    //glDisable(GL_DEPTH_TEST);
+        loadIdentity(app->skybox.matrix);
+        if (app->player.camMode == CAMERAMODE_FREE)
+            translateByVec(app->skybox.matrix, app->player.posCam);
+        else
+            translateByVec(app->skybox.matrix, app->player.posRobot);
+        scale(app->skybox.matrix, 600, 600, 600);
+        Instance_Draw(app->skybox, app->player.mondeToCam, app->fenetre.camToClip);
+    //glEnable(GL_DEPTH_TEST);
+
     SDL_GL_SwapWindow(app->fenetre.ecran);
 
 //    getchar();
@@ -136,7 +136,7 @@ void App_Logic(App* app, float duree) {
 
     app->planes[0].collisionData->plan.angleZ = 5*cos(t/2.);
     app->planes[0].collisionData->plan.angleX = 5*sin(t/2.);
-    app->planes[2].collisionData->plan.angleZ -= 2;
+    app->planes[2].collisionData->plan.angleZ -= .2;
     Plan_RotateBase(&app->planes[0]);
     Plan_RotateBase(&app->planes[2]);
 //    Plan_RotateBase(&app->planes[3]);
@@ -145,14 +145,14 @@ void App_Logic(App* app, float duree) {
 
     app->robot.collisionObject.sphere.particule.position = app->player.posRobot;
 
-    int nbObjects = app->sphereGroupe.nbSpheres + app->bulletGroupe.nbBullets + 5 + 3;// enlever +1;
+    int nbObjects = app->sphereGroupe.nbSpheres + app->bulletGroupe.nbBullets + 0 + 3;// enlever +1;
 
     CollisionObject** container = malloc(sizeof(CollisionObject*) * nbObjects );
 
     Container_Clear();
     Container_AddCollisionsToCheck(container, app->sphereGroupe.collisionData, app->sphereGroupe.nbSpheres);
     Container_AddCollisionsToCheck(container, app->bulletGroupe.collisionData, app->bulletGroupe.nbBullets);
-    Container_AddCollisionsToCheck(container, app->wall, 5);
+   // Container_AddCollisionsToCheck(container, app->wall, 5);
     for (i = 0 ; i < 3 ; i++ )
         Container_AddCollisionsToCheck(container, app->planes[i].collisionData, 1);
 
@@ -187,16 +187,16 @@ bool App_Init(App* app) {
         enableCallback(true);
     }
 
-    if (initProgram(&app->noTexNoLightProgram, "../source/shaders/noTexNoLight.vert", "../source/shaders/noTexNoLight.frag") == false)
+    if (initProgram(&app->noTexNoLightProgram, "../source/vert_shaders/noTexNoLight.vert", "../source/frag_shaders/noTexNoLight.frag") == false)
         return false;
 
-    if (initProgram(&app->texProgram, "../source/shaders/noLight.vert", "../source/shaders/noLight.frag") == false)
+    if (initProgram(&app->texProgram, "../source/vert_shaders/noLight.vert", "../source/frag_shaders/noLight.frag") == false)
         return false;
 
-//    if (initProgram(&app->perVertexProgram, "../source/shaders/perVertex.vert", "../source/shaders/perVertex.frag") == false)
+//    if (initProgram(&app->perVertexProgram, "../source/vert_shaders/perVertex.vert", "../source/shaders/frag_perVertex.frag") == false)
 //        return false;
 
-    if (initProgram(&app->perFragmentProgram, "../source/shaders/perFragment.vert", "../source/shaders/perFragment.frag") == false)
+    if (initProgram(&app->perFragmentProgram, "../source/vert_shaders/perFragment.vert", "../source/frag_shaders/perFragment.frag") == false)
         return false;
 
 ///////////////////// ROBOT
@@ -252,14 +252,14 @@ bool App_Init(App* app) {
     if (cubeTexNorm == 0)
         return false;
 
-    if (initProgram(&app->instancePerFragmentProgram, "../source/shaders/instancePerFragment.vert", "../source/shaders/perFragment.frag") == false)
+    if (initProgram(&app->instancePerFragmentProgram, "../source/vert_shaders/instancePerFragment.vert", "../source/frag_shaders/perFragment.frag") == false)
         return false;
 
     app->objectGroupe = InstanceGroupe_Create(cubeTexNorm, 50, app->instancePerFragmentProgram, stoneTexture);
 
 //////////////////////// SKYBOX
 
-    if ((skyboxTexture = chargerTexture("../images/skybox.png", GL_NEAREST)) == 0)
+    if ((skyboxTexture = chargerTexture("../images/miramar_large2.jpg", GL_NEAREST)) == 0)
         return false;
 
     Model* cubeTex = Model_Load(MODEL_OBJ, "../models/skybox.obj");
@@ -343,7 +343,7 @@ bool App_Init(App* app) {
     plan[2].normale = (Vec3){0, 1,  0};
 
     plan[0].pos = (Vec3){ 0, 0, 0};
-    plan[1].pos = (Vec3){-20, 4, -20};
+    plan[1].pos = (Vec3){-20, 0, -20};
     plan[2].pos = (Vec3){-50, 100,  20};
 
     plan[0].x = (Vec3){1, 0,  0};
@@ -363,11 +363,11 @@ bool App_Init(App* app) {
     plan[1].zLength = 20;
     plan[2].zLength = 20;
 
-    Model* carre = Model_Load(MODEL_CARRE_TEX_NORM, NULL);
+    Model* carre = Model_Load(MODEL_OBJ, "../models/cs.obj");
     if (carre == NULL)
         return false;
 
-    GLuint planTex = chargerTexture("../images/skin.bmp", GL_LINEAR);
+    GLuint planTex = chargerTexture("../images/blanc.bmp", GL_LINEAR);
     if (planTex == 0)
         return false;
 
@@ -442,12 +442,12 @@ void App_Event(App* app) {
 
             if (app->player.weapon == WEAPONMODE_BALL)
             {
-                Vec3_Mul_Scal(&direction, 30); // On donne une force au tir
+                Vec3_Mul_Scal(&direction, 3); // On donne une force au tir
                 Sphere_Add(&app->sphereGroupe, pos, direction);
             }
             else if (app->player.weapon == WEAPONMODE_GUN)
             {
-                Vec3_Mul_Scal(&direction, 100); // On donne une force au tir
+                Vec3_Mul_Scal(&direction, 3); // On donne une force au tir
                 Bullet_Add(&app->bulletGroupe, pos, direction);
             }
         }

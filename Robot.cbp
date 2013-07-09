@@ -23,6 +23,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-march=corei7" />
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
@@ -38,9 +39,8 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-march=corei7" />
-					<Add option="-O3" />
 					<Add option="-pg" />
+					<Add option="-g" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -101,6 +101,10 @@
 		<Unit filename="source/fenetre.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="source/frag_shaders/noLight.frag" />
+		<Unit filename="source/frag_shaders/noTexNoLight.frag" />
+		<Unit filename="source/frag_shaders/perFragment.frag" />
+		<Unit filename="source/frag_shaders/perVertex.frag" />
 		<Unit filename="source/gl_debug.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -143,15 +147,6 @@
 		<Unit filename="source/shader.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="source/shaders/instancePerFragment.vert" />
-		<Unit filename="source/shaders/noLight.frag" />
-		<Unit filename="source/shaders/noLight.vert" />
-		<Unit filename="source/shaders/noTexNoLight.frag" />
-		<Unit filename="source/shaders/noTexNoLight.vert" />
-		<Unit filename="source/shaders/perFragment.frag" />
-		<Unit filename="source/shaders/perFragment.vert" />
-		<Unit filename="source/shaders/perVertex.frag" />
-		<Unit filename="source/shaders/perVertex.vert" />
 		<Unit filename="source/sphere.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -167,6 +162,11 @@
 		<Unit filename="source/vec4.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="source/vert_shaders/instancePerFragment.vert" />
+		<Unit filename="source/vert_shaders/noLight.vert" />
+		<Unit filename="source/vert_shaders/noTexNoLight.vert" />
+		<Unit filename="source/vert_shaders/perFragment.vert" />
+		<Unit filename="source/vert_shaders/perVertex.vert" />
 		<Extensions>
 			<code_completion />
 			<envvars />

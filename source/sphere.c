@@ -26,10 +26,10 @@ void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction) {
 
     CollisionSphere newSphere = {};
 
-    newSphere.particule = Particule_Init(0.8, 1);
+    newSphere.particule = Particule_Init(0.8, 10);
     newSphere.rayon = 2;
     Particule_SetPosition(&newSphere.particule, position);
-    Particule_SetVitesse(&newSphere.particule, direction);
+    Particule_SetVitesse(&newSphere.particule, Vec3_Mul_Scal_out(direction, newSphere.particule.masse));
 
     sphereGroupe->collisionData[index].sphere = newSphere;
     sphereGroupe->collisionData[index].type = COLLISION_SPHERE;

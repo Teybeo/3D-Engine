@@ -2,7 +2,7 @@
 
 int main() {
 
-    App Robot;
+    App Robot = {};
 
     if (App_Init(&Robot) == false)
         return -1;

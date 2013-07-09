@@ -61,8 +61,8 @@ bool initFenetre(Fenetre* fen) {
 
     setPerspective(fen);
 
-    glCullFace(GL_FRONT);
-//    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
     grabMouse(fen, true);
