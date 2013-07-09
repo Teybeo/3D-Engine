@@ -17,7 +17,7 @@
 #include "SDL.h"
 #include "glew.h"
 
-#define NB_BULLETS_MAX 5
+#define NB_BULLETS_MAX 4
 
 typedef struct App {
 
@@ -35,7 +35,7 @@ typedef struct App {
     Instance objects[10000];
     InstanceGroupe objectGroupe;
     Instance skybox;
-    Light lampe[10];
+    Light lampe[6];
     SphereGroupe sphereGroupe;
     BulletGroupe bulletGroupe;
     CollisionObject wall[6];

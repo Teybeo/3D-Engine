@@ -27,7 +27,7 @@ void Bullet_Add(BulletGroupe* bulletGroupe, Vec3 position, Vec3 direction) {
     CollisionSphere newBullet = {};
 
     newBullet.particule = Particule_Init(0.8, 1);
-    newBullet.rayon = 0.2;
+    newBullet.rayon = 10.2;
     Particule_SetPosition(&newBullet.particule, position);
     Particule_SetVitesse(&newBullet.particule, direction);
 
@@ -35,9 +35,8 @@ void Bullet_Add(BulletGroupe* bulletGroupe, Vec3 position, Vec3 direction) {
     bulletGroupe->collisionData[index].type = COLLISION_SPHERE;
 
     index++;
+    index %= bulletGroupe->nbMax;
 
-    if (index == bulletGroupe->nbMax)
-        index = 0;
     if (bulletGroupe->nbBullets != bulletGroupe->nbMax)
         bulletGroupe->nbBullets++;
 }
@@ -54,9 +53,9 @@ void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camT
         scale(bulletInstance.matrix, bulletGroupe.collisionData[i].sphere.rayon, bulletGroupe.collisionData[i].sphere.rayon, bulletGroupe.collisionData[i].sphere.rayon);
 
         char name[50] = "";
-        sprintf(name, "lightPos[%d]", i+5);
+        sprintf(name, "lightPos[%d]", i+6);
         glUniform3fv(glGetUniformLocation(bulletGroupe.program, name), 1, &bulletGroupe.collisionData[i].sphere.particule.position.x);
-        sprintf(name, "lightColor[%d]", i+5);
+        sprintf(name, "lightColor[%d]", i+6);
         glUniform3fv(glGetUniformLocation(bulletGroupe.program, name), 1, &color.x);
 
         Instance_Draw(bulletInstance, mondeToCam, camToClip);
