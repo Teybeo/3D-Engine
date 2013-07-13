@@ -1,9 +1,12 @@
 #include "instance.h"
 
-#include <stdlib.h>
+#include "objLoader.h"
+#include "texture.h"
 #include "matrix.h"
 #include "vec3.h"
 #include "vec2.h"
+
+#include <stdlib.h>
 
 static GLuint activeProgram = -1;
 static GLuint activeVAO = -1;
@@ -25,10 +28,10 @@ void Instance_Draw(Instance object, float* mondeToCam, float* camToClip) {
         glUniformMatrix4fv(worldCamLoc, 1, GL_TRUE, mondeToCam);
         glUniformMatrix4fv(camClipLoc, 1, GL_TRUE, camToClip);
     }
-    if (object.model->vao != activeVAO)
+    if (object.mesh->vao != activeVAO)
     {
-        glBindVertexArray(object.model->vao);
-        activeVAO = object.model->vao;
+        glBindVertexArray(object.mesh->vao);
+        activeVAO = object.mesh->vao;
     }
     if (object.texture != activeTexture)
     {
@@ -38,7 +41,7 @@ void Instance_Draw(Instance object, float* mondeToCam, float* camToClip) {
 
     glUniformMatrix4fv(modelWorldLoc, 1, GL_TRUE, object.matrix);
 
-    glDrawArrays(object.model->primitiveType, object.model->drawStart, object.model->drawCount);
+    glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart, object.mesh->drawCount);
 
 //    glBindTexture(GL_TEXTURE_2D, 0);
 //    glBindVertexArray(0);
@@ -46,11 +49,35 @@ void Instance_Draw(Instance object, float* mondeToCam, float* camToClip) {
 
 }
 
-Instance Instance_Create(Model* model, GLuint program, GLuint texture) {
+// Charge un fichier obj complet (mesh + texture) et en fait une instance
+Instance Instance_Load(const char* objFile, GLuint program) {
+
+    Instance instance = {};
+    instance.program = -1;
+    instance.texture = -1;
+
+    char texFile[256] = "";
+
+    instance.mesh = Mesh_FullLoad(objFile, texFile);
+    // TODO: meilleur gestion d'erreur
+    if (instance.mesh == NULL)
+        return instance;
+
+    if (texFile[0] != '\0')
+        instance.texture = chargerTexture(texFile, GL_LINEAR);
+
+    instance.program = program;
+    loadIdentity(instance.matrix);
+
+    return instance;
+}
+
+// Crée une instance à partir d'un mesh et d'une texture déjà chargé en mémoire
+Instance Instance_Create(Mesh* mesh, GLuint program, GLuint texture) {
 
     Instance instance = {};
 
-    instance.model = model;
+    instance.mesh = mesh;
     instance.program = program;
     instance.texture = texture;
     loadIdentity(instance.matrix);
@@ -77,10 +104,10 @@ void InstanceGroupe_Draw(InstanceGroupe groupe, float* mondeToCam, float* camToC
         glUniformMatrix4fv(worldCamLoc, 1, GL_TRUE, mondeToCam);
         glUniformMatrix4fv(camClipLoc, 1, GL_TRUE, camToClip);
     }
-    if (groupe.model->vao != activeVAO)
+    if (groupe.mesh->vao != activeVAO)
     {
-        glBindVertexArray(groupe.model->vao);
-        activeVAO = groupe.model->vao;
+        glBindVertexArray(groupe.mesh->vao);
+        activeVAO = groupe.mesh->vao;
     }
     if (groupe.texture != activeTexture)
     {
@@ -88,15 +115,15 @@ void InstanceGroupe_Draw(InstanceGroupe groupe, float* mondeToCam, float* camToC
         activeTexture = groupe.texture;
     }
 
-    glDrawArraysInstanced(groupe.model->primitiveType, groupe.model->drawStart, groupe.model->drawCount, groupe.nbInstances);
+    glDrawArraysInstanced(groupe.mesh->primitiveType, groupe.mesh->drawStart, groupe.mesh->drawCount, groupe.nbInstances);
 
 }
 
-InstanceGroupe InstanceGroupe_Create(Model* model, int nbInstances, GLuint program, GLuint texture) {
+InstanceGroupe InstanceGroupe_Create(Mesh* mesh, int nbInstances, GLuint program, GLuint texture) {
 
     InstanceGroupe groupe = {};
 
-    groupe.model = model;
+    groupe.mesh = mesh;
     groupe.nbInstances = nbInstances;
     groupe.program = program;
     groupe.texture = texture;
@@ -123,7 +150,7 @@ InstanceGroupe InstanceGroupe_Create(Model* model, int nbInstances, GLuint progr
 
     // On ajoute les matrices au vao déjà créé du modèle
     // Comme les attributs ne peuvent être que des vec4, opengl distribue 4 index, 1 pour chaque colonne
-    glBindVertexArray(model->vao);
+    glBindVertexArray(mesh->vao);
 
     for (i = 0 ; i < 4 ; i++ )
     {

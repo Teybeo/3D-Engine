@@ -216,22 +216,24 @@ bool App_Init(App* app) {
     if ((solTexture = chargerTexture("../images/cyclopean.jpg", GL_LINEAR)) == 0)
         return false;
 
-    Model* carre20 = Model_Load(MODEL_CARRE_TEX_NORM2, NULL);
+    int i;
+
+   /* Mesh* carre20 = Mesh_Load(MESH_CARRE_TEX_NORM2, NULL);
     if (carre20 == NULL)
         return false;
 
     app->objects[0] = Instance_Create(carre20, app->perFragmentProgram, solTexture);
 
     loadIdentity(app->objects[0].matrix);
-    scale(app->objects[0].matrix, 500, 1, 500);
+    scale(app->objects[0].matrix, 500, 1, 500);*/
 
-////////////////////  GROUPE D'INSTANCES SANS INSTACIATION GEOMETRIQUE
+////////////////////  GROUPE D'INSTANCES SANS INSTANCIATION GEOMETRIQUE
 
-    Model* sphere = Model_Load(MODEL_OBJ , "../models/sphere.obj");
+    /*Mesh* sphere = Mesh_Load(MESH_OBJ , "../models/sphere.obj");
     if (sphere == NULL)
         return false;
 
-    Instance object = Instance_Create(sphere, app->perFragmentProgram, solTexture);
+    Instance object = Instance_Load("../models/sphere.obj", app->perFragmentProgram);
 
     srand(time(NULL));
 
@@ -244,41 +246,41 @@ bool App_Init(App* app) {
 //        scale(app->objects[i].matrix, 1+ rand() % 4, 1 + rand() % 4, 1+ rand() % 4);
         rotate(app->objects[i].matrix, rand() % 90, rand() % 90, rand() % 90);
     }
-    loadIdentity(app->objects[1].matrix);
+    loadIdentity(app->objects[1].matrix);*/
 
 //////////////////////// GROUPE D'INSTANCES
 
-    Model* cubeTexNorm = Model_Load(MODEL_OBJ , "../models/sphere.obj");
+    /*Mesh* cubeTexNorm = Mesh_Loadbu(MESH_OBJ , "../models/sphere.obj");
     if (cubeTexNorm == 0)
         return false;
 
     if (initProgram(&app->instancePerFragmentProgram, "../source/vert_shaders/instancePerFragment.vert", "../source/frag_shaders/perFragment.frag") == false)
         return false;
 
-    app->objectGroupe = InstanceGroupe_Create(cubeTexNorm, 50, app->instancePerFragmentProgram, stoneTexture);
+    app->objectGroupe = InstanceGroupe_Create(cubeTexNorm, 50, app->instancePerFragmentProgram, stoneTexture);*/
 
 //////////////////////// SKYBOX
 
     if ((skyboxTexture = chargerTexture("../images/miramar_large2.jpg", GL_NEAREST)) == 0)
         return false;
 
-    Model* cubeTex = Model_Load(MODEL_OBJ, "../models/skybox.obj");
-    if (cubeTex == NULL)
+    Mesh* skyboxMesh = Mesh_LoadBuiltin(MESH_CUBE_TEX_FLIP);
+    if (skyboxMesh == NULL)
         return false;
 
-    app->skybox = Instance_Create(cubeTex, app->texProgram, skyboxTexture);
+    app->skybox = Instance_Create(skyboxMesh, app->texProgram, skyboxTexture);
     loadIdentity(app->skybox.matrix);
     scale(app->skybox.matrix, 5, 5, 5);
 
 //////////////// LUMIERES
 
-    Model* lightBox = Model_Load(MODEL_OBJ, "../models/sphere.obj");
-    if (lightBox == NULL)
+    Mesh* sphere = Mesh_Load("../models/sphere.obj");
+    if (sphere == NULL)
         return false;
 
-    Instance light = Instance_Create(lightBox, app->perFragmentProgram, stoneTexture);
+    Instance light = Instance_Create(sphere, app->perFragmentProgram, stoneTexture);
 
-    for (i = 0 ; i < 10 ; i++ )
+    for (i = 0 ; i < 6 ; i++ )
         app->lampe[i].instance = light;
 
     Light_SetPosColor(&app->lampe[0], (Vec3){-15, 2, 0}, (Vec3){0, 1, 0});
@@ -291,24 +293,20 @@ bool App_Init(App* app) {
 
 //////////// BALLES
 
-    Model* sphereModel = Model_Load(MODEL_OBJ, "../models/sphere.obj");
-    if (sphereModel == NULL)
-        return false;
-
-    app->sphereGroupe = SphereGroupe_Create(NB_BALLS_MAX, sphereModel, app->perFragmentProgram, solTexture);
+    app->sphereGroupe = SphereGroupe_Create(NB_BALLS_MAX, sphere, app->perFragmentProgram, solTexture);
     SphereGroupe_Randomize(&app->sphereGroupe);
 
 //////////// BULLETS
 
-    /*Model* sphereModel = Model_Load(MODEL_OBJ, "../models/sphere.obj");
-    if (sphereModel == NULL)
+    /*Mesh* sphereMesh = Mesh_Load(MESH_OBJ, "../models/sphere.obj");
+    if (sphereMesh == NULL)
         return false;*/
 
     int bulletTex = chargerTexture("../images/bulletTex.png", GL_NEAREST);
     if (bulletTex == 0)
         return false;
 
-    app->bulletGroupe = BulletGroupe_Create(NB_BULLETS_MAX, sphereModel, app->perFragmentProgram, bulletTex);
+    app->bulletGroupe = BulletGroupe_Create(NB_BULLETS_MAX, sphere, app->perFragmentProgram, bulletTex);
 
 ////////////////////////
 
@@ -363,7 +361,7 @@ bool App_Init(App* app) {
     plan[1].zLength = 20;
     plan[2].zLength = 20;
 
-    Model* carre = Model_Load(MODEL_OBJ, "../models/cs.obj");
+    Mesh* carre = Mesh_Load("../models/cs.obj");
     if (carre == NULL)
         return false;
 
@@ -375,7 +373,7 @@ bool App_Init(App* app) {
     {
         app->planes[i] = Plan_Create(carre, plan[i], app->perFragmentProgram, planTex);
     }
-    app->planes[0] = Plan_Create(carre20, plan[0], app->perFragmentProgram, solTexture);
+  //  app->planes[0] = Plan_Create(carre20, plan[0], app->perFragmentProgram, solTexture);
     return true;
 }
 

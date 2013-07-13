@@ -2,32 +2,37 @@
 
 #include "vec2.h"
 #include "vec3.h"
-#include <stdio.h>
 #include "liste.h"
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
-bool loadObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, int* nb) {
+bool loadObj(const char* filename, Vec3** verticesFinal, Vec2** uvsFinal, Vec3** normalsFinal, int* nbFinal, char* texFile) {
 
-    puts("\n----------- Model ---------");
+    puts("\n----------- Mesh ---------");
     printf("Loading '%s'\n", filename);
+
+    Vec3* vertices = NULL;
+    Vec3* normals = NULL;
+    Vec2* uvs = NULL;
+    int nb = 0;
 
     bool rawLoaded = false;
     bool indexedLoaded = false;
 
-    rawLoaded = loadRawObj(filename, vertices, uvs, normals, nb);
+    //rawLoaded = loadRawObj(filename, &vertices, &uvs, &normals, &nb, texFile);
 
     // Si pas de binaire, on charge le texte
     if (rawLoaded == false)
     {
-        indexedLoaded = loadIndexedObj(filename, vertices, uvs, normals, nb);
+        indexedLoaded = loadIndexedObj(filename, &vertices, &uvs, &normals, &nb, texFile);
 
         // On génère un binaire pour aller plus vite les prochaines fois
         if (indexedLoaded == true)
         {
-            writeRawObj(filename, *vertices, *uvs, *normals, *nb);
-            //writeUnindexedObj(filename, *vertices, *uvs, *normals, *nb); Debug
+            writeRawObj(filename, vertices, uvs, normals, nb, texFile);
+//            writeUnindexedObj(filename, vertices, uvs, normals, nb); //Debug
         }
         else // Sinon, pas de chance
         {
@@ -35,11 +40,16 @@ bool loadObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, 
         }
     }
 
+    *verticesFinal = vertices;
+    *uvsFinal = uvs;
+    *normalsFinal = normals;
+    *nbFinal = nb;
+
     return true;
 }
 
 // Lecture d'un fichier en mode binaire, très rapide
-bool loadRawObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, int* nbVertices) {
+bool loadRawObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, int* nbVertices, char* texFile) {
 
     char nameUnpacked[128] = "";
     strcpy(nameUnpacked, filename);
@@ -53,6 +63,13 @@ bool loadRawObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normal
         puts("Error");
         return false;
     }
+
+    char buffer[256] = "";
+
+    fscanf(file, "%s\n", buffer);
+
+    if (texFile != NULL)
+        strcpy(texFile, buffer);
 
     fscanf(file, "%d\n", nbVertices);
 
@@ -75,7 +92,7 @@ bool loadRawObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normal
 // Lecture d'un fichier obj en mode texte, très lent
 // Ces fichiers peuvent contenir des indices différents pour chaque attribut (vertex, uv, normal)
 // OpenGl ne supporte pas cela, donc on désindexe les attributs en les mettant les uns à la suite des autres
-bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, int* nb) {
+bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, int* nb, char* texFile) {
 
     printf("\tLoading OBJ file '%s' ...", filename);
 
@@ -105,6 +122,11 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
         if (res == EOF)
             break; // EOF = End Of File. Quit the loop.
 
+        if ( strcmp( lineHeader, "mtllib") == 0) // Material file
+        {
+            if (texFile != NULL)
+                fscanf(file, "%s", texFile);
+        }
         if ( strcmp( lineHeader, "v" ) == 0 ) // Vertex
         {
             fscanf(file, "%f %f %f\n", &vecTemp.x, &vecTemp.y, &vecTemp.z );
@@ -160,39 +182,40 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
 
     int nbVertexUniques = getElemNumber(listeVertexIndices);
 
-    int nbVertex = getElemNumber(listeVertex);
-    int nbUvs = getElemNumber(listeUv);
-    int nbNormals = getElemNumber(listeNormal);
+    // On dump les listes d'indices dans des tableaux pour accélérer les accès
+    unsigned int* vertexIndices = dumpListeToArray(listeVertexIndices);
+    unsigned int* normalIndices = dumpListeToArray(listeNormalIndices);
+    unsigned int* uvIndices     = dumpListeToArray(listeUvIndices);
 
+    // On dump les listes de données dans des tableaux pour accélérer les accès
+    Vec3* verticesDump = dumpVec3ListeToArray(listeVertex);
+    Vec3* normalsDump  = dumpVec3ListeToArray(listeNormal);
+    Vec2 *uvsDump      = dumpVec2ListeToArray(listeUv);
+
+    // On alloue les tableaux finaux, tous de la meme taille
     *vertices = malloc(sizeof(Vec3) * nbVertexUniques);
-    *uvs = malloc(sizeof(Vec2) * nbVertexUniques);
-    *normals = malloc(sizeof(Vec3) * nbVertexUniques);
+    *normals  = malloc(sizeof(Vec3) * nbVertexUniques);
+    *uvs      = malloc(sizeof(Vec2) * nbVertexUniques);
 
-    unsigned int* vertexIndices = NULL;
-    unsigned int* uvIndices = NULL;
-    unsigned int* normalIndices = NULL;
-
-    vertexIndices = dumpListeToArray(listeVertexIndices);
-    normalIndices = dumpListeToArray(listeNormalIndices);
-    uvIndices = dumpListeToArray(listeUvIndices);
+    int nbVertex  = getElemNumber(listeVertex);
+    int nbNormals = getElemNumber(listeNormal);
+    int nbUvs     = getElemNumber(listeUv);
 
     int i;
     // Ici on va passer vertex par vertex
     for( i = 0; i < nbVertexUniques; i++ )
     {
-        // Get the indices of its attributes
-        unsigned int vertexIndex = vertexIndices[i ];
-        unsigned int uvIndex = uvIndices[i];
+        // On récupère les indices de chaque donnée pour ce point
+        unsigned int vertexIndex = vertexIndices[i];
         unsigned int normalIndex = normalIndices[i];
+        unsigned int uvIndex = uvIndices[i];
 
-        Vec3 vertex = getElemByNumber(listeVertex, nbVertex - vertexIndex);
-        Vec3 normal = getElemByNumber(listeNormal, nbNormals - normalIndex);
-        Vec3 uv_temp = getElemByNumber(listeUv, nbUvs - uvIndex);
-        Vec2 uv = (Vec2){uv_temp.x, uv_temp.y};
-
-        (*vertices)[nbVertexUniques - i - 1] = vertex;
-        (*normals)[nbVertexUniques - i - 1] = normal;
-        (*uvs)[nbVertexUniques - i - 1] = uv;
+        // On va récupèrer les données dans les tableaux avec ces indices
+        // Comme les données ont été empilées, les premières sont au bas de la pile
+        // Les données sont enregistrées dans les tableaux finaux
+        (*vertices)[nbVertexUniques - i - 1] = verticesDump[nbVertex - vertexIndex];
+        (*normals)[nbVertexUniques - i - 1] = normalsDump[nbNormals - normalIndex];
+        (*uvs)[nbVertexUniques - i - 1] = uvsDump[nbUvs - uvIndex];
 
     }
 
@@ -203,13 +226,16 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
     free(vertexIndices);
     free(normalIndices);
     free(uvIndices);
+    free(verticesDump);
+    free(normalsDump);
+    free(uvsDump);
 
     return true;
 
 }
 
 // Enregistre un modèle dans un fichier sous forme binaire, très rapide
-bool writeRawObj(const char* filename, Vec3* vertices, Vec2* uvs, Vec3* normals, int nbVertices) {
+bool writeRawObj(const char* filename, Vec3* vertices, Vec2* uvs, Vec3* normals, int nbVertices, const char* texFile) {
 
     char nameUnpacked[128] = "";
     strcpy(nameUnpacked, filename);
@@ -225,6 +251,10 @@ bool writeRawObj(const char* filename, Vec3* vertices, Vec2* uvs, Vec3* normals,
     }
 
 //    char ligne[128] = "";
+    if (texFile == NULL)
+        fputs("NULL\n", file);
+    else
+        fprintf(file, "%s\n", texFile);
     fprintf(file, "%d\n", nbVertices);
 
     fwrite(vertices, sizeof(Vec3), nbVertices, file);
@@ -239,7 +269,7 @@ bool writeRawObj(const char* filename, Vec3* vertices, Vec2* uvs, Vec3* normals,
 }
 
 // Enregistre un modèle dans un fichier sous forme texte
-// Ce format est différent du .obj original car les attributs en sont pas indexés, lent
+// Ce format est différent du .obj original car les attributs ne sont pas indexés, lent
 bool writeUnindexedObj(const char* filename, Vec3* vertices, Vec2* uvs, Vec3* normals, int nbVertices) {
 
     char nameUnpacked[128] = "";

@@ -97,38 +97,26 @@ bool Robot_init(Robot* robot, GLuint program) {
 
     robot->locModelWorld = glGetUniformLocation(program, "modelWorld");
 
-    GLuint creeperTex = chargerTexture("../images/creeper.bmp", GL_NEAREST);
-    if (creeperTex == 0)
-        return false;
-
-    GLuint teteTex = chargerTexture("../images/tete.png", GL_LINEAR);
-    if (teteTex == 0)
+    GLuint jambeTex = chargerTexture("../images/steve3.png", GL_NEAREST);
+    if (jambeTex == 0)
         return false;
 
     GLuint skinTex = chargerTexture("../images/skin.bmp", GL_LINEAR);
     if (skinTex == 0)
         return false;
 
-    Model* cubeModel = Model_Load(MODEL_CUBE_TEX_NORM, NULL);
-    if (cubeModel == false)
+    Mesh* cubeMesh = Mesh_LoadBuiltin(MESH_CUBE_TEX_NORM);
+    if (cubeMesh == NULL)
         return false;
 
-    Model* teteModel = Model_Load(MODEL_OBJ, "../models/tete.obj");
-    if (teteModel == false)
+    Mesh* brasMesh = Mesh_Load("../models/bras.obj");
+    if (brasMesh == NULL)
         return false;
 
-    Model* corpsModel = Model_Load(MODEL_OBJ, "../models/corps.obj");
-    if (corpsModel == false)
-        return false;
-
-    Model* brasModel = Model_Load(MODEL_OBJ, "../models/bras.obj");
-    if (brasModel == false)
-        return false;
-
-    Instance cube = Instance_Create(cubeModel, program, creeperTex);
-    Instance tete = Instance_Create(teteModel, program, teteTex);
-    Instance corps = Instance_Create(corpsModel, program, skinTex);
-    Instance bras = Instance_Create(brasModel, program, skinTex);
+    Instance tete = Instance_Load("../models/tete.obj", program);
+    Instance cube = Instance_Create(cubeMesh, program, jambeTex);
+    Instance corps = Instance_Load("../models/corps.obj", program);
+    Instance bras = Instance_Create(brasMesh, program, skinTex);
 
     loadIdentity(robot->matrix);
 

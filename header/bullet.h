@@ -17,13 +17,13 @@ typedef struct BulletGroupe {
     CollisionObject* collisionData;
     int nbBullets;
     int nbMax;
-    Model* model;
+    Mesh* mesh;
     GLuint program;
     GLuint texture;
 
 } BulletGroupe;
 
-BulletGroupe BulletGroupe_Create(int nbMax, Model* model, GLuint program, GLuint texture);
+BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, GLuint program, GLuint texture);
 void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camToClip);
 void Bullet_Add(BulletGroupe* bulletGroupe, Vec3 position, Vec3 direction);
 
