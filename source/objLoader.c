@@ -182,39 +182,40 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
 
     int nbVertexUniques = getElemNumber(listeVertexIndices);
 
-    int nbVertex = getElemNumber(listeVertex);
-    int nbUvs = getElemNumber(listeUv);
-    int nbNormals = getElemNumber(listeNormal);
+    // On dump les listes d'indices dans des tableaux pour accélérer les accès
+    unsigned int* vertexIndices = dumpListeToArray(listeVertexIndices);
+    unsigned int* normalIndices = dumpListeToArray(listeNormalIndices);
+    unsigned int* uvIndices     = dumpListeToArray(listeUvIndices);
 
+    // On dump les listes de données dans des tableaux pour accélérer les accès
+    Vec3* verticesDump = dumpVec3ListeToArray(listeVertex);
+    Vec3* normalsDump  = dumpVec3ListeToArray(listeNormal);
+    Vec2 *uvsDump      = dumpVec2ListeToArray(listeUv);
+
+    // On alloue les tableaux finaux, tous de la meme taille
     *vertices = malloc(sizeof(Vec3) * nbVertexUniques);
-    *uvs = malloc(sizeof(Vec2) * nbVertexUniques);
-    *normals = malloc(sizeof(Vec3) * nbVertexUniques);
+    *normals  = malloc(sizeof(Vec3) * nbVertexUniques);
+    *uvs      = malloc(sizeof(Vec2) * nbVertexUniques);
 
-    unsigned int* vertexIndices = NULL;
-    unsigned int* uvIndices = NULL;
-    unsigned int* normalIndices = NULL;
-
-    vertexIndices = dumpListeToArray(listeVertexIndices);
-    normalIndices = dumpListeToArray(listeNormalIndices);
-    uvIndices = dumpListeToArray(listeUvIndices);
+    int nbVertex  = getElemNumber(listeVertex);
+    int nbNormals = getElemNumber(listeNormal);
+    int nbUvs     = getElemNumber(listeUv);
 
     int i;
     // Ici on va passer vertex par vertex
     for( i = 0; i < nbVertexUniques; i++ )
     {
-        // Get the indices of its attributes
-        unsigned int vertexIndex = vertexIndices[i ];
-        unsigned int uvIndex = uvIndices[i];
+        // On récupère les indices de chaque donnée pour ce point
+        unsigned int vertexIndex = vertexIndices[i];
         unsigned int normalIndex = normalIndices[i];
+        unsigned int uvIndex = uvIndices[i];
 
-        Vec3 vertex = getElemByNumber(listeVertex, nbVertex - vertexIndex);
-        Vec3 normal = getElemByNumber(listeNormal, nbNormals - normalIndex);
-        Vec3 uv_temp = getElemByNumber(listeUv, nbUvs - uvIndex);
-        Vec2 uv = (Vec2){uv_temp.x, uv_temp.y};
-
-        (*vertices)[nbVertexUniques - i - 1] = vertex;
-        (*normals)[nbVertexUniques - i - 1] = normal;
-        (*uvs)[nbVertexUniques - i - 1] = uv;
+        // On va récupèrer les données dans les tableaux avec ces indices
+        // Comme les données ont été empilées, les premières sont au bas de la pile
+        // Les données sont enregistrées dans les tableaux finaux
+        (*vertices)[nbVertexUniques - i - 1] = verticesDump[nbVertex - vertexIndex];
+        (*normals)[nbVertexUniques - i - 1] = normalsDump[nbNormals - normalIndex];
+        (*uvs)[nbVertexUniques - i - 1] = uvsDump[nbUvs - uvIndex];
 
     }
 
@@ -225,6 +226,9 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
     free(vertexIndices);
     free(normalIndices);
     free(uvIndices);
+    free(verticesDump);
+    free(normalsDump);
+    free(uvsDump);
 
     return true;
 

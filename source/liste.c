@@ -90,6 +90,45 @@ unsigned int* dumpListeToArray(ElemVec3* tetepile) {
     return array;
 
 }
+// On extrait chaque vecteur de la liste tetepile et
+// on les range dans une case du tableau
+Vec3* dumpVec3ListeToArray(ElemVec3* tetepile) {
+
+    ElemVec3* curseur = tetepile;
+    int nb = getElemNumber(tetepile);
+    Vec3* array = malloc(sizeof(Vec3)*nb);
+
+    int i = 0;
+    while (curseur != NULL)
+    {
+        array[i] = curseur->vec;
+        curseur = curseur->suivant;
+        i++;
+    }
+
+    return array;
+
+}
+// On extrait chaque vecteur de la liste tetepile et
+// on les range dans une case du tableau
+Vec2* dumpVec2ListeToArray(ElemVec3* tetepile) {
+
+    ElemVec3* curseur = tetepile;
+    int nb = getElemNumber(tetepile);
+    Vec2* array = malloc(sizeof(Vec2)*nb);
+
+    int i = 0;
+    while (curseur != NULL)
+    {
+        array[i].x = curseur->vec.x;
+        array[i].y = curseur->vec.y;
+        curseur = curseur->suivant;
+        i++;
+    }
+
+    return array;
+
+}
 
 Vec3 getElemByNumber(ElemVec3* tetepile, int nb) {
 
