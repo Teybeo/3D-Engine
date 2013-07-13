@@ -1,17 +1,16 @@
 #version 330 core
 
-in vec3 position;
-in mat4 frag_worldCam;
-in vec3 fNormal;
-in vec3 camNormal;
+in vec3 fPosition_view;
+in vec3 fNormal_view;
 in vec2 texCoord;
+in mat4 fWorldToView;
 
 uniform sampler2D texture;
 
 uniform vec3 lightPos[10];
 uniform vec3 lightColor[10];
 
-vec3 normal;
+vec3 normal_view;
 
 out vec3 outputColor;
 
@@ -33,7 +32,7 @@ void main() {
 
     vec3 diffColor = vec3(0);
     vec3 specColor = vec3(0);
-    normal = normalize(fNormal);
+    normal_view = normalize(fNormal_view);
 
     for (int i = 0; i < 10 ; i++)
     {
@@ -44,6 +43,7 @@ void main() {
     }
 
     outputColor = (texture(texture, texCoord).rgb * diffColor) + specColor;
+//    outputColor = (texture(texture, texCoord).rgb);
 
 }
 
@@ -74,17 +74,19 @@ Light computeDirectionalLight(vec3 vector, vec3 color) {
 
 Light computePointLight(vec3 lightPos, vec3 color) {
 
+    lightPos = vec3(fWorldToView * vec4(lightPos, 1));
+
     Light pointLight;
     pointLight.pos = lightPos;
     pointLight.color = color;
-    pointLight.vector = normalize(lightPos - position);
-    pointLight.intensity = calcAttenuation(lightPos-position);
+    pointLight.vector = normalize(lightPos - fPosition_view);
+    pointLight.intensity = calcAttenuation(lightPos - fPosition_view);
     return pointLight;
 }
 
 vec3 computeDiffuse(Light light) {
 
-    return light.color * (light.intensity * max(dot(light.vector, normal), 0.));
+    return light.color * (light.intensity * max(dot(light.vector, normal_view), 0.));
 }
 
 vec3 computeSpecular(Light light) {
@@ -92,12 +94,12 @@ vec3 computeSpecular(Light light) {
 //    vec3 viewVector = normalize(-camPosition.xyz);
 //    vec3 reflectedLight = 2.0 * dot(light.vector, normal) * normal - light.vector;
 
-    vec4 camPosition = frag_worldCam * vec4(position, 1);
-//    vec4 reflectedLight = reflect(-normalize(frag_worldCam * vec4(light.pos, 1) - camPosition), frag_worldCam * vec4(normal, 0));
-    vec4 reflectedLight = reflect(-normalize(frag_worldCam * vec4(light.pos, 1) - camPosition), vec4(normalize(camNormal) , 0));
-    if (dot(normal, light.vector) <= 0.0)
+//    vec4 camPosition = normalize(fWorldToView * vec4(position, 1));
+//    vec4 reflectedLight = reflect(-normalize(fWorldToView * vec4(light.pos, 1) - camPosition), normalize(vec4(transpose(inverse(mat3(fWorldToView))) * normal, 0)));
+    vec3 reflectedLight = reflect(-normalize(light.pos - fPosition_view), normal_view);
+    if (dot(normal_view, light.vector) <= 0.0)
         return vec3(0);
     else
-        return light.intensity * light.color * pow( max( dot(reflectedLight, normalize(-camPosition)), 0.), 100.);
+        return light.intensity * light.color * pow( max( dot(normalize(reflectedLight), normalize(-fPosition_view)), 0.), 100.);
 
 }
