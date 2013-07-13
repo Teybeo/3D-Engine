@@ -74,7 +74,7 @@
 		<Unit filename="header/liste.h" />
 		<Unit filename="header/listeContact.h" />
 		<Unit filename="header/matrix.h" />
-		<Unit filename="header/model.h" />
+		<Unit filename="header/mesh.h" />
 		<Unit filename="header/objLoader.h" />
 		<Unit filename="header/particule.h" />
 		<Unit filename="header/plan.h" />
@@ -126,7 +126,7 @@
 		<Unit filename="source/matrix.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="source/model.c">
+		<Unit filename="source/mesh.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/objLoader.c">

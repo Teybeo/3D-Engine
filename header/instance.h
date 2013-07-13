@@ -1,7 +1,7 @@
 #ifndef _INSTANCE_GUARD
 #define _INSTANCE_GUARD
 
-#include "model.h"
+#include "mesh.h"
 
 typedef struct Instance {
 
