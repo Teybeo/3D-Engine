@@ -4,11 +4,11 @@
 #include "matrix.h"
 #include "stdio.h"
 
-SphereGroupe SphereGroupe_Create(int nbMax, Model* model, GLuint program, GLuint texture) {
+SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, GLuint program, GLuint texture) {
 
     SphereGroupe groupe = {};
 
-    groupe.model = model;
+    groupe.mesh = mesh;
     groupe.program = program;
     groupe.texture = texture;
     groupe.nbMax = nbMax;
@@ -44,7 +44,7 @@ void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction) {
 
 void SphereGroupe_Draw(SphereGroupe sphereGroupe, float* mondeToCam, float* camToClip) {
 
-    Instance balleInstance = Instance_Create(sphereGroupe.model, sphereGroupe.program, sphereGroupe.texture);
+    Instance balleInstance = Instance_Create(sphereGroupe.mesh, sphereGroupe.program, sphereGroupe.texture);
 
     int i;
     for (i = 0 ; i < sphereGroupe.nbSpheres ; i++ )

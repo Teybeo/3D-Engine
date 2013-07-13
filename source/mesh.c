@@ -1,4 +1,4 @@
-#include "model.h"
+#include "mesh.h"
 
 #include "cube.h"
 #include "carre.h"
@@ -9,12 +9,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void Model_CreateVAO(Model* model, int nbAttrib, int* attrib, int* offset, int* components) {
+void Mesh_CreateVAO(Mesh* mesh, int nbAttrib, int* attrib, int* offset, int* components) {
 
-    glBindBuffer(GL_ARRAY_BUFFER, model->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
 
-    glGenVertexArrays(1, &model->vao);
-    glBindVertexArray(model->vao);
+    glGenVertexArrays(1, &mesh->vao);
+    glBindVertexArray(mesh->vao);
 
     int i;
     for (i = 0 ; i < nbAttrib ; i++ )
@@ -28,20 +28,20 @@ void Model_CreateVAO(Model* model, int nbAttrib, int* attrib, int* offset, int* 
 
 }
 
-void Model_CreateVBO(Model* model, int size, void* data) {
+void Mesh_CreateVBO(Mesh* mesh, int size, void* data) {
 
-    glGenBuffers(1, &model->vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, model->vbo);
+    glGenBuffers(1, &mesh->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
 
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 }
-void Model_CreateVBO2(Model* model, Vec3* vertices, Vec3* normals, Vec2* uvs, int nb) {
+void Mesh_CreateVBO2(Mesh* mesh, Vec3* vertices, Vec3* normals, Vec2* uvs, int nb) {
 
-    glGenBuffers(1, &model->vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, model->vbo);
+    glGenBuffers(1, &mesh->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
 
     int sizeVertices = sizeof(Vec3) * nb;
     int sizeUvs = sizeof(Vec2) * nb;
@@ -57,100 +57,114 @@ void Model_CreateVBO2(Model* model, Vec3* vertices, Vec3* normals, Vec2* uvs, in
 
 }
 
-Model* Model_Load(int type, const char* filename) {
 
-    Model* model = malloc(sizeof(Model));
+Mesh* Mesh_Load(const char* filename) {
+
+    return Mesh_FullLoad(filename, NULL);
+}
+
+// Charge et prépare directement un mesh
+// Ecrit le chemin du fichier mtl dans texFile
+Mesh* Mesh_FullLoad(const char* filename, char* texFile) {
+
+    Mesh* mesh = malloc(sizeof(Mesh));
+
+    Vec3* vertices = NULL;
+    Vec3* normals = NULL;
+    Vec2* uvs = NULL;
+
+    int nb;
+    if (loadObj(filename, &vertices, &uvs, &normals, &nb, texFile) == false)
+        return NULL;
+
+    mesh->primitiveType = GL_TRIANGLES;
+    mesh->drawStart = 0;
+    mesh->drawCount = nb;
+    Mesh_CreateVBO2(mesh, vertices, normals, uvs, nb);
+    Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nb, (sizeof(Vec3)*nb) + sizeof(Vec3)*nb}, (int[3]){3, 3, 2});
+
+    return mesh;
+}
+
+// Charge un mesh défini dans carre.h ou cube.h
+Mesh* Mesh_LoadBuiltin(int type) {
+
+    Mesh* mesh = malloc(sizeof(Mesh));
 
     switch (type) {
 
-    case MODEL_OBJ: // OBJ
-        {
-        Vec3* vertices = NULL;
-        Vec3* normals = NULL;
-        Vec2* uvs = NULL;
-        int nb;
-        if (loadObj(filename, &vertices, &uvs, &normals, &nb) == false)
-            return NULL;
+    case MESH_CUBE:
 
-        model->drawStart = 0;
-        model->drawCount = nb;
-        Model_CreateVBO2(model, vertices, normals, uvs, nb);
-        Model_CreateVAO(model, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nb, (sizeof(Vec3)*nb) + sizeof(Vec3)*nb}, (int[3]){3, 3, 2});
-        }
-        break;
-
-    case MODEL_CUBE:
-
-        model->drawStart = 0;
-        model->drawCount = 36;
-        Model_CreateVBO(model, sizeof(cube), (void*)cube);
-        Model_CreateVAO(model, 2, (int[2]){0, 1}, (int[2]){0, VBO_COLOR_OFFSET}, (int[2]){3, 3});
+        mesh->drawStart = 0;
+        mesh->drawCount = 36;
+        Mesh_CreateVBO(mesh, sizeof(cube), (void*)cube);
+        Mesh_CreateVAO(mesh, 2, (int[2]){0, 1}, (int[2]){0, VBO_COLOR_OFFSET}, (int[2]){3, 3});
 
         break;
 
-    case MODEL_CUBE_TEX: // CUBE TEXTURE
+    case MESH_CUBE_TEX: // CUBE TEXTURE
 
-        model->drawStart = 0;
-        model->drawCount = 36;
-        Model_CreateVBO(model, sizeof(cubeTex), (void*)cubeTex);
-        Model_CreateVAO(model, 2, (int[2]){0, 1}, (int[2]){0, VBO_COLOR_OFFSET}, (int[2]){3, 2});
-
-        break;
-
-    case MODEL_CUBE_TEX_NORM: // CUBE TEXTURE + NORMAL
-
-        model->drawStart = 0;
-        model->drawCount = 36;
-        Model_CreateVBO(model, sizeof(cubeTex), (void*)cubeTex);
-        Model_CreateVAO(model, 3, (int[3]){0, 1, 2}, (int[3]){0, 0, VBO_COLOR_OFFSET}, (int[3]){3, 3, 2});
+        mesh->drawStart = 0;
+        mesh->drawCount = 36;
+        Mesh_CreateVBO(mesh, sizeof(cubeTex), (void*)cubeTex);
+        Mesh_CreateVAO(mesh, 2, (int[2]){0, 2}, (int[2]){0, VBO_COLOR_OFFSET}, (int[2]){3, 2});
 
         break;
 
-    case MODEL_CARRE_TEX: // CARRE TEXTURE
+    case MESH_CUBE_TEX_FLIP: // CUBE TEXTURE INVERSE (skybox)
 
-        model->drawStart = 0;
-        model->drawCount = 6;
-        Model_CreateVBO(model, sizeof(carre), (void*)carre);
-        Model_CreateVAO(model, 2, (int[2]){0, 1}, (int[2]){0, VBO_TEXCOORD_OFFSET}, (int[2]){3, 2});
-
-        break;
-
-    case MODEL_CARRE_TEX_NORM: // CARRE TEXTURE + NORMAL
-
-        model->drawStart = 0;
-        model->drawCount = 6;
-        Model_CreateVBO(model, sizeof(carreNorm), (void*)carreNorm);
-        Model_CreateVAO(model, 3, (int[3]){0, 1, 2}, (int[3]){0, VBO_NORMAL_OFFSET, VBO_TEXCOORD_OFFSET}, (int[3]){3, 3, 2});
+        mesh->drawStart = 0;
+        mesh->drawCount = 36;
+        Mesh_CreateVBO(mesh, sizeof(cubeTexFliped), (void*)cubeTexFliped);
+        Mesh_CreateVAO(mesh, 2, (int[2]){0, 2}, (int[2]){0, VBO_COLOR_OFFSET}, (int[2]){3, 2});
 
         break;
 
-    case MODEL_CARRE_TEX_NORM2: // CARRE TEXTURE * 20 + NORMAL
+    case MESH_CUBE_TEX_NORM: // CUBE TEXTURE + NORMAL
 
-        model->drawStart = 0;
-        model->drawCount = 6;
-        Model_CreateVBO(model, sizeof(carreNorm20), (void*)carreNorm20);
-        Model_CreateVAO(model, 3, (int[3]){0, 1, 2}, (int[3]){0, VBO_NORMAL_OFFSET, VBO_TEXCOORD_OFFSET}, (int[3]){3, 3, 2});
+        mesh->drawStart = 0;
+        mesh->drawCount = 36;
+        Mesh_CreateVBO(mesh, sizeof(cubeTex), (void*)cubeTex);
+        Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, 0, VBO_COLOR_OFFSET}, (int[3]){3, 3, 2});
+
+        break;
+
+    case MESH_CARRE_TEX: // CARRE TEXTURE
+
+        mesh->drawStart = 0;
+        mesh->drawCount = 6;
+        Mesh_CreateVBO(mesh, sizeof(carre), (void*)carre);
+        Mesh_CreateVAO(mesh, 2, (int[2]){0, 1}, (int[2]){0, VBO_TEXCOORD_OFFSET}, (int[2]){3, 2});
+
+        break;
+
+    case MESH_CARRE_TEX_NORM: // CARRE TEXTURE + NORMAL
+
+        mesh->drawStart = 0;
+        mesh->drawCount = 6;
+        Mesh_CreateVBO(mesh, sizeof(carreNorm), (void*)carreNorm);
+        Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, VBO_NORMAL_OFFSET, VBO_TEXCOORD_OFFSET}, (int[3]){3, 3, 2});
+
+        break;
+
+    case MESH_CARRE_TEX_NORM2: // CARRE TEXTURE * 20 + NORMAL
+
+        mesh->drawStart = 0;
+        mesh->drawCount = 6;
+        Mesh_CreateVBO(mesh, sizeof(carreNorm20), (void*)carreNorm20);
+        Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, VBO_NORMAL_OFFSET, VBO_TEXCOORD_OFFSET}, (int[3]){3, 3, 2});
 
         break;
 
     default:
-        printf("Erreur: ModelType inconnu: %d\n", type);
+        printf("Erreur: MeshType inconnu: %d\n", type);
         return NULL;
         break;
     }
 
-    model->primitiveType = GL_TRIANGLES;
+    mesh->primitiveType = GL_TRIANGLES;
 
-    return model;
+    return mesh;
 }
 
 
-//void Model_SetProgram(Model* model, GLuint program) {
-//
-//    model->program = program;
-//}
-//
-//void Model_SetTexture(Model* model, GLuint texture) {
-//
-//    model->texture = texture;
-//}

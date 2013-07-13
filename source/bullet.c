@@ -4,11 +4,11 @@
 #include "matrix.h"
 #include "stdio.h"
 
-BulletGroupe BulletGroupe_Create(int nbMax, Model* model, GLuint program, GLuint texture) {
+BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, GLuint program, GLuint texture) {
 
     BulletGroupe groupe = {};
 
-    groupe.model = model;
+    groupe.mesh = mesh;
     groupe.program = program;
     groupe.texture = texture;
     groupe.nbMax = nbMax;
@@ -43,7 +43,7 @@ void Bullet_Add(BulletGroupe* bulletGroupe, Vec3 position, Vec3 direction) {
 
 void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camToClip) {
 
-    Instance bulletInstance = Instance_Create(bulletGroupe.model, bulletGroupe.program, bulletGroupe.texture);
+    Instance bulletInstance = Instance_Create(bulletGroupe.mesh, bulletGroupe.program, bulletGroupe.texture);
     Vec3 color = {1, 1, 0};
     int i;
     for (i = 0 ; i < bulletGroupe.nbBullets ; i++ )

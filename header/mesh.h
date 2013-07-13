@@ -1,24 +1,27 @@
 #ifndef _MODEL_GUARD
 #define _MODEL_GUARD
 
+#include "vec3.h"
+#include "vec2.h"
+
 #include "glew.h"
 
 #include <stdbool.h>
 
-typedef enum ModelType {
+typedef enum MeshType {
 
-    MODEL_OBJ,
-    MODEL_CARRE,
-    MODEL_CARRE_TEX,
-    MODEL_CARRE_TEX_NORM,
-    MODEL_CARRE_TEX_NORM2,
-    MODEL_CUBE,
-    MODEL_CUBE_TEX,
-    MODEL_CUBE_TEX_NORM
+    MESH_CARRE,
+    MESH_CARRE_TEX,
+    MESH_CARRE_TEX_NORM,
+    MESH_CARRE_TEX_NORM2,
+    MESH_CUBE,
+    MESH_CUBE_TEX,
+    MESH_CUBE_TEX_NORM,
+    MESH_CUBE_TEX_FLIP,
 
-} ModelType;
+} MeshType;
 
-typedef struct Model {
+typedef struct Mesh {
 
     GLuint vao;
     GLuint vbo;
@@ -26,10 +29,12 @@ typedef struct Model {
     GLint drawStart;
     GLint drawCount;
 
-} Model;
+} Mesh;
 
-Model* Model_Load(int type, const char* filename);
-void Model_Draw(Model* model);
+Mesh* Mesh_LoadBuiltin(int type);
+Mesh* Mesh_Load(const char* filename);
+Mesh* Mesh_FullLoad(const char* filename, char* texFile);
+void Mesh_Draw(Mesh* model);
 
 #endif // MODEL
 
