@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool loadObj(const char* filename, Vec3** verticesFinal, Vec2** uvsFinal, Vec3** normalsFinal, int* nbFinal, char* texFile) {
+bool loadObj(const char* filename, Vec3** verticesFinal, Vec2** uvsFinal, Vec3** normalsFinal, Vec2** rangesFinal, int* nbFinal, int* nbVertFinal, char* texFile) {
 
     puts("\n----------- Mesh ---------");
     printf("Loading '%s'\n", filename);
@@ -16,22 +16,22 @@ bool loadObj(const char* filename, Vec3** verticesFinal, Vec2** uvsFinal, Vec3**
     Vec3* vertices = NULL;
     Vec3* normals = NULL;
     Vec2* uvs = NULL;
-    int nb = 0;
+    Vec2* ranges = NULL;
 
     bool rawLoaded = false;
     bool indexedLoaded = false;
 
-    //rawLoaded = loadRawObj(filename, &vertices, &uvs, &normals, &nb, texFile);
+    rawLoaded = loadRawObj(filename, &vertices, &uvs, &normals, &ranges, nbFinal, nbVertFinal, texFile);
 
     // Si pas de binaire, on charge le texte
     if (rawLoaded == false)
     {
-        indexedLoaded = loadIndexedObj(filename, &vertices, &uvs, &normals, &nb, texFile);
+        indexedLoaded = loadIndexedObj(filename, &vertices, &uvs, &normals, &ranges, nbFinal, nbVertFinal, texFile);
 
         // On génère un binaire pour aller plus vite les prochaines fois
         if (indexedLoaded == true)
         {
-            writeRawObj(filename, vertices, uvs, normals, nb, texFile);
+            writeRawObj(filename, vertices, uvs, normals, ranges, *nbFinal, *nbVertFinal, texFile);
 //            writeUnindexedObj(filename, vertices, uvs, normals, nb); //Debug
         }
         else // Sinon, pas de chance
@@ -43,13 +43,13 @@ bool loadObj(const char* filename, Vec3** verticesFinal, Vec2** uvsFinal, Vec3**
     *verticesFinal = vertices;
     *uvsFinal = uvs;
     *normalsFinal = normals;
-    *nbFinal = nb;
+    *rangesFinal = ranges;
 
     return true;
 }
 
 // Lecture d'un fichier en mode binaire, très rapide
-bool loadRawObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, int* nbVertices, char* texFile) {
+bool loadRawObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, Vec2** ranges, int* nb, int* nbVertices, char* texFile) {
 
     char nameUnpacked[128] = "";
     strcpy(nameUnpacked, filename);
@@ -71,20 +71,22 @@ bool loadRawObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normal
     if (texFile != NULL)
         strcpy(texFile, buffer);
 
-    fscanf(file, "%d\n", nbVertices);
+    fscanf(file, "%d %d\n", nbVertices, nb);
 
+    *ranges = malloc(sizeof(Vec2) * *nb);
     *vertices = malloc(sizeof(Vec3) * *nbVertices);
     *uvs = malloc(sizeof(Vec2) * *nbVertices);
     *normals = malloc(sizeof(Vec3) * *nbVertices);
 
+    fread(*ranges, sizeof(Vec2), *nb, file);
     fread(*vertices, sizeof(Vec3), *nbVertices, file);
     fread(*uvs, sizeof(Vec2), *nbVertices, file);
     fread(*normals, sizeof(Vec3), *nbVertices, file);
 
     fclose(file);
 
-//    printf("%d vertices in %d triangles\n", *nb, *nb/3);
     puts("Ok");
+    printf("\t%d objects for %d triangles\n", *nb, *nbVertices);
 
     return true;
 }
@@ -92,7 +94,7 @@ bool loadRawObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normal
 // Lecture d'un fichier obj en mode texte, rapide
 // Ces fichiers peuvent contenir des indices différents pour chaque attribut (vertex, uv, normal)
 // OpenGl ne supporte pas cela, donc on désindexe les attributs en les mettant les uns à la suite des autres
-bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, int* nb, char* texFile) {
+bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, Vec2** ranges, int* nb, int* nbVertices, char* texFile) {
 
     printf("\tLoading OBJ file '%s' ...", filename);
 
@@ -110,9 +112,12 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
     ElemVec3* listeVertexIndices = NULL;
     ElemVec3* listeUvIndices = NULL;
     ElemVec3* listeNormalIndices = NULL;
+    ElemVec3* listeIntervalles = NULL;
 
     char lineHeader[128];
     Vec3 vecTemp;
+    int currentIndex = 0;
+    bool faceIsBeingDefined = false;
 
     while( 1 )
     {
@@ -120,7 +125,14 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
         // read the first word of the line
         int res = fscanf(file, "%s", lineHeader);
         if (res == EOF)
+        {
+            if (faceIsBeingDefined)
+            {
+                faceIsBeingDefined = false;
+                listeIntervalles->vec.y = currentIndex - listeIntervalles->vec.x;
+            }
             break; // EOF = End Of File. Quit the loop.
+        }
 
         if ( strcmp( lineHeader, "mtllib") == 0) // Material file
         {
@@ -129,6 +141,11 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
         }
         if ( strcmp( lineHeader, "v" ) == 0 ) // Vertex
         {
+            if (faceIsBeingDefined)
+            {
+                faceIsBeingDefined = false;
+                listeIntervalles->vec.y = currentIndex - listeIntervalles->vec.x;
+            }
             fscanf(file, "%f %f %f\n", &vecTemp.x, &vecTemp.y, &vecTemp.z );
             listeVertex = empiler(listeVertex, vecTemp);
         }
@@ -144,6 +161,13 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
         }
         else if ( strcmp( lineHeader, "f" ) == 0 ) // Indices des vertex de chaque triangle
         {
+            if (faceIsBeingDefined == false)
+            {
+                faceIsBeingDefined = true;
+                vecTemp.x = currentIndex;
+                listeIntervalles = empiler(listeIntervalles, vecTemp);
+            }
+
             int i;
             for (i = 0 ; i < 3 ; i++ )
             {
@@ -158,12 +182,18 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
                 listeVertexIndices = empiler(listeVertexIndices, (Vec3){vecTemp.x, 0, 0});
                 listeUvIndices = empiler(listeUvIndices, (Vec3){vecTemp.y, 0, 0});
                 listeNormalIndices = empiler(listeNormalIndices, (Vec3){vecTemp.z, 0, 0});
-
             }
 
+            currentIndex += 3;
         }
         else
         {
+            if (faceIsBeingDefined)
+            {
+                faceIsBeingDefined = false;
+                listeIntervalles->vec.y = currentIndex - listeIntervalles->vec.x;
+            }
+
             // Probably a comment, eat up the rest of the line
             char stupidBuffer[1000];
             fgets(stupidBuffer, 1000, file);
@@ -199,12 +229,11 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
         (*vertices)[i] = verticesDump[vertexIndices[i]-1];
         (*normals) [i] = normalsDump[normalIndices[i]-1];
         (*uvs)     [i] = uvsDump[uvIndices[i]-1];
-
     }
 
-    *nb = nbVertexUniques;
-    puts("Ok");
-    printf("\t%d vertices in %d triangles\n", *nb, *nb/3);
+    *ranges = dumpVec2ListeToArray(listeIntervalles);
+    *nb = getElemNumber(listeIntervalles);
+    *nbVertices = nbVertexUniques;
 
     free(vertexIndices);
     free(normalIndices);
@@ -218,13 +247,17 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
     liberePile(listeVertexIndices);
     liberePile(listeNormalIndices);
     liberePile(listeUvIndices);
+    liberePile(listeIntervalles);
+
+    puts("Ok");
+    printf("\t%d objects for %d triangles\n", *nb, nbVertexUniques);
 
     return true;
 
 }
 
 // Enregistre un modèle dans un fichier sous forme binaire, très rapide
-bool writeRawObj(const char* filename, Vec3* vertices, Vec2* uvs, Vec3* normals, int nbVertices, const char* texFile) {
+bool writeRawObj(const char* filename, Vec3* vertices, Vec2* uvs, Vec3* normals, Vec2* ranges, int nb, int nbVertices, const char* texFile) {
 
     char nameUnpacked[128] = "";
     strcpy(nameUnpacked, filename);
@@ -244,8 +277,9 @@ bool writeRawObj(const char* filename, Vec3* vertices, Vec2* uvs, Vec3* normals,
         fputs("NULL\n", file);
     else
         fprintf(file, "%s\n", texFile);
-    fprintf(file, "%d\n", nbVertices);
+    fprintf(file, "%d %d\n", nbVertices, nb);
 
+    fwrite(ranges, sizeof(Vec2), nb, file);
     fwrite(vertices, sizeof(Vec3), nbVertices, file);
     fwrite(uvs, sizeof(Vec2), nbVertices, file);
     fwrite(normals, sizeof(Vec3), nbVertices, file);

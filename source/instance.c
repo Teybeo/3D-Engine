@@ -41,7 +41,11 @@ void Instance_Draw(Instance object, float* mondeToCam, float* camToClip) {
 
     glUniformMatrix4fv(modelWorldLoc, 1, GL_TRUE, object.matrix);
 
-    glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart, object.mesh->drawCount);
+    int i;
+    for (i = 0 ; i < object.mesh->nb ; i++ )
+    {
+        glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart[i], object.mesh->drawCount[i]);
+    }
 
 //    glBindTexture(GL_TEXTURE_2D, 0);
 //    glBindVertexArray(0);

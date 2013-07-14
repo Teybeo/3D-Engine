@@ -26,8 +26,9 @@ typedef struct Mesh {
     GLuint vao;
     GLuint vbo;
     GLenum primitiveType;
-    GLint drawStart;
-    GLint drawCount;
+    GLint* drawStart;
+    GLint* drawCount;
+    int nb;
 
 } Mesh;
 

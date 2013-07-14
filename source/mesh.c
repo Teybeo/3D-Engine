@@ -72,16 +72,31 @@ Mesh* Mesh_FullLoad(const char* filename, char* texFile) {
     Vec3* vertices = NULL;
     Vec3* normals = NULL;
     Vec2* uvs = NULL;
+    Vec2* range = NULL;
 
-    int nb;
-    if (loadObj(filename, &vertices, &uvs, &normals, &nb, texFile) == false)
+    int nb, nbVertices;
+    if (loadObj(filename, &vertices, &uvs, &normals, &range, &nb, &nbVertices, texFile) == false)
         return NULL;
 
     mesh->primitiveType = GL_TRIANGLES;
-    mesh->drawStart = 0;
-    mesh->drawCount = nb;
-    Mesh_CreateVBO2(mesh, vertices, normals, uvs, nb);
-    Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nb, (sizeof(Vec3)*nb) + sizeof(Vec3)*nb}, (int[3]){3, 3, 2});
+    mesh->nb = nb;
+    mesh->drawStart = malloc(sizeof(unsigned int) * nbVertices);
+    mesh->drawCount = malloc(sizeof(unsigned int) * nbVertices);
+
+    int i;
+    for (i = 0 ; i < mesh->nb ; i++ )
+    {
+        mesh->drawStart[i] = range[i].x;
+        mesh->drawCount[i] = range[i].y;
+    }
+
+    Mesh_CreateVBO2(mesh, vertices, normals, uvs, nbVertices);
+    Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nbVertices, (sizeof(Vec3)*nbVertices) + sizeof(Vec3)*nbVertices}, (int[3]){3, 3, 2});
+
+    free(vertices);
+    free(normals);
+    free(uvs);
+    free(range);
 
     return mesh;
 }
@@ -91,12 +106,16 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     Mesh* mesh = malloc(sizeof(Mesh));
 
+    mesh->drawStart = malloc(sizeof(unsigned int));
+    mesh->drawCount = malloc(sizeof(unsigned int));
+    mesh->drawStart[0] = 0;
+    mesh->nb = 1;
+
     switch (type) {
 
     case MESH_CUBE:
 
-        mesh->drawStart = 0;
-        mesh->drawCount = 36;
+        mesh->drawCount[0] = 36;
         Mesh_CreateVBO(mesh, sizeof(cube), (void*)cube);
         Mesh_CreateVAO(mesh, 2, (int[2]){0, 1}, (int[2]){0, VBO_COLOR_OFFSET}, (int[2]){3, 3});
 
@@ -104,8 +123,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     case MESH_CUBE_TEX: // CUBE TEXTURE
 
-        mesh->drawStart = 0;
-        mesh->drawCount = 36;
+        mesh->drawCount[0] = 36;
         Mesh_CreateVBO(mesh, sizeof(cubeTex), (void*)cubeTex);
         Mesh_CreateVAO(mesh, 2, (int[2]){0, 2}, (int[2]){0, VBO_COLOR_OFFSET}, (int[2]){3, 2});
 
@@ -113,8 +131,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     case MESH_CUBE_TEX_FLIP: // CUBE TEXTURE INVERSE (skybox)
 
-        mesh->drawStart = 0;
-        mesh->drawCount = 36;
+        mesh->drawCount[0] = 36;
         Mesh_CreateVBO(mesh, sizeof(cubeTexFliped), (void*)cubeTexFliped);
         Mesh_CreateVAO(mesh, 2, (int[2]){0, 2}, (int[2]){0, VBO_COLOR_OFFSET}, (int[2]){3, 2});
 
@@ -122,8 +139,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     case MESH_CUBE_TEX_NORM: // CUBE TEXTURE + NORMAL
 
-        mesh->drawStart = 0;
-        mesh->drawCount = 36;
+        mesh->drawCount[0] = 36;
         Mesh_CreateVBO(mesh, sizeof(cubeTex), (void*)cubeTex);
         Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, 0, VBO_COLOR_OFFSET}, (int[3]){3, 3, 2});
 
@@ -131,8 +147,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     case MESH_CARRE_TEX: // CARRE TEXTURE
 
-        mesh->drawStart = 0;
-        mesh->drawCount = 6;
+        mesh->drawCount[0] = 6;
         Mesh_CreateVBO(mesh, sizeof(carre), (void*)carre);
         Mesh_CreateVAO(mesh, 2, (int[2]){0, 1}, (int[2]){0, VBO_TEXCOORD_OFFSET}, (int[2]){3, 2});
 
@@ -140,8 +155,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     case MESH_CARRE_TEX_NORM: // CARRE TEXTURE + NORMAL
 
-        mesh->drawStart = 0;
-        mesh->drawCount = 6;
+        mesh->drawCount[0] = 6;
         Mesh_CreateVBO(mesh, sizeof(carreNorm), (void*)carreNorm);
         Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, VBO_NORMAL_OFFSET, VBO_TEXCOORD_OFFSET}, (int[3]){3, 3, 2});
 
@@ -149,8 +163,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     case MESH_CARRE_TEX_NORM2: // CARRE TEXTURE * 20 + NORMAL
 
-        mesh->drawStart = 0;
-        mesh->drawCount = 6;
+        mesh->drawCount[0] = 6;
         Mesh_CreateVBO(mesh, sizeof(carreNorm20), (void*)carreNorm20);
         Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, VBO_NORMAL_OFFSET, VBO_TEXCOORD_OFFSET}, (int[3]){3, 3, 2});
 
