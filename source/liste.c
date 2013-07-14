@@ -73,6 +73,7 @@ int getElemNumber(ElemVec3* tetepile) {
 
 // On extrait chaque x des vecteurs de la liste tetepile et
 // on les range dans une case du tableau
+// L'ordre est inversé pour que le bas de la pile soit au début du tableau
 unsigned int* dumpListeToArray(ElemVec3* tetepile) {
 
     ElemVec3* curseur = tetepile;
@@ -82,7 +83,7 @@ unsigned int* dumpListeToArray(ElemVec3* tetepile) {
     int i = 0;
     while (curseur != NULL)
     {
-        array[i] = curseur->vec.x;
+        array[nb-1 - i] = curseur->vec.x;
         curseur = curseur->suivant;
         i++;
     }
@@ -92,6 +93,7 @@ unsigned int* dumpListeToArray(ElemVec3* tetepile) {
 }
 // On extrait chaque vecteur de la liste tetepile et
 // on les range dans une case du tableau
+// L'ordre est inversé pour que le bas de la pile soit au début du tableau
 Vec3* dumpVec3ListeToArray(ElemVec3* tetepile) {
 
     ElemVec3* curseur = tetepile;
@@ -101,7 +103,7 @@ Vec3* dumpVec3ListeToArray(ElemVec3* tetepile) {
     int i = 0;
     while (curseur != NULL)
     {
-        array[i] = curseur->vec;
+        array[nb-1 - i] = curseur->vec;
         curseur = curseur->suivant;
         i++;
     }
@@ -111,6 +113,7 @@ Vec3* dumpVec3ListeToArray(ElemVec3* tetepile) {
 }
 // On extrait chaque vecteur de la liste tetepile et
 // on les range dans une case du tableau
+// L'ordre est inversé pour que le bas de la pile soit au début du tableau
 Vec2* dumpVec2ListeToArray(ElemVec3* tetepile) {
 
     ElemVec3* curseur = tetepile;
@@ -120,8 +123,8 @@ Vec2* dumpVec2ListeToArray(ElemVec3* tetepile) {
     int i = 0;
     while (curseur != NULL)
     {
-        array[i].x = curseur->vec.x;
-        array[i].y = curseur->vec.y;
+        array[nb-1 - i].x = curseur->vec.x;
+        array[nb-1 - i].y = curseur->vec.y;
         curseur = curseur->suivant;
         i++;
     }

@@ -44,14 +44,14 @@ void Mesh_CreateVBO2(Mesh* mesh, Vec3* vertices, Vec3* normals, Vec2* uvs, int n
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
 
     int sizeVertices = sizeof(Vec3) * nb;
-    int sizeUvs = sizeof(Vec2) * nb;
-    int sizeNormals = sizeof(Vec3) * nb;
+    int sizeUvs      = sizeof(Vec2) * nb;
+    int sizeNormals  = sizeof(Vec3) * nb;
 
     glBufferData(GL_ARRAY_BUFFER, sizeVertices + sizeNormals + sizeUvs, NULL, GL_STATIC_DRAW);
 
-    glBufferSubData(GL_ARRAY_BUFFER, 0                         ,  sizeVertices, vertices);
-    glBufferSubData(GL_ARRAY_BUFFER, sizeVertices              ,  sizeNormals, normals);
-    glBufferSubData(GL_ARRAY_BUFFER, sizeVertices + sizeNormals, sizeUvs, uvs);
+    glBufferSubData(GL_ARRAY_BUFFER, 0                         , sizeVertices, vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeVertices              , sizeNormals , normals);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeVertices + sizeNormals, sizeUvs     , uvs);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 

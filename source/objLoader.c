@@ -89,7 +89,7 @@ bool loadRawObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normal
     return true;
 }
 
-// Lecture d'un fichier obj en mode texte, très lent
+// Lecture d'un fichier obj en mode texte, rapide
 // Ces fichiers peuvent contenir des indices différents pour chaque attribut (vertex, uv, normal)
 // OpenGl ne supporte pas cela, donc on désindexe les attributs en les mettant les uns à la suite des autres
 bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, int* nb, char* texFile) {
@@ -144,29 +144,22 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
         }
         else if ( strcmp( lineHeader, "f" ) == 0 ) // Indices des vertex de chaque triangle
         {
-            unsigned int triVertexIndex[3];
-            unsigned int triUvIndex[3];
-            unsigned int triNormalIndex[3];
-
-            int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &triVertexIndex[0], &triUvIndex[0], &triNormalIndex[0], &triVertexIndex[1], &triUvIndex[1], &triNormalIndex[1], &triVertexIndex[2], &triUvIndex[2], &triNormalIndex[2] );
-
-            if (matches != 9)
+            int i;
+            for (i = 0 ; i < 3 ; i++ )
             {
-                printf("File can't be read by our simple parser :-( Try exporting with other options\n");
-                return false;
+                int matches = fscanf(file, "%f/%f/%f ", &vecTemp.x, &vecTemp.y, &vecTemp.z );
+
+                if (matches != 3)
+                {
+                    printf("File can't be read by our simple parser :-( Try exporting with other options\n");
+                    return false;
+                }
+
+                listeVertexIndices = empiler(listeVertexIndices, (Vec3){vecTemp.x, 0, 0});
+                listeUvIndices = empiler(listeUvIndices, (Vec3){vecTemp.y, 0, 0});
+                listeNormalIndices = empiler(listeNormalIndices, (Vec3){vecTemp.z, 0, 0});
+
             }
-
-            listeVertexIndices = empiler(listeVertexIndices, (Vec3){(float)triVertexIndex[0], 0, 0});
-            listeVertexIndices = empiler(listeVertexIndices, (Vec3){(float)triVertexIndex[1], 0, 0});
-            listeVertexIndices = empiler(listeVertexIndices, (Vec3){(float)triVertexIndex[2], 0, 0});
-
-            listeUvIndices = empiler(listeUvIndices, (Vec3){(float)triUvIndex[0], 0, 0});
-            listeUvIndices = empiler(listeUvIndices, (Vec3){(float)triUvIndex[1], 0, 0});
-            listeUvIndices = empiler(listeUvIndices, (Vec3){(float)triUvIndex[2], 0, 0});
-
-            listeNormalIndices = empiler(listeNormalIndices, (Vec3){(float)triNormalIndex[0], 0, 0});
-            listeNormalIndices = empiler(listeNormalIndices, (Vec3){(float)triNormalIndex[1], 0, 0});
-            listeNormalIndices = empiler(listeNormalIndices, (Vec3){(float)triNormalIndex[2], 0, 0});
 
         }
         else
@@ -190,32 +183,22 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
     // On dump les listes de données dans des tableaux pour accélérer les accès
     Vec3* verticesDump = dumpVec3ListeToArray(listeVertex);
     Vec3* normalsDump  = dumpVec3ListeToArray(listeNormal);
-    Vec2 *uvsDump      = dumpVec2ListeToArray(listeUv);
+    Vec2* uvsDump      = dumpVec2ListeToArray(listeUv);
 
     // On alloue les tableaux finaux, tous de la meme taille
     *vertices = malloc(sizeof(Vec3) * nbVertexUniques);
     *normals  = malloc(sizeof(Vec3) * nbVertexUniques);
     *uvs      = malloc(sizeof(Vec2) * nbVertexUniques);
 
-    int nbVertex  = getElemNumber(listeVertex);
-    int nbNormals = getElemNumber(listeNormal);
-    int nbUvs     = getElemNumber(listeUv);
-
     int i;
     // Ici on va passer vertex par vertex
     for( i = 0; i < nbVertexUniques; i++ )
     {
-        // On récupère les indices de chaque donnée pour ce point
-        unsigned int vertexIndex = vertexIndices[i];
-        unsigned int normalIndex = normalIndices[i];
-        unsigned int uvIndex = uvIndices[i];
-
-        // On va récupèrer les données dans les tableaux avec ces indices
-        // Comme les données ont été empilées, les premières sont au bas de la pile
+        // On va récupèrer les données dans les tableaux avec les indices
         // Les données sont enregistrées dans les tableaux finaux
-        (*vertices)[nbVertexUniques - i - 1] = verticesDump[nbVertex - vertexIndex];
-        (*normals)[nbVertexUniques - i - 1] = normalsDump[nbNormals - normalIndex];
-        (*uvs)[nbVertexUniques - i - 1] = uvsDump[nbUvs - uvIndex];
+        (*vertices)[i] = verticesDump[vertexIndices[i]-1];
+        (*normals) [i] = normalsDump[normalIndices[i]-1];
+        (*uvs)     [i] = uvsDump[uvIndices[i]-1];
 
     }
 
@@ -229,6 +212,12 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
     free(verticesDump);
     free(normalsDump);
     free(uvsDump);
+    liberePile(listeVertex);
+    liberePile(listeNormal);
+    liberePile(listeUv);
+    liberePile(listeVertexIndices);
+    liberePile(listeNormalIndices);
+    liberePile(listeUvIndices);
 
     return true;
 
