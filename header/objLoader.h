@@ -3,8 +3,8 @@
 
 #include <stdbool.h>
 
-#include "vec2.h"
-#include "vec3.h"
+#include "utils/vec2.h"
+#include "utils/vec3.h"
 
 bool loadObj(const char* filename, Vec3** verticesFinal, Vec2** uvsFinal, Vec3** normalsFinal, Vec2** rangesFinal, int* nbFinal, int* nbVertFinal, char* texFile);
 

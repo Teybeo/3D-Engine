@@ -1,7 +1,7 @@
 #include "bullet.h"
 
 #include "stdlib.h"
-#include "matrix.h"
+#include "utils/matrix.h"
 #include "stdio.h"
 
 BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, GLuint program, GLuint texture) {

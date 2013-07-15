@@ -2,8 +2,8 @@
 #define _PLAYER_GUARD
 
 #include "robot.h"
-#include "vec3.h"
-#include "matrix.h"
+#include "utils/vec3.h"
+#include "utils/matrix.h"
 #include <GL/gl.h>
 #include <math.h>
 

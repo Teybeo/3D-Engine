@@ -1,7 +1,7 @@
 #ifndef _SPHERE_GUARD
 #define _SPHERE_GUARD
 
-#include "collision.h"
+#include "physics/collision.h"
 #define NB_BALLS_MAX 20
 
 typedef struct Sphere {

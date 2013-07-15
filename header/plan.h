@@ -1,8 +1,8 @@
 #ifndef _PLAN_GUARD
 #define _PLAN_GUARD
 
-#include "collision.h"
-#include "matrix.h"
+#include "physics/collision.h"
+#include "utils/matrix.h"
 
 typedef struct Plan {
 

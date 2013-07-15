@@ -1,7 +1,7 @@
 #include "app.h"
 
 #include "shader.h"
-#include "matrix.h"
+#include "utils/matrix.h"
 #include "gl_debug.h"
 
 #include <stdbool.h>

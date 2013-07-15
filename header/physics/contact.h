@@ -1,7 +1,7 @@
 #ifndef _CONTACT_GUARD
 #define _CONTACT_GUARD
 
-#include "vec3.h"
+#include "utils/vec3.h"
 
 typedef struct Particule Particule;
 typedef struct ElemContact ElemContact;

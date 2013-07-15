@@ -1,6 +1,6 @@
 #include "robot.h"
 
-#include "matrix.h"
+#include "utils/matrix.h"
 #include "texture.h"
 
 #include <stdbool.h>

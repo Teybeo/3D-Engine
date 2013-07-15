@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include "instance.h"
-#include "vec3.h"
+#include "utils/vec3.h"
 
 typedef struct Particule {
 

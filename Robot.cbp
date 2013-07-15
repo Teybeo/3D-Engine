@@ -64,38 +64,32 @@
 		<Unit filename="header/app.h" />
 		<Unit filename="header/bullet.h" />
 		<Unit filename="header/carre.h" />
-		<Unit filename="header/collision.h" />
-		<Unit filename="header/contact.h" />
 		<Unit filename="header/cube.h" />
 		<Unit filename="header/fenetre.h" />
 		<Unit filename="header/gl_debug.h" />
 		<Unit filename="header/instance.h" />
 		<Unit filename="header/light.h" />
-		<Unit filename="header/liste.h" />
-		<Unit filename="header/listeContact.h" />
-		<Unit filename="header/matrix.h" />
 		<Unit filename="header/mesh.h" />
 		<Unit filename="header/objLoader.h" />
-		<Unit filename="header/particule.h" />
+		<Unit filename="header/physics/collision.h" />
+		<Unit filename="header/physics/contact.h" />
+		<Unit filename="header/physics/particule.h" />
 		<Unit filename="header/plan.h" />
 		<Unit filename="header/player.h" />
 		<Unit filename="header/robot.h" />
 		<Unit filename="header/shader.h" />
 		<Unit filename="header/sphere.h" />
 		<Unit filename="header/texture.h" />
-		<Unit filename="header/vec2.h" />
-		<Unit filename="header/vec3.h" />
-		<Unit filename="header/vec4.h" />
+		<Unit filename="header/utils/liste.h" />
+		<Unit filename="header/utils/listeContact.h" />
+		<Unit filename="header/utils/matrix.h" />
+		<Unit filename="header/utils/vec2.h" />
+		<Unit filename="header/utils/vec3.h" />
+		<Unit filename="header/utils/vec4.h" />
 		<Unit filename="source/app.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/bullet.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="source/collision.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="source/contact.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/fenetre.c">
@@ -114,16 +108,7 @@
 		<Unit filename="source/light.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="source/liste.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="source/listeContact.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="source/main.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="source/matrix.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/mesh.c">
@@ -132,7 +117,13 @@
 		<Unit filename="source/objLoader.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="source/particule.c">
+		<Unit filename="source/physics/collision.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/physics/contact.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/physics/particule.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/plan.c">
@@ -153,13 +144,22 @@
 		<Unit filename="source/texture.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="source/vec2.c">
+		<Unit filename="source/utils/liste.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="source/vec3.c">
+		<Unit filename="source/utils/listeContact.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="source/vec4.c">
+		<Unit filename="source/utils/matrix.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/utils/vec2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/utils/vec3.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/utils/vec4.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/vert_shaders/instancePerFragment.vert" />

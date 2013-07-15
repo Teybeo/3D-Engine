@@ -1,4 +1,4 @@
-#include "vec3.h"
+#include "utils/vec3.h"
 
 #include <stdio.h>
 #include <stdlib.h>

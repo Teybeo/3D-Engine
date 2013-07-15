@@ -1,7 +1,7 @@
 #ifndef _LISTE_CONTACT_GUARD
 #define _LISTE_CONTACT_GUARD
 
-#include "contact.h"
+#include "physics/contact.h"
 
 typedef struct ElemContact {
 

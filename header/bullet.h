@@ -1,7 +1,7 @@
 #ifndef _BULLET_GUARD
 #define _BULLET_GUARD
 
-#include "collision.h"
+#include "physics/collision.h"
 
 typedef struct Bullet {
 

@@ -1,6 +1,6 @@
 #include "light.h"
 
-#include "matrix.h"
+#include "utils/matrix.h"
 
 Light createLight(Instance instance, Vec3 pos, Vec3 color) {
 

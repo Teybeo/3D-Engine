@@ -1,7 +1,7 @@
 #include "sphere.h"
 
 #include "stdlib.h"
-#include "matrix.h"
+#include "utils/matrix.h"
 #include "stdio.h"
 
 SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, GLuint program, GLuint texture) {

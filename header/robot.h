@@ -2,8 +2,8 @@
 #define _ROBOT_GUARD
 
 #include "instance.h"
-#include "vec3.h"
-#include "collision.h"
+#include "utils/vec3.h"
+#include "physics/collision.h"
 
 #include "SDL_events.h"
 

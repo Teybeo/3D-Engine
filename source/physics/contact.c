@@ -1,8 +1,8 @@
-#include "contact.h"
+#include "physics/contact.h"
 
-#include "listeContact.h"
-#include "particule.h"
-#include "collision.h"
+#include "utils/listeContact.h"
+#include "physics/particule.h"
+#include "physics/collision.h"
 
 #include <stdlib.h>
 

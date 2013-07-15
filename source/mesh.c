@@ -2,8 +2,8 @@
 
 #include "cube.h"
 #include "carre.h"
-#include "vec3.h"
-#include "vec2.h"
+#include "utils/vec3.h"
+#include "utils/vec2.h"
 #include "objLoader.h"
 
 #include <stdio.h>

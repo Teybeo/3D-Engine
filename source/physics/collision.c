@@ -1,13 +1,13 @@
-#include "collision.h"
+#include "physics/collision.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
-#include "particule.h"
+#include "physics/particule.h"
 #include "fenetre.h"
-#include "vec3.h"
-#include "listeContact.h"
+#include "utils/vec3.h"
+#include "utils/listeContact.h"
 
 Contact* CollisionGenerator_SphereSphere(CollisionSphere* a, CollisionSphere* b) {
 

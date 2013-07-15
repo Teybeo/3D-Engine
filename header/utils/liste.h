@@ -3,8 +3,8 @@
 
 #include <stdlib.h>
 
-#include "vec3.h"
-#include "vec2.h"
+#include "utils/vec3.h"
+#include "utils/vec2.h"
 
 typedef struct ElemVec3 {
 

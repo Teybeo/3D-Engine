@@ -1,8 +1,8 @@
 #ifndef _MATRIX_GUARD
 #define _MATRIX_GUARD
 
-#include "vec4.h"
-#include "vec3.h"
+#include "utils/vec4.h"
+#include "utils/vec3.h"
 
 void Mat_Mul_GaucheVersDroite2(float* a, float* b);
 void Mat_Mul_DroiteVersGauche2(float* a, float* b);

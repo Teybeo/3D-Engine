@@ -11,8 +11,8 @@
 #define MUR_AVANT 80
 #define MUR_ARRIERE -80
 
-#include "particule.h"
-#include "contact.h"
+#include "physics/particule.h"
+#include "physics/contact.h"
 
 typedef enum CollisionObjectType {
 

@@ -1,8 +1,8 @@
 #include "objLoader.h"
 
-#include "vec2.h"
-#include "vec3.h"
-#include "liste.h"
+#include "utils/vec2.h"
+#include "utils/vec3.h"
+#include "utils/liste.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>

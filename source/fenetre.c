@@ -7,7 +7,7 @@
 
 #include "SDL.h"
 #include "SDL_events.h"
-#include "matrix.h"
+#include "utils/matrix.h"
 
 #define FEN_L 1100
 #define FEN_H 750
