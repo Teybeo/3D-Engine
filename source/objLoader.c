@@ -21,7 +21,7 @@ bool loadObj(const char* filename, Vec3** verticesFinal, Vec2** uvsFinal, Vec3**
     bool rawLoaded = false;
     bool indexedLoaded = false;
 
-    rawLoaded = loadRawObj(filename, &vertices, &uvs, &normals, &ranges, nbFinal, nbVertFinal, texFile);
+//    rawLoaded = loadRawObj(filename, &vertices, &uvs, &normals, &ranges, nbFinal, nbVertFinal, texFile);
 
     // Si pas de binaire, on charge le texte
     if (rawLoaded == false)
@@ -116,50 +116,16 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
 
     char lineHeader[128];
     Vec3 vecTemp;
-    int currentIndex = 0;
+    int i, currentIndex = 0;
     bool faceIsBeingDefined = false;
 
     while( 1 )
     {
-
         // read the first word of the line
         int res = fscanf(file, "%s", lineHeader);
-        if (res == EOF)
-        {
-            if (faceIsBeingDefined)
-            {
-                faceIsBeingDefined = false;
-                listeIntervalles->vec.y = currentIndex - listeIntervalles->vec.x;
-            }
-            break; // EOF = End Of File. Quit the loop.
-        }
 
-        if ( strcmp( lineHeader, "mtllib") == 0) // Material file
-        {
-            if (texFile != NULL)
-                fscanf(file, "%s", texFile);
-        }
-        if ( strcmp( lineHeader, "v" ) == 0 ) // Vertex
-        {
-            if (faceIsBeingDefined)
-            {
-                faceIsBeingDefined = false;
-                listeIntervalles->vec.y = currentIndex - listeIntervalles->vec.x;
-            }
-            fscanf(file, "%f %f %f\n", &vecTemp.x, &vecTemp.y, &vecTemp.z );
-            listeVertex = empiler(listeVertex, vecTemp);
-        }
-        else if ( strcmp( lineHeader, "vt" ) == 0 ) // Texture Coordinate
-        {
-            fscanf(file, "%f %f\n", &vecTemp.x, &vecTemp.y );
-            listeUv = empiler(listeUv, vecTemp);
-        }
-        else if ( strcmp( lineHeader, "vn" ) == 0 ) // Normal
-        {
-            fscanf(file, "%f %f %f\n", &vecTemp.x, &vecTemp.y, &vecTemp.z );
-            listeNormal = empiler(listeNormal, vecTemp);
-        }
-        else if ( strcmp( lineHeader, "f" ) == 0 ) // Indices des vertex de chaque triangle
+        // Indices des données de chaque triangle
+        if ( strcmp( lineHeader, "f" ) == 0 && res != EOF)
         {
             if (faceIsBeingDefined == false)
             {
@@ -168,17 +134,14 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
                 listeIntervalles = empiler(listeIntervalles, vecTemp);
             }
 
-            int i;
             for (i = 0 ; i < 3 ; i++ )
             {
                 int matches = fscanf(file, "%f/%f/%f ", &vecTemp.x, &vecTemp.y, &vecTemp.z );
-
                 if (matches != 3)
                 {
                     printf("File can't be read by our simple parser :-( Try exporting with other options\n");
                     return false;
                 }
-
                 listeVertexIndices = empiler(listeVertexIndices, (Vec3){vecTemp.x, 0, 0});
                 listeUvIndices = empiler(listeUvIndices, (Vec3){vecTemp.y, 0, 0});
                 listeNormalIndices = empiler(listeNormalIndices, (Vec3){vecTemp.z, 0, 0});
@@ -193,10 +156,40 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
                 faceIsBeingDefined = false;
                 listeIntervalles->vec.y = currentIndex - listeIntervalles->vec.x;
             }
+            // EOF = End Of File. Quit the loop.
+            if (res == EOF)
+                break;
 
-            // Probably a comment, eat up the rest of the line
-            char stupidBuffer[1000];
-            fgets(stupidBuffer, 1000, file);
+            // Material file
+            else if ( strcmp( lineHeader, "mtllib") == 0)
+            {
+                if (texFile != NULL)
+                    fscanf(file, "%s", texFile);
+            }
+            // Vertex
+            if ( strcmp( lineHeader, "v" ) == 0 )
+            {
+                fscanf(file, "%f %f %f\n", &vecTemp.x, &vecTemp.y, &vecTemp.z );
+                listeVertex = empiler(listeVertex, vecTemp);
+            }
+            // Texture Coordinate
+            else if ( strcmp( lineHeader, "vt" ) == 0 )
+            {
+                fscanf(file, "%f %f\n", &vecTemp.x, &vecTemp.y );
+                listeUv = empiler(listeUv, vecTemp);
+            }
+            // Normal
+            else if ( strcmp( lineHeader, "vn" ) == 0 )
+            {
+                fscanf(file, "%f %f %f\n", &vecTemp.x, &vecTemp.y, &vecTemp.z );
+                listeNormal = empiler(listeNormal, vecTemp);
+            }
+            else
+            {
+                // Probably a comment, eat up the rest of the line
+                char stupidBuffer[1000];
+                fgets(stupidBuffer, 1000, file);
+            }
         }
 
     }
@@ -220,7 +213,6 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
     *normals  = malloc(sizeof(Vec3) * nbVertexUniques);
     *uvs      = malloc(sizeof(Vec2) * nbVertexUniques);
 
-    int i;
     // Ici on va passer vertex par vertex
     for( i = 0; i < nbVertexUniques; i++ )
     {
