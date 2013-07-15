@@ -48,49 +48,6 @@ bool loadObj(const char* filename, Vec3** verticesFinal, Vec2** uvsFinal, Vec3**
     return true;
 }
 
-// Lecture d'un fichier en mode binaire, très rapide
-bool loadRawObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, Vec2** ranges, int* nb, int* nbVertices, char* texFile) {
-
-    char nameUnpacked[128] = "";
-    strcpy(nameUnpacked, filename);
-    strcat(nameUnpacked, "raw");
-
-    printf("\tLoading raw OBJ file '%s' ... ", nameUnpacked);
-
-    FILE* file = fopen(nameUnpacked, "rb");
-    if (file == NULL)
-    {
-        puts("Error");
-        return false;
-    }
-
-    char buffer[256] = "";
-
-    fscanf(file, "%s\n", buffer);
-
-    if (texFile != NULL)
-        strcpy(texFile, buffer);
-
-    fscanf(file, "%d %d\n", nbVertices, nb);
-
-    *ranges = malloc(sizeof(Vec2) * *nb);
-    *vertices = malloc(sizeof(Vec3) * *nbVertices);
-    *uvs = malloc(sizeof(Vec2) * *nbVertices);
-    *normals = malloc(sizeof(Vec3) * *nbVertices);
-
-    fread(*ranges, sizeof(Vec2), *nb, file);
-    fread(*vertices, sizeof(Vec3), *nbVertices, file);
-    fread(*uvs, sizeof(Vec2), *nbVertices, file);
-    fread(*normals, sizeof(Vec3), *nbVertices, file);
-
-    fclose(file);
-
-    puts("Ok");
-    printf("\t%d objects for %d triangles\n", *nb, *nbVertices);
-
-    return true;
-}
-
 // Lecture d'un fichier obj en mode texte, rapide
 // Ces fichiers peuvent contenir des indices différents pour chaque attribut (vertex, uv, normal)
 // OpenGl ne supporte pas cela, donc on désindexe les attributs en les mettant les uns à la suite des autres
@@ -281,6 +238,49 @@ bool writeRawObj(const char* filename, Vec3* vertices, Vec2* uvs, Vec3* normals,
 
     return true;
 
+}
+
+// Lecture d'un fichier en mode binaire, très rapide
+bool loadRawObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, Vec2** ranges, int* nb, int* nbVertices, char* texFile) {
+
+    char nameUnpacked[128] = "";
+    strcpy(nameUnpacked, filename);
+    strcat(nameUnpacked, "raw");
+
+    printf("\tLoading raw OBJ file '%s' ... ", nameUnpacked);
+
+    FILE* file = fopen(nameUnpacked, "rb");
+    if (file == NULL)
+    {
+        puts("Error");
+        return false;
+    }
+
+    char buffer[256] = "";
+
+    fscanf(file, "%s\n", buffer);
+
+    if (texFile != NULL)
+        strcpy(texFile, buffer);
+
+    fscanf(file, "%d %d\n", nbVertices, nb);
+
+    *ranges = malloc(sizeof(Vec2) * *nb);
+    *vertices = malloc(sizeof(Vec3) * *nbVertices);
+    *uvs = malloc(sizeof(Vec2) * *nbVertices);
+    *normals = malloc(sizeof(Vec3) * *nbVertices);
+
+    fread(*ranges, sizeof(Vec2), *nb, file);
+    fread(*vertices, sizeof(Vec3), *nbVertices, file);
+    fread(*uvs, sizeof(Vec2), *nbVertices, file);
+    fread(*normals, sizeof(Vec3), *nbVertices, file);
+
+    fclose(file);
+
+    puts("Ok");
+    printf("\t%d objects for %d triangles\n", *nb, *nbVertices);
+
+    return true;
 }
 
 // Enregistre un modèle dans un fichier sous forme texte
