@@ -222,10 +222,10 @@ bool App_Init(App* app) {
     if (carre20 == NULL)
         return false;
 
-    app->objects[0] = Instance_Create(carre20, app->perFragmentProgram, solTexture);
+    app->objects[0] = Instance_Load("../models/cs3.obj", app->perFragmentProgram);
 
     loadIdentity(app->objects[0].matrix);
-    scale(app->objects[0].matrix, 500, 1, 500);*/
+    scale(app->objects[0].matrix, 5, 5, 5);
 
 ////////////////////  GROUPE D'INSTANCES SANS INSTANCIATION GEOMETRIQUE
 
@@ -361,7 +361,7 @@ bool App_Init(App* app) {
     plan[1].zLength = 20;
     plan[2].zLength = 20;
 
-    Mesh* carre = Mesh_Load("../models/cs.obj");
+    Mesh* carre = Mesh_LoadBuiltin(MESH_CARRE_TEX_NORM2);
     if (carre == NULL)
         return false;
 

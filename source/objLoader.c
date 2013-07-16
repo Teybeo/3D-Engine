@@ -1,14 +1,16 @@
 #include "objLoader.h"
 
+#include "texture.h"
 #include "utils/vec2.h"
 #include "utils/vec3.h"
 #include "utils/liste.h"
+#include "utils/listeString.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
-bool loadObj(const char* filename, Vec3** verticesFinal, Vec2** uvsFinal, Vec3** normalsFinal, Vec2** rangesFinal, int* nbFinal, int* nbVertFinal, char* texFile) {
+bool loadObj(const char* filename, Vec3** verticesFinal, Vec2** uvsFinal, Vec3** normalsFinal, Vec2** rangesFinal, int* nbFinal, int* nbVertFinal, char*** mtlRef, char* texFile) {
 
     puts("\n----------- Mesh ---------");
     printf("Loading '%s'\n", filename);
@@ -26,7 +28,7 @@ bool loadObj(const char* filename, Vec3** verticesFinal, Vec2** uvsFinal, Vec3**
     // Si pas de binaire, on charge le texte
     if (rawLoaded == false)
     {
-        indexedLoaded = loadIndexedObj(filename, &vertices, &uvs, &normals, &ranges, nbFinal, nbVertFinal, texFile);
+        indexedLoaded = loadIndexedObj(filename, &vertices, &uvs, &normals, &ranges, nbFinal, nbVertFinal, mtlRef, texFile);
 
         // On génère un binaire pour aller plus vite les prochaines fois
         if (indexedLoaded == true)
@@ -51,7 +53,7 @@ bool loadObj(const char* filename, Vec3** verticesFinal, Vec2** uvsFinal, Vec3**
 // Lecture d'un fichier obj en mode texte, rapide
 // Ces fichiers peuvent contenir des indices différents pour chaque attribut (vertex, uv, normal)
 // OpenGl ne supporte pas cela, donc on désindexe les attributs en les mettant les uns à la suite des autres
-bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, Vec2** ranges, int* nb, int* nbVertices, char* texFile) {
+bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, Vec2** ranges, int* nb, int* nbVertices, char*** mtlRef, char* texFile) {
 
     printf("\tLoading OBJ file '%s' ...", filename);
 
@@ -70,8 +72,10 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
     ElemVec3* listeUvIndices = NULL;
     ElemVec3* listeNormalIndices = NULL;
     ElemVec3* listeIntervalles = NULL;
+    ElemString* listeMtl = NULL;
 
     char lineHeader[128];
+    char material[128] = "";
     Vec3 vecTemp;
     int i, currentIndex = 0;
     bool faceIsBeingDefined = false;
@@ -88,7 +92,8 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
             {
                 faceIsBeingDefined = true;
                 vecTemp.x = currentIndex;
-                listeIntervalles = empiler(listeIntervalles, vecTemp);
+                listeIntervalles = empiler(listeIntervalles, vecTemp); // On stocke l'index actuel
+                listeMtl = empilerStr(listeMtl, material);             // On stocke le materiau en cours
             }
 
             for (i = 0 ; i < 3 ; i++ )
@@ -122,6 +127,11 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
             {
                 if (texFile != NULL)
                     fscanf(file, "%s", texFile);
+            }
+            // Material reference
+            else if ( strcmp( lineHeader, "usemtl") == 0)
+            {
+                fscanf(file, "%s", material);
             }
             // Vertex
             if ( strcmp( lineHeader, "v" ) == 0 )
@@ -183,6 +193,7 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
     *ranges = dumpVec2ListeToArray(listeIntervalles);
     *nb = getElemNumber(listeIntervalles);
     *nbVertices = nbVertexUniques;
+    *mtlRef = dumpListeToArrayStr(listeMtl);
 
     free(vertexIndices);
     free(normalIndices);
@@ -197,12 +208,146 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** no
     liberePile(listeNormalIndices);
     liberePile(listeUvIndices);
     liberePile(listeIntervalles);
+    liberePileStr(listeMtl);
 
     puts("Ok");
     printf("\t%d objects for %d triangles\n", *nb, nbVertexUniques);
 
     return true;
 
+}
+
+bool loadMtl(char* filename, Material** material, int* nbFinal) {
+
+    printf("\tLoading MTL file '%s' ...", filename);
+
+    FILE* file = fopen(filename, "r");
+    if (file == NULL)
+    {
+        puts("Error");
+        return false;
+    }
+
+    ElemString* pileName = NULL;
+    ElemString* pileTexture = NULL;
+    ElemVec3* pileAmbient = NULL;
+    ElemVec3* pileDiffuse = NULL;
+    ElemVec3* pileSpecular = NULL;
+    ElemVec3* pileExponent = NULL;
+
+    char lineHeader[128];
+    char chaine[128] = "";
+    Vec3 vecTemp;
+    int i;
+    bool mtlIsBeingDefined = false;
+
+    while( 1 )
+    {
+        // read the first word of the line
+        int res = fscanf(file, "%s", lineHeader);
+
+        // Nouveau matériau, on stocke le nom
+        if ( strcmp( lineHeader, "newmtl" ) == 0 && res != EOF)
+        {
+            if (mtlIsBeingDefined == false)
+            {
+                mtlIsBeingDefined = true;
+            }
+
+            fscanf(file, "%s", chaine);
+            pileName = empilerStr(pileName, chaine);
+            pileTexture = empilerStr(pileTexture, "");
+            pileExponent = empiler(pileExponent, (Vec3){0, 0, 0});
+            pileSpecular = empiler(pileSpecular, (Vec3){0, 0, 0});
+            pileDiffuse = empiler(pileDiffuse, (Vec3){0, 0, 0});
+            pileAmbient = empiler(pileAmbient, (Vec3){0, 0, 0});
+
+        }
+        else
+        {
+            if (mtlIsBeingDefined)
+            {
+                mtlIsBeingDefined = false;
+
+            }
+            // EOF = End Of File. Quit the loop.
+            if (res == EOF)
+                break;
+
+            // Texture diffuse
+            else if ( strcmp( lineHeader, "map_Kd" ) == 0 )
+            {
+                fscanf(file, "%s", chaine);
+                strcpy(pileTexture->chaine, chaine);
+            }
+            // Couleur ambiante
+            else if ( strcmp( lineHeader, "Ka") == 0)
+            {
+                fscanf(file, "%f %f %f", &vecTemp.x, &vecTemp.y, &vecTemp.z );
+                pileAmbient->vec = vecTemp;
+            }
+            // Couleur diffuse
+            else if ( strcmp( lineHeader, "Kd") == 0)
+            {
+                fscanf(file, "%f %f %f", &vecTemp.x, &vecTemp.y, &vecTemp.z );
+                pileDiffuse->vec = vecTemp;
+            }
+            // Couleur spéculaire
+            if ( strcmp( lineHeader, "Ks" ) == 0 )
+            {
+                fscanf(file, "%f %f %f\n", &vecTemp.x, &vecTemp.y, &vecTemp.z );
+                pileSpecular->vec = vecTemp;
+            }
+            // Exponent spéculaire
+            else if ( strcmp( lineHeader, "Ns" ) == 0 )
+            {
+                fscanf(file, "%f", &vecTemp.x);
+                pileExponent->vec = vecTemp;
+            }
+
+            else
+            {
+                // Probably a comment, eat up the rest of the line
+                char stupidBuffer[1000];
+                fgets(stupidBuffer, 1000, file);
+            }
+        }
+
+    }
+
+    int nb = getElemNumberStr(pileName);
+
+    char** names = dumpListeToArrayStr(pileName);
+    char** textures = dumpListeToArrayStr(pileTexture);
+    Vec3* ambient = dumpVec3ListeToArray(pileAmbient);
+    Vec3* diffuse = dumpVec3ListeToArray(pileDiffuse);
+    Vec3* specular = dumpVec3ListeToArray(pileSpecular);
+    unsigned int* exponent = dumpListeToArray(pileExponent);
+
+    *material = malloc(sizeof(Material) * nb);
+    for (i = 0 ; i < nb ; i++ )
+    {
+        strcpy((*material)[i].name, names[i]);
+        if (strlen(textures[i]) == 0)
+            (*material)[i].hasTexture = false;
+        else
+        {
+            (*material)[i].texture = chargerTexture(textures[i], GL_LINEAR);
+            (*material)[i].hasTexture = true;
+        }
+
+        (*material)[i].ambient = ambient[i];
+        (*material)[i].diffuse = diffuse[i];
+        (*material)[i].specular = specular[i];
+        (*material)[i].exponent = exponent[i];
+    }
+
+    *nbFinal = nb;
+
+    puts("Ok");
+    printf("\t%d Matériaux chargés\n", nb);
+
+    return true;
 }
 
 // Enregistre un modèle dans un fichier sous forme binaire, très rapide

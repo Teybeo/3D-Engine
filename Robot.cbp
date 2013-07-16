@@ -82,6 +82,7 @@
 		<Unit filename="header/texture.h" />
 		<Unit filename="header/utils/liste.h" />
 		<Unit filename="header/utils/listeContact.h" />
+		<Unit filename="header/utils/listeString.h" />
 		<Unit filename="header/utils/matrix.h" />
 		<Unit filename="header/utils/vec2.h" />
 		<Unit filename="header/utils/vec3.h" />
@@ -148,6 +149,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/utils/listeContact.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/utils/listeString.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/utils/matrix.c">

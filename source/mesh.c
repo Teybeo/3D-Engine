@@ -63,6 +63,8 @@ Mesh* Mesh_Load(const char* filename) {
     return Mesh_FullLoad(filename, NULL);
 }
 
+Material* desindexeMaterial(Material* material, int nbMat, char** mtlRef, int nbRef);
+
 // Charge et prépare directement un mesh
 // Ecrit le chemin du fichier mtl dans texFile
 Mesh* Mesh_FullLoad(const char* filename, char* texFile) {
@@ -73,15 +75,24 @@ Mesh* Mesh_FullLoad(const char* filename, char* texFile) {
     Vec3* normals = NULL;
     Vec2* uvs = NULL;
     Vec2* range = NULL;
+    char** mtlRef = NULL;
 
     int nb, nbVertices;
-    if (loadObj(filename, &vertices, &uvs, &normals, &range, &nb, &nbVertices, texFile) == false)
+    if (loadObj(filename, &vertices, &uvs, &normals, &range, &nb, &nbVertices, &mtlRef, texFile) == false)
         return NULL;
 
     mesh->primitiveType = GL_TRIANGLES;
     mesh->nb = nb;
     mesh->drawStart = malloc(sizeof(unsigned int) * nbVertices);
     mesh->drawCount = malloc(sizeof(unsigned int) * nbVertices);
+
+   Material* material = NULL;
+   int nbMtl = 0;
+    if (texFile != NULL)
+        if (loadMtl(texFile, &material, &nbMtl) == false)
+            return NULL;
+
+    mesh->material = desindexeMaterial(material, nbMtl, mtlRef, nb);
 
     int i;
     for (i = 0 ; i < mesh->nb ; i++ )
@@ -106,6 +117,8 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     Mesh* mesh = malloc(sizeof(Mesh));
 
+    mesh->material = calloc(sizeof(Material), 1);
+    mesh->material[0].hasTexture = false;
     mesh->drawStart = malloc(sizeof(unsigned int));
     mesh->drawCount = malloc(sizeof(unsigned int));
     mesh->drawStart[0] = 0;
@@ -180,4 +193,22 @@ Mesh* Mesh_LoadBuiltin(int type) {
     return mesh;
 }
 
+Material* desindexeMaterial(Material* material, int nbMat, char** mtlRef, int nbRef) {
 
+    Material* res = calloc(sizeof(Material), nbRef);
+
+    // Pas de matériaux définis
+    if (nbMat == 0 || nbRef == 0)
+        return res;
+
+    int i, j;
+    for (i = 0 ; i < nbRef ; i++ )
+    {
+        for (j = 0 ; j < nbMat ; j++ )
+
+            if (strcmp(mtlRef[i], material[j].name) == 0)
+                res[i] = material[j];
+    }
+
+    return res;
+}

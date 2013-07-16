@@ -3,6 +3,7 @@
 
 #include "utils/vec3.h"
 #include "utils/vec2.h"
+#include "objLoader.h"
 
 #include "glew.h"
 
@@ -29,6 +30,7 @@ typedef struct Mesh {
     GLint* drawStart;
     GLint* drawCount;
     int nb;
+    Material* material;
 
 } Mesh;
 

@@ -33,17 +33,22 @@ void Instance_Draw(Instance object, float* mondeToCam, float* camToClip) {
         glBindVertexArray(object.mesh->vao);
         activeVAO = object.mesh->vao;
     }
-    if (object.texture != activeTexture)
+    /*if (object.texture != activeTexture)
     {
         glBindTexture(GL_TEXTURE_2D, object.texture);
         activeTexture = object.texture;
-    }
+    }*/
 
     glUniformMatrix4fv(modelWorldLoc, 1, GL_TRUE, object.matrix);
 
     int i;
     for (i = 0 ; i < object.mesh->nb ; i++ )
     {
+        if (object.mesh->material[i].hasTexture && object.mesh->material[i].texture != activeTexture)
+        {
+            glBindTexture(GL_TEXTURE_2D, object.mesh->material[i].texture);
+            activeTexture = object.mesh->material[i].texture;
+        }
         glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart[i], object.mesh->drawCount[i]);
     }
 
@@ -67,8 +72,8 @@ Instance Instance_Load(const char* objFile, GLuint program) {
     if (instance.mesh == NULL)
         return instance;
 
-    if (texFile[0] != '\0')
-        instance.texture = chargerTexture(texFile, GL_LINEAR);
+    //if (texFile[0] != '\0')
+       // instance.texture = chargerTexture(texFile, GL_LINEAR);
 
     instance.program = program;
     loadIdentity(instance.matrix);
@@ -81,7 +86,10 @@ Instance Instance_Create(Mesh* mesh, GLuint program, GLuint texture) {
 
     Instance instance = {};
 
+    mesh->material[0].texture = texture;
+    mesh->material[0].hasTexture = true;
     instance.mesh = mesh;
+
     instance.program = program;
     instance.texture = texture;
     loadIdentity(instance.matrix);
