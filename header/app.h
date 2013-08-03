@@ -2,6 +2,7 @@
 #define _APP_GUARD
 
 #include "fenetre.h"
+#include "shader.h"
 #include "robot.h"
 #include "light.h"
 #include "instance.h"
@@ -22,15 +23,12 @@
 typedef struct App {
 
     Fenetre fenetre;
-    GLint vertexShader;
-    GLint fragmentShader;
-    GLuint noTexNoLightProgram;
-    GLuint texProgram;
-    GLuint perVertexProgram;
-    GLuint perFragmentProgram;
-    GLuint instancePerFragmentProgram;
+    Shader noTexNoLightProgram;
+    Shader texProgram;
+    Shader perVertexProgram;
+    Shader perFragmentProgram;
+    Shader instancePerFragmentProgram;
     Player player;
-    GLuint locProjMatrix;
     Robot robot;
     Instance objects[10000];
     InstanceGroupe objectGroupe;

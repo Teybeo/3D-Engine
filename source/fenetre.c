@@ -152,7 +152,7 @@ void setPerspective(Fenetre* fen) {
 
     loadIdentity(fen->camToClip);
 
-    projection(fen->camToClip, 70, (float)fen->largeur/fen->hauteur, 1, 1000);
+    projection(fen->camToClip, 70, (float)fen->largeur/fen->hauteur, 1, 5000);
 
 }
 

@@ -93,9 +93,7 @@ void Robot_draw(Robot* robot, float* worldCam, float* camClip) {
 
 }
 
-bool Robot_init(Robot* robot, GLuint program) {
-
-    robot->locModelWorld = glGetUniformLocation(program, "modelWorld");
+bool Robot_init(Robot* robot, Shader program) {
 
     GLuint jambeTex = chargerTexture("../images/steve3.png", GL_NEAREST);
     if (jambeTex == 0)

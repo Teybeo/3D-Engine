@@ -1,10 +1,10 @@
 #include "bullet.h"
 
-#include "stdlib.h"
 #include "utils/matrix.h"
-#include "stdio.h"
+#include <stdlib.h>
+#include <stdio.h>
 
-BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, GLuint program, GLuint texture) {
+BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, Shader program, GLuint texture) {
 
     BulletGroupe groupe = {};
 
@@ -54,9 +54,9 @@ void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camT
 
         char name[50] = "";
         sprintf(name, "lightPos[%d]", i+6);
-        glUniform3fv(glGetUniformLocation(bulletGroupe.program, name), 1, &bulletGroupe.collisionData[i].sphere.particule.position.x);
+        glUniform3fv(glGetUniformLocation(bulletGroupe.program.id, name), 1, &bulletGroupe.collisionData[i].sphere.particule.position.x);
         sprintf(name, "lightColor[%d]", i+6);
-        glUniform3fv(glGetUniformLocation(bulletGroupe.program, name), 1, &color.x);
+        glUniform3fv(glGetUniformLocation(bulletGroupe.program.id, name), 1, &color.x);
 
         Instance_Draw(bulletInstance, mondeToCam, camToClip);
     }

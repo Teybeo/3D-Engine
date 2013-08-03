@@ -1,16 +1,21 @@
 #ifndef _SHADER_GUARD
 #define _SHADER_GUARD
 
-#include <stdbool.h>
+typedef struct Shader {
 
-#include "glew.h"
+    unsigned int id;
+    int nbUniform;
+    char** uniformName;
+    int* uniformLoc;
+    int nbAttrib;
+    char** attribName;
+    int* attribLoc;
 
-#define VERTEX_SHADER 0
-#define FRAGMENT_SHADER 1
+} Shader;
 
-//bool createProgram(unsigned int* program, int vert, int frag);
-
-bool initProgram(GLuint* program, const char* vertexShader, const char* fragmentShader);
-//bool initShader(int* shaderID, unsigned int type, const char* chemin);
+Shader Shader_Create(const char* vertexFile, const char* fragmentFile);
+void Shader_SendUniform(Shader shader, const char* name, int type, void* data);
+void Shader_SendUniformArray(Shader shader, const char* name, int type, int nb, void* data);
 
 #endif // SHADER
+

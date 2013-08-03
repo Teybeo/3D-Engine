@@ -6,6 +6,7 @@
 #include "utils/vec2.h"
 #include "objLoader.h"
 
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -63,11 +64,9 @@ Mesh* Mesh_Load(const char* filename) {
     return Mesh_FullLoad(filename, NULL);
 }
 
-Material* desindexeMaterial(Material* material, int nbMat, char** mtlRef, int nbRef);
-
 // Charge et prépare directement un mesh
-// Ecrit le chemin du fichier mtl dans texFile
-Mesh* Mesh_FullLoad(const char* filename, char* texFile) {
+// Ecrit le chemin du fichier mtl dans mtlFile
+Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
 
     Mesh* mesh = malloc(sizeof(Mesh));
 
@@ -75,31 +74,37 @@ Mesh* Mesh_FullLoad(const char* filename, char* texFile) {
     Vec3* normals = NULL;
     Vec2* uvs = NULL;
     Vec2* range = NULL;
-    char** mtlRef = NULL;
+    char** matNames = NULL;
+    int nbVertices = 0, nbObjects = 0, nbMat = 0;
+    Material* materialList = NULL;
 
-    int nb, nbVertices;
-    if (loadObj(filename, &vertices, &uvs, &normals, &range, &nb, &nbVertices, &mtlRef, texFile) == false)
+    if (loadObj(filename, &vertices, &normals, &uvs, &nbVertices, &range, &nbObjects, &matNames, mtlFile) == false)
         return NULL;
 
-    mesh->primitiveType = GL_TRIANGLES;
-    mesh->nb = nb;
-    mesh->drawStart = malloc(sizeof(unsigned int) * nbVertices);
-    mesh->drawCount = malloc(sizeof(unsigned int) * nbVertices);
-
-   Material* material = NULL;
-   int nbMtl = 0;
-    if (texFile != NULL)
-        if (loadMtl(texFile, &material, &nbMtl) == false)
+    if (mtlFile)
+        if (loadMtl(mtlFile, &materialList, &nbMat) == false)
             return NULL;
+    if (materialList != NULL && matNames != NULL)
+        mesh->material = desindexeMaterial(materialList, nbMat, matNames, nbObjects);
+    else
+    {
+        int i;
+        mesh->material = malloc(sizeof(Material) * nbObjects);
+        for (i = 0 ; i < nbObjects ; i++ )
+            mesh->material[i] = Material_GetDefault();
+    }
 
-    mesh->material = desindexeMaterial(material, nbMtl, mtlRef, nb);
-
+    mesh->drawStart = malloc(sizeof(int) * nbObjects);
+    mesh->drawCount = malloc(sizeof(int) * nbObjects);
     int i;
-    for (i = 0 ; i < mesh->nb ; i++ )
+    for (i = 0 ; i < nbObjects ; i++ )
     {
         mesh->drawStart[i] = range[i].x;
         mesh->drawCount[i] = range[i].y;
     }
+
+    mesh->primitiveType = GL_TRIANGLES;
+    mesh->nb = nbObjects;
 
     Mesh_CreateVBO2(mesh, vertices, normals, uvs, nbVertices);
     Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nbVertices, (sizeof(Vec3)*nbVertices) + sizeof(Vec3)*nbVertices}, (int[3]){3, 3, 2});
@@ -116,18 +121,18 @@ Mesh* Mesh_FullLoad(const char* filename, char* texFile) {
 Mesh* Mesh_LoadBuiltin(int type) {
 
     Mesh* mesh = malloc(sizeof(Mesh));
-
-    mesh->material = calloc(sizeof(Material), 1);
-    mesh->material[0].hasTexture = false;
-    mesh->drawStart = malloc(sizeof(unsigned int));
-    mesh->drawCount = malloc(sizeof(unsigned int));
-    mesh->drawStart[0] = 0;
     mesh->nb = 1;
+    mesh->drawStart = malloc(sizeof(int));
+    mesh->drawCount = malloc(sizeof(int));
+
+    mesh->material = malloc(sizeof(Material));
+    mesh->material[0] = Material_GetDefault();
 
     switch (type) {
 
     case MESH_CUBE:
 
+        mesh->drawStart[0] = 0;
         mesh->drawCount[0] = 36;
         Mesh_CreateVBO(mesh, sizeof(cube), (void*)cube);
         Mesh_CreateVAO(mesh, 2, (int[2]){0, 1}, (int[2]){0, VBO_COLOR_OFFSET}, (int[2]){3, 3});
@@ -136,6 +141,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     case MESH_CUBE_TEX: // CUBE TEXTURE
 
+        mesh->drawStart[0] = 0;
         mesh->drawCount[0] = 36;
         Mesh_CreateVBO(mesh, sizeof(cubeTex), (void*)cubeTex);
         Mesh_CreateVAO(mesh, 2, (int[2]){0, 2}, (int[2]){0, VBO_COLOR_OFFSET}, (int[2]){3, 2});
@@ -144,6 +150,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     case MESH_CUBE_TEX_FLIP: // CUBE TEXTURE INVERSE (skybox)
 
+        mesh->drawStart[0] = 0;
         mesh->drawCount[0] = 36;
         Mesh_CreateVBO(mesh, sizeof(cubeTexFliped), (void*)cubeTexFliped);
         Mesh_CreateVAO(mesh, 2, (int[2]){0, 2}, (int[2]){0, VBO_COLOR_OFFSET}, (int[2]){3, 2});
@@ -152,6 +159,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     case MESH_CUBE_TEX_NORM: // CUBE TEXTURE + NORMAL
 
+        mesh->drawStart[0] = 0;
         mesh->drawCount[0] = 36;
         Mesh_CreateVBO(mesh, sizeof(cubeTex), (void*)cubeTex);
         Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, 0, VBO_COLOR_OFFSET}, (int[3]){3, 3, 2});
@@ -160,6 +168,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     case MESH_CARRE_TEX: // CARRE TEXTURE
 
+        mesh->drawStart[0] = 0;
         mesh->drawCount[0] = 6;
         Mesh_CreateVBO(mesh, sizeof(carre), (void*)carre);
         Mesh_CreateVAO(mesh, 2, (int[2]){0, 1}, (int[2]){0, VBO_TEXCOORD_OFFSET}, (int[2]){3, 2});
@@ -168,6 +177,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     case MESH_CARRE_TEX_NORM: // CARRE TEXTURE + NORMAL
 
+        mesh->drawStart[0] = 0;
         mesh->drawCount[0] = 6;
         Mesh_CreateVBO(mesh, sizeof(carreNorm), (void*)carreNorm);
         Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, VBO_NORMAL_OFFSET, VBO_TEXCOORD_OFFSET}, (int[3]){3, 3, 2});
@@ -176,6 +186,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     case MESH_CARRE_TEX_NORM2: // CARRE TEXTURE * 20 + NORMAL
 
+        mesh->drawStart[0] = 0;
         mesh->drawCount[0] = 6;
         Mesh_CreateVBO(mesh, sizeof(carreNorm20), (void*)carreNorm20);
         Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, VBO_NORMAL_OFFSET, VBO_TEXCOORD_OFFSET}, (int[3]){3, 3, 2});
@@ -190,9 +201,13 @@ Mesh* Mesh_LoadBuiltin(int type) {
 
     mesh->primitiveType = GL_TRIANGLES;
 
+
     return mesh;
 }
 
+// A partir d'une liste des noms des matériaux de chaque sous-objet (usemtl, .obj)
+// et de la liste complète de tous les matériaux disponibles (newmtl, .mtl)
+// on crée un tableau de matériaux qui va associer chaque nom de matériau avec ses données propres
 Material* desindexeMaterial(Material* material, int nbMat, char** mtlRef, int nbRef) {
 
     Material* res = calloc(sizeof(Material), nbRef);
@@ -206,9 +221,24 @@ Material* desindexeMaterial(Material* material, int nbMat, char** mtlRef, int nb
     {
         for (j = 0 ; j < nbMat ; j++ )
 
-            if (strcmp(mtlRef[i], material[j].name) == 0)
+            if (strcmp(mtlRef[i], material[j].nom) == 0)
                 res[i] = material[j];
     }
 
     return res;
+}
+
+Material Material_GetDefault() {
+
+    Material mat = {};
+
+    strcpy(mat.nom, "Default");
+    mat.ambient = Vec3_Create(1, 1, 1);
+    mat.diffuse = Vec3_Create(1, 1, 1);
+    mat.specular = Vec3_Create(1, 1, 1);
+    mat.exponent = 20;
+    mat.hasTexture = false;
+    mat.texture = 0;
+
+    return mat;
 }

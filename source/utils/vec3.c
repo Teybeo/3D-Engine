@@ -160,6 +160,15 @@ Vec3 Vec3_RandomPos(int xMin, int xMax, int yMin, int yMax, int zMin, int zMax) 
 
 }
 
+Vec3 Vec3_Create(float x, float y, float z) {
+
+    Vec3 vec;
+    vec.x = x;
+    vec.y = y;
+    vec.z = z;
+    return vec;
+}
+
 void setVec3(Vec3* vec, float x, float y, float z) {
     vec->x = x;
     vec->y = y;

@@ -1,6 +1,6 @@
 #include "app.h"
 
-#include "shader.h"
+#include "shaderLoader.h"
 #include "utils/matrix.h"
 #include "gl_debug.h"
 
@@ -19,6 +19,7 @@ void App_Draw(App* app) {
 //    else {
 
     glClear(GL_DEPTH_BUFFER_BIT);
+//    glClear(GL_DEPTH_BUFFER_BIT);
 
         int i;
     /*glUseProgram(app->instancePerFragmentProgram);
@@ -31,27 +32,43 @@ void App_Draw(App* app) {
             glUniform3fv(glGetUniformLocation(app->instancePerFragmentProgram, name), 1, &app->lampe[i].color.x);
         }
     glUseProgram(0);
-    */glUseProgram(app->perFragmentProgram);
-        for (i = 0 ; i < 6 ; i++ )
-        {
-            char name[50] = "";
-            sprintf(name, "lightPos[%d]", i);
-            glUniform3fv(glGetUniformLocation(app->perFragmentProgram, name), 1, &app->lampe[i].pos.x);
-            sprintf(name, "lightColor[%d]", i);
-            glUniform3fv(glGetUniformLocation(app->perFragmentProgram, name), 1, &app->lampe[i].color.x);
-        }
-    glUseProgram(0);
+    */glUseProgram(app->perFragmentProgram.id);
+//        for (i = 0 ; i < 6 ; i++ )
+//        {
+//            char name[50] = "";
+//            sprintf(name, "lightPos[%d]", i);
+//            glUniform3fv(glGetUniformLocation(app->perFragmentProgram.id, name), 1, &app->lampe[i].pos.x);
+//            sprintf(name, "lightColor[%d]", i);
+//            glUniform3fv(glGetUniformLocation(app->perFragmentProgram.id, name), 1, &app->lampe[i].color.x);
+//        }
+    Vec3* light = Light_Serialize(app->lampe, 6);
+    glUseProgram(app->perFragmentProgram.id);
+    Shader_SendUniformArray(app->perFragmentProgram, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
+    Shader_SendUniformArray(app->perFragmentProgram, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
+    glUseProgram(app->instancePerFragmentProgram.id);
+    Shader_SendUniformArray(app->instancePerFragmentProgram, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
+    Shader_SendUniformArray(app->instancePerFragmentProgram, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
+    free(light);
+//        for (i = 0 ; i < 6 ; i++ )
+//        {
+//            char name[50] = "";
+//            sprintf(name, "lightInput[%d].pos", i);
+//            Shader_SendUniform(app->perFragmentProgram, name, GL_FLOAT_VEC3, &app->lampe[i].pos.x);
+//            sprintf(name, "lightInput[%d].color", i);
+//            Shader_SendUniform(app->perFragmentProgram, name, GL_FLOAT_VEC3, &app->lampe[i].color.x);
+//        }
+//    glUseProgram(0);
 
-    for (i = 1 ; i <2 ; i++ )
-        Plan_Draw(app->planes[i], app->player.mondeToCam, app->fenetre.camToClip);
+//    for (i = 1 ; i <2 ; i++ )
+//        Plan_Draw(app->planes[i], app->player.mondeToCam, app->fenetre.camToClip);
 
-//    InstanceGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
+    InstanceGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
 
-//    for (i = 0 ; i < 1 ; i++ )
-//        Instance_Draw(app->objects[i], app->player.mondeToCam, app->fenetre.camToClip);
+    for (i = 0 ; i < 1 ; i++ )
+        Instance_Draw(app->objects[i], app->player.mondeToCam, app->fenetre.camToClip);
 
-    for (i = 0 ; i < 6 ; i++ )
-        Instance_Draw(app->lampe[i].instance, app->player.mondeToCam, app->fenetre.camToClip);
+//    for (i = 0 ; i < 6 ; i++ )
+//        Instance_Draw(app->lampe[i].instance, app->player.mondeToCam, app->fenetre.camToClip);
 
     Robot_draw(&app->robot, app->player.mondeToCam, app->fenetre.camToClip);
 
@@ -60,16 +77,15 @@ void App_Draw(App* app) {
 //    for (i = 0 ; i < app->nb ; i++ )
 //        Sphere_Draw(app->balle[i], app->player.mondeToCam, app->fenetre.camToClip);
 
-    //glDisable(GL_DEPTH_TEST);
-        loadIdentity(app->skybox.matrix);
-        if (app->player.camMode == CAMERAMODE_FREE)
-            translateByVec(app->skybox.matrix, app->player.posCam);
-        else
-            translateByVec(app->skybox.matrix, app->player.posRobot);
-        scale(app->skybox.matrix, 600, 600, 600);
-        Instance_Draw(app->skybox, app->player.mondeToCam, app->fenetre.camToClip);
-    //glEnable(GL_DEPTH_TEST);
+    loadIdentity(app->skybox.matrix);
+    if (app->player.camMode == CAMERAMODE_FREE)
+        translateByVec(app->skybox.matrix, app->player.posCam);
+    else
+        translateByVec(app->skybox.matrix, app->player.posRobot);
+    scale(app->skybox.matrix, 2000, 2000, 2000);
+    Instance_Draw(app->skybox, app->player.mondeToCam, app->fenetre.camToClip);
 
+//    glFinish();
     SDL_GL_SwapWindow(app->fenetre.ecran);
 
 //    getchar();
@@ -80,6 +96,7 @@ void App_Draw(App* app) {
 
 void App_Logic(App* app, float duree) {
 
+//    memcpy(&app->player.posRobot, &app->lampe[0].pos, sizeof(Vec3));
     Player_update(&app->player);
 
     static float t = 0;
@@ -114,7 +131,7 @@ void App_Logic(App* app, float duree) {
         loadIdentity(app->lampe[i].instance.matrix);
         translate(app->lampe[i].instance.matrix, app->lampe[i].pos.x, app->lampe[i].pos.y, app->lampe[i].pos.z);
     }
-
+/*
     for (i = 1 ; i < 100 ; i++ )
     {
         loadIdentity(app->objects[i].matrix);
@@ -122,14 +139,14 @@ void App_Logic(App* app, float duree) {
         scale(app->objects[i].matrix, 3, 3, 3);
         rotate(app->objects[i].matrix, 100*t+i, 100*t+i, 100*t+i);
 //        translate(app->objects[i].matrix, 0.1*i, 5, 5);
-    }
+    }*/
 
     float scaleFactor;
     for (i = 0 ; i < app->objectGroupe.nbInstances ; i++ )
     {
         scaleFactor = 3+(i/100);
         loadIdentity(app->objectGroupe.matrix[i]);
-        translate(app->objectGroupe.matrix[i], 50*sin(0.3*i - t), 5 + i/10., 50*cos(i+-t));
+        translate(app->objectGroupe.matrix[i], 400*sin(0.1*i - t), 5 + i/10., 400*cos(i+-t));
         scale(app->objectGroupe.matrix[i], scaleFactor, scaleFactor, scaleFactor);
         transpose(app->objectGroupe.matrix[i]);
     }
@@ -150,6 +167,7 @@ void App_Logic(App* app, float duree) {
     CollisionObject** container = malloc(sizeof(CollisionObject*) * nbObjects );
 
     Container_Clear();
+//    Container_AddCollisionsToCheck(container, app->objectGroupe.collisionData, app->sphereGroupe.nbSpheres);
     Container_AddCollisionsToCheck(container, app->sphereGroupe.collisionData, app->sphereGroupe.nbSpheres);
     Container_AddCollisionsToCheck(container, app->bulletGroupe.collisionData, app->bulletGroupe.nbBullets);
    // Container_AddCollisionsToCheck(container, app->wall, 5);
@@ -187,17 +205,10 @@ bool App_Init(App* app) {
         enableCallback(true);
     }
 
-    if (initProgram(&app->noTexNoLightProgram, "../source/vert_shaders/noTexNoLight.vert", "../source/frag_shaders/noTexNoLight.frag") == false)
-        return false;
-
-    if (initProgram(&app->texProgram, "../source/vert_shaders/noLight.vert", "../source/frag_shaders/noLight.frag") == false)
-        return false;
-
-//    if (initProgram(&app->perVertexProgram, "../source/vert_shaders/perVertex.vert", "../source/shaders/frag_perVertex.frag") == false)
-//        return false;
-
-    if (initProgram(&app->perFragmentProgram, "../source/vert_shaders/perFragment.vert", "../source/frag_shaders/perFragment.frag") == false)
-        return false;
+    app->texProgram = Shader_Create("../source/vert_shaders/noLight.vert", "../source/frag_shaders/noLight.frag");
+    app->noTexNoLightProgram = Shader_Create("../source/vert_shaders/noTexNoLight.vert", "../source/frag_shaders/noTexNoLight.frag");
+    app->perFragmentProgram = Shader_Create("../source/vert_shaders/perFragment.vert", "../source/frag_shaders/perFragment.frag");
+    app->perVertexProgram = Shader_Create("../source/vert_shaders/perVertex.vert", "../source/frag_shaders/perVertex.frag");
 
 ///////////////////// ROBOT
 
@@ -206,7 +217,7 @@ bool App_Init(App* app) {
 
     app->player = Player_init(&app->robot);
 
-//////////////////// SOL
+//////////////////// OBJECTS
 
     GLuint stoneTexture, solTexture, skyboxTexture;
 
@@ -218,9 +229,9 @@ bool App_Init(App* app) {
 
     int i;
 
-   /* Mesh* carre20 = Mesh_Load(MESH_CARRE_TEX_NORM2, NULL);
+/*    Mesh* carre20 = Mesh_Load(MESH_CARRE_TEX_NORM2, NULL);
     if (carre20 == NULL)
-        return false;
+        return false;*/
 
     app->objects[0] = Instance_Load("../models/cs3.obj", app->perFragmentProgram);
 
@@ -248,16 +259,6 @@ bool App_Init(App* app) {
     }
     loadIdentity(app->objects[1].matrix);*/
 
-//////////////////////// GROUPE D'INSTANCES
-
-    /*Mesh* cubeTexNorm = Mesh_Loadbu(MESH_OBJ , "../models/sphere.obj");
-    if (cubeTexNorm == 0)
-        return false;
-
-    if (initProgram(&app->instancePerFragmentProgram, "../source/vert_shaders/instancePerFragment.vert", "../source/frag_shaders/perFragment.frag") == false)
-        return false;
-
-    app->objectGroupe = InstanceGroupe_Create(cubeTexNorm, 50, app->instancePerFragmentProgram, stoneTexture);*/
 
 //////////////////////// SKYBOX
 
@@ -270,7 +271,6 @@ bool App_Init(App* app) {
 
     app->skybox = Instance_Create(skyboxMesh, app->texProgram, skyboxTexture);
     loadIdentity(app->skybox.matrix);
-    scale(app->skybox.matrix, 5, 5, 5);
 
 //////////////// LUMIERES
 
@@ -283,12 +283,22 @@ bool App_Init(App* app) {
     for (i = 0 ; i < 6 ; i++ )
         app->lampe[i].instance = light;
 
-    Light_SetPosColor(&app->lampe[0], (Vec3){-15, 2, 0}, (Vec3){0, 1, 0});
-    Light_SetPosColor(&app->lampe[1], (Vec3){15, 2, 0}, (Vec3){1, 0, 0});
-    Light_SetPosColor(&app->lampe[2], (Vec3){-25, 5, 15}, (Vec3){0, 0, 1});
-    Light_SetPosColor(&app->lampe[3], (Vec3){-15, 1, -15}, (Vec3){1, 1, 0});
-    Light_SetPosColor(&app->lampe[4], (Vec3){-15, 2, -10}, (Vec3){1, 0, 1});
-    Light_SetPosColor(&app->lampe[5], (Vec3){-15, 2, -60}, (Vec3){0, 1, 1});
+    Light_SetPosColor(&app->lampe[0], (Vec3){-15, 2, 0}, (Vec3){0, 1., 0});
+    Light_SetPosColor(&app->lampe[1], (Vec3){15, 2, 0}, (Vec3){1., 0, 0});
+    Light_SetPosColor(&app->lampe[2], (Vec3){-25, 5, 15}, (Vec3){0, 0, 1.});
+    Light_SetPosColor(&app->lampe[3], (Vec3){-15, 1, -15}, (Vec3){1., 1., 0});
+    Light_SetPosColor(&app->lampe[4], (Vec3){-15, 2, -10}, (Vec3){1., 0, 1});
+    Light_SetPosColor(&app->lampe[5], (Vec3){-15, 2, -60}, (Vec3){0, 1., 1.});
+
+//////////////////////// INSTANCIATION GEOMETRIQUE
+
+    Mesh* geomMesh = Mesh_Load("../models/sphere.obj");
+    if (geomMesh == 0)
+        return false;
+
+    app->instancePerFragmentProgram = Shader_Create("../source/vert_shaders/instancePerFragment.vert", "../source/frag_shaders/perFragment.frag");
+
+    app->objectGroupe = InstanceGroupe_Create(geomMesh, 200, app->instancePerFragmentProgram, stoneTexture);
 
 
 //////////// BALLES
@@ -309,8 +319,6 @@ bool App_Init(App* app) {
     app->bulletGroupe = BulletGroupe_Create(NB_BULLETS_MAX, sphere, app->perFragmentProgram, bulletTex);
 
 ////////////////////////
-
-    app->locProjMatrix = glGetUniformLocation(app->noTexNoLightProgram, "camClip");
 
     CollisionPlanInfini planInfini[5] = {};
 
@@ -478,7 +486,7 @@ void App_Event(App* app) {
 void App_Run(App* app) {
 
     Uint32 debut = SDL_GetTicks();
-    float duree = 0;
+    float duree = 0, precedenteDuree = 0;
 
     while (app->fenetre.arret == false) {
 
@@ -488,8 +496,12 @@ void App_Run(App* app) {
 
         char title[20] = "";
         duree = SDL_GetTicks() - debut;
-        sprintf(title, "%.0f ms", duree);
-        SDL_SetWindowTitle(app->fenetre.ecran, title);
+        if (fabsf(duree - precedenteDuree) >= 1)
+        {
+            sprintf(title, "%.0f ms", duree);
+            SDL_SetWindowTitle(app->fenetre.ecran, title);
+            precedenteDuree = duree;
+        }
 
         debut = SDL_GetTicks();
 

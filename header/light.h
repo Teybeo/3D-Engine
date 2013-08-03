@@ -14,6 +14,7 @@ typedef struct Light {
 
 void Light_SetPosColor(Light* light, Vec3 pos, Vec3 color);
 Light createLight(Instance instance, Vec3 pos, Vec3 color);
+Vec3* Light_Serialize(Light* light, int nb);
 
 #endif // LIGHT
 

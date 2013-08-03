@@ -1,10 +1,10 @@
 #include "sphere.h"
 
-#include "stdlib.h"
 #include "utils/matrix.h"
-#include "stdio.h"
+#include <stdlib.h>
+#include <stdio.h>
 
-SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, GLuint program, GLuint texture) {
+SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, Shader program, GLuint texture) {
 
     SphereGroupe groupe = {};
 

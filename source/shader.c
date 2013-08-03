@@ -1,183 +1,116 @@
 #include "shader.h"
 
-#include "glew.h"
-#include <stdio.h>
+#include "shaderLoader.h"
+#include "utils/vec3.h"
+
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
-#define SHADER 0
-#define PROGRAM 1
+Shader Shader_Create(const char* vertexFile, const char* fragmentFile) {
 
-char* chargerSource(const char *filename);
-bool linkShaders(unsigned int* program, int vert, int frag);
-bool validateProgram(unsigned int program);
-void printLog(int object, int type);
+    Shader shader = {};
 
-bool createProgram(unsigned int* program, int vert, int frag) {
+    initProgram(&shader.id, vertexFile, fragmentFile);
 
-    return linkShaders(program, vert, frag) == true && validateProgram(*program) == true;
+    int uniformMaxLength = 0;
+    glGetProgramiv(shader.id, GL_ACTIVE_UNIFORMS, &shader.nbUniform);
+    glGetProgramiv(shader.id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength);
+    printf("%d uniforms\n", shader.nbUniform);
+    shader.uniformName = malloc(sizeof(char*) * shader.nbUniform);
+    shader.uniformLoc = malloc(sizeof(int) * shader.nbUniform);
 
-}
+//    int i;
+//    for (i = 0 ; i < shader.nbUniform ; i++ )
+//    {
+//        shader.uniformName[i] = malloc(sizeof(char) * uniformMaxLength);
+//        glGetActiveUniformName(shader.id, i, uniformMaxLength, NULL, shader.uniformName[i]);
+//        shader.uniformLoc[i] = glGetUniformLocation(shader.id, shader.uniformName[i]);
+//        printf("%d: %s\n", shader.uniformLoc[i], shader.uniformName[i]);
+//    }
+    char buffer[128] = "";
+    int nameLength;
+    int uniformSize;
+    GLenum uniformType;
 
-bool linkShaders(unsigned int* program, int vert, int frag) {
-
-    printf("Linkage des shaders %d et %d...", vert, frag);
-
-    *program = glCreateProgram();
-    glAttachShader(*program, vert);
-    glAttachShader(*program, frag);
-    glLinkProgram(*program);
-
-    int link_status = true;
-
-    glGetProgramiv(*program, GL_LINK_STATUS, &link_status);
-
-    link_status ? puts("Ok") : puts("Error");
-
-    printLog(*program, PROGRAM);
-
-    return link_status;
-}
-
-bool validateProgram(unsigned int program) {
-
-    printf("Validation du programme %d...", program);
-
-    glValidateProgram(program);
-
-    int validate_status = false;
-
-    glGetProgramiv(program, GL_VALIDATE_STATUS, &validate_status);
-
-    validate_status ? puts("Ok") : puts("Error");
-
-    printLog(program, PROGRAM);
-
-    return validate_status;
-}
-
-bool initShader(int* shaderID, GLenum type, const char* chemin) {
-
-    printf("Compilation de '%s'...", chemin);
-
-    *shaderID = glCreateShader(type);
-    if (shaderID == NULL) {
-        printf("Erreur création du shader '%s'\n", chemin);
-        return false;
-    }
-
-    char* source = chargerSource(chemin);
-    if (source == NULL)
-        return false;
-
-    glShaderSource(*shaderID, 1, (const char**)&source, NULL);
-
-    glCompileShader(*shaderID);
-
-    free(source);
-
-    GLint compile_status = true;
-    glGetShaderiv(*shaderID, GL_COMPILE_STATUS, &compile_status);
-
-    compile_status ? puts("Ok") : puts("Error");
-
-    printLog(*shaderID, SHADER);
-
-    return compile_status;
-}
-
-void printLog(int object, int type) {
-
-    GLsizei logsize = 0;
-
-    if (type == SHADER)
-        glGetShaderiv(object, GL_INFO_LOG_LENGTH, &logsize);
-    else if (type == PROGRAM)
-        glGetProgramiv(object, GL_INFO_LOG_LENGTH, &logsize);
-
-    // On affiche les messages
-    if (logsize != 0)
+    int i;
+    for (i = 0 ; i < shader.nbUniform ; i++ )
     {
-        char *log = malloc(logsize + 1);
-        if (log == NULL)
-        {
-            fprintf(stderr, "impossible d'allouer de la memoire !\n");
-            return;
-        }
+        glGetActiveUniform(shader.id, i, 128, &nameLength, &uniformSize, &uniformType, buffer);
 
-        memset(log, '\0', logsize + 1);
+        shader.uniformName[i] = malloc(sizeof(char) * nameLength + 1);
+        strcpy(shader.uniformName[i], buffer);
+        shader.uniformLoc[i] = glGetUniformLocation(shader.id, shader.uniformName[i]);
 
-        // On récupère le message
-        if (type == SHADER)
-            glGetShaderInfoLog(object, logsize, &logsize, log);
-        else if (type == PROGRAM)
-            glGetProgramInfoLog(object,  logsize, &logsize, log);
-
-        printf("%s", log);
-
-        free(log);
+        printf("%d: %s (%d)\n", shader.uniformLoc[i], shader.uniformName[i], uniformSize);
     }
-}
 
-bool initProgram(GLuint* program, const char* vertexShaderFile, const char* fragmentShaderFile) {
-
-    puts("\n----------- Shader ---------------------");
-
-    GLint vertexShader, fragShader;
-    if (initShader(&vertexShader, GL_VERTEX_SHADER, vertexShaderFile) == false)
-        return false;
-
-    if (initShader(&fragShader, GL_FRAGMENT_SHADER, fragmentShaderFile) == false)
-        return false;
-
-    if (createProgram(program, vertexShader, fragShader) == false)
-        return false;
-
-    return true;
+    return shader;
 
 }
 
+int Shader_FindUniform(Shader shader, const char* name);
 
-char* chargerSource(const char *filename)
-{
-    char *src = NULL;   /* code source de notre shader */
-    FILE *fp = NULL;    /* fichier */
-    long size;          /* taille du fichier */
-    long i;             /* compteur */
+void Shader_SendUniform(Shader shader, const char* name, int type, void* data) {
 
-    fp = fopen(filename, "r");
+    Shader_SendUniformArray(shader, name, type, 1, data);
 
-    if(fp == NULL)
+}
+
+void Shader_SendUniformArray(Shader shader, const char* name, int type, int nb, void* data) {
+
+    int location = Shader_FindUniform(shader, name);
+    if (location == -1)
+        return;
+
+    switch (type) {
+
+    case GL_FLOAT_VEC3:
+        glUniform3fv(location, nb, data);
+        break;
+
+    case GL_FLOAT_MAT4:
+        glUniformMatrix4fv(location, nb, GL_TRUE, data);
+        break;
+
+    case GL_INT:
+        glUniform1iv(location, nb, data);
+        break;
+
+    }
+
+}
+
+int Shader_FindUniform(Shader shader, const char* name) {
+
+    int i;
+    for (i = 0 ; i < shader.nbUniform ; i++ )
     {
-        fprintf(stderr, "Erreur ouverture du fichier '%s'\n", filename);
-        return NULL;
+        if (strcmp(shader.uniformName[i], name) == 0)
+            return shader.uniformLoc[i];
     }
 
-    /* on recupere la longueur du fichier */
-    fseek(fp, 0, SEEK_END);
-    size = ftell(fp);
-
-    /* on se replace au debut du fichier */
-    rewind(fp);
-
-    /* on alloue de la memoire pour y placer notre code source */
-    src = malloc(size+1); /* +1 pour le caractere de fin de chaine '\0' */
-    if(src == NULL)
-    {
-        fclose(fp);
-        fprintf(stderr, "Erreur d'allocation memoire pour le shader '%s'\n", filename);
-        return NULL;
-    }
-
-    /* lecture du fichier */
-    for(i=0; i<size; i++)
-        src[i] = fgetc(fp);
-
-    /* on place le dernier caractere a '\0' */
-    src[size] = '\0';
-
-    fclose(fp);
-
-    return src;
+    return -1;
 }
+
+/*
+void Shader_SendUniformVec3(Shader shader, const char* name, Vec3* value) {
+
+    int location = Shader_FindUniform(shader, name);
+    if (location != -1)
+        glUniform3fv(location, 1, &value->x);
+}
+void Shader_SendUniformMat4(Shader shader, const char* name, float* value) {
+
+    int location = Shader_FindUniform(shader, name);
+    if (location != -1)
+        glUniformMatrix4fv(location, 1, GL_TRUE, value);
+}
+void Shader_SendUniformMat4(Shader shader, const char* name, int value) {
+
+    int location = Shader_FindUniform(shader, name);
+    if (location != -1)
+        glUniform1i(location, 1, GL_TRUE, value);
+}
+*/
 

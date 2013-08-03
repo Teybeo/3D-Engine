@@ -78,6 +78,7 @@
 		<Unit filename="header/player.h" />
 		<Unit filename="header/robot.h" />
 		<Unit filename="header/shader.h" />
+		<Unit filename="header/shaderLoader.h" />
 		<Unit filename="header/sphere.h" />
 		<Unit filename="header/texture.h" />
 		<Unit filename="header/utils/liste.h" />
@@ -137,6 +138,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/shader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/shaderLoader.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/sphere.c">

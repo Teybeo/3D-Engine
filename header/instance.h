@@ -2,13 +2,13 @@
 #define _INSTANCE_GUARD
 
 #include "mesh.h"
+#include "shader.h"
 
 typedef struct Instance {
 
     Mesh* mesh;
     float matrix[16];
-    GLuint texture;
-    GLuint program;
+    Shader shader;
 
 } Instance;
 
@@ -18,17 +18,17 @@ typedef struct InstanceGroupe {
     int nbInstances;
     GLuint matrixVBO;
     float **matrix;
-    GLuint program;
+    Shader shader;
     GLuint texture;
 
 } InstanceGroupe;
 
-Instance Instance_Load(const char* objFile, GLuint program);
-Instance Instance_Create(Mesh* mesh, GLuint program, GLuint texture);
+Instance Instance_Load(const char* objFile, Shader shader);
+Instance Instance_Create(Mesh* mesh, Shader shader, GLuint texture);
 void Instance_Draw(Instance object, float* mondeToCam, float* camToClip);
 
 void InstanceGroupe_Draw(InstanceGroupe groupe, float* mondeToCam, float* camToClip);
-InstanceGroupe InstanceGroupe_Create(Mesh* mesh, int nb, GLuint program, GLuint texture);
+InstanceGroupe InstanceGroupe_Create(Mesh* mesh, int nbInstances, Shader shader, GLuint texture);
 void uploadMatrix(InstanceGroupe groupe);
 
 #endif // INSTANCE

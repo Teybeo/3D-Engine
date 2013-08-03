@@ -1,6 +1,7 @@
 #include "instance.h"
 
 #include "objLoader.h"
+#include "shader.h"
 #include "texture.h"
 #include "utils/matrix.h"
 #include "utils/vec3.h"
@@ -8,38 +9,27 @@
 
 #include <stdlib.h>
 
-static GLuint activeProgram = -1;
+static GLuint activeShader = -1;
 static GLuint activeVAO = -1;
 static GLuint activeTexture = -1;
 
-static GLuint modelWorldLoc = -1;
-static GLuint worldCamLoc = -1;
-static GLuint camClipLoc = -1;
-
 void Instance_Draw(Instance object, float* mondeToCam, float* camToClip) {
 
-    if (object.program != activeProgram)
+    if (object.shader.id != activeShader)
     {
-        glUseProgram(object.program);
-        activeProgram = object.program;
-        modelWorldLoc = glGetUniformLocation(object.program, "modelWorld");
-        worldCamLoc = glGetUniformLocation(object.program, "worldCam");
-        camClipLoc = glGetUniformLocation(object.program, "camClip");
-        glUniformMatrix4fv(worldCamLoc, 1, GL_TRUE, mondeToCam);
-        glUniformMatrix4fv(camClipLoc, 1, GL_TRUE, camToClip);
+        glUseProgram(object.shader.id);
+        activeShader = object.shader.id;
+        Shader_SendUniform(object.shader, "worldCam", GL_FLOAT_MAT4, mondeToCam);
+        Shader_SendUniform(object.shader, "camClip", GL_FLOAT_MAT4, camToClip);
     }
     if (object.mesh->vao != activeVAO)
     {
         glBindVertexArray(object.mesh->vao);
         activeVAO = object.mesh->vao;
     }
-    /*if (object.texture != activeTexture)
-    {
-        glBindTexture(GL_TEXTURE_2D, object.texture);
-        activeTexture = object.texture;
-    }*/
 
-    glUniformMatrix4fv(modelWorldLoc, 1, GL_TRUE, object.matrix);
+    Shader_SendUniform(object.shader, "modelWorld", GL_FLOAT_MAT4, object.matrix);
+//    glUniformMatrix4fv(modelWorldLoc, 1, GL_TRUE, object.matrix);
 
     int i;
     for (i = 0 ; i < object.mesh->nb ; i++ )
@@ -49,6 +39,11 @@ void Instance_Draw(Instance object, float* mondeToCam, float* camToClip) {
             glBindTexture(GL_TEXTURE_2D, object.mesh->material[i].texture);
             activeTexture = object.mesh->material[i].texture;
         }
+
+        Shader_SendUniform(object.shader, "matDiff", GL_FLOAT_VEC3, &object.mesh->material[i].diffuse.x);
+        Shader_SendUniform(object.shader, "matSpec", GL_FLOAT_VEC3, &object.mesh->material[i].specular.x);
+        Shader_SendUniform(object.shader, "matShininess", GL_INT, &object.mesh->material[i].exponent);
+        
         glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart[i], object.mesh->drawCount[i]);
     }
 
@@ -59,11 +54,10 @@ void Instance_Draw(Instance object, float* mondeToCam, float* camToClip) {
 }
 
 // Charge un fichier obj complet (mesh + texture) et en fait une instance
-Instance Instance_Load(const char* objFile, GLuint program) {
+Instance Instance_Load(const char* objFile, Shader shader) {
 
     Instance instance = {};
-    instance.program = -1;
-    instance.texture = -1;
+    instance.shader = shader;
 
     char texFile[256] = "";
 
@@ -72,72 +66,71 @@ Instance Instance_Load(const char* objFile, GLuint program) {
     if (instance.mesh == NULL)
         return instance;
 
-    //if (texFile[0] != '\0')
-       // instance.texture = chargerTexture(texFile, GL_LINEAR);
-
-    instance.program = program;
     loadIdentity(instance.matrix);
 
     return instance;
 }
 
 // Crée une instance à partir d'un mesh et d'une texture déjà chargé en mémoire
-Instance Instance_Create(Mesh* mesh, GLuint program, GLuint texture) {
+Instance Instance_Create(Mesh* mesh, Shader shader, GLuint texture) {
 
     Instance instance = {};
 
     mesh->material[0].texture = texture;
     mesh->material[0].hasTexture = true;
     instance.mesh = mesh;
+    instance.shader = shader;
+    instance.mesh->material[0].texture = texture;
+    instance.mesh->material[0].hasTexture = true;
 
-    instance.program = program;
-    instance.texture = texture;
     loadIdentity(instance.matrix);
 
     return instance;
 
 }
-//
+
 void InstanceGroupe_Draw(InstanceGroupe groupe, float* mondeToCam, float* camToClip) {
 
-//    static GLuint activeProgram = 0;
-//    static GLuint activeVAO = 0;
-//    static GLuint activeTexture = 0;
-//
-//    static GLuint worldCamLoc = 0;
-//    static GLuint camClipLoc = 0;
-
-    if (groupe.program != activeProgram)
+    if (groupe.shader.id != activeShader)
     {
-        glUseProgram(groupe.program);
-        activeProgram = groupe.program;
-        worldCamLoc = glGetUniformLocation(groupe.program, "worldCam");
-        camClipLoc = glGetUniformLocation(groupe.program, "camClip");
-        glUniformMatrix4fv(worldCamLoc, 1, GL_TRUE, mondeToCam);
-        glUniformMatrix4fv(camClipLoc, 1, GL_TRUE, camToClip);
+        glUseProgram(groupe.shader.id);
+        activeShader = groupe.shader.id;
+        Shader_SendUniform(groupe.shader, "worldCam", GL_FLOAT_MAT4, mondeToCam);
+        Shader_SendUniform(groupe.shader, "camClip", GL_FLOAT_MAT4, camToClip);
     }
     if (groupe.mesh->vao != activeVAO)
     {
         glBindVertexArray(groupe.mesh->vao);
         activeVAO = groupe.mesh->vao;
     }
-    if (groupe.texture != activeTexture)
+
+    int i;
+    for (i = 0 ; i < groupe.mesh->nb ; i++ )
     {
-        glBindTexture(GL_TEXTURE_2D, groupe.texture);
-        activeTexture = groupe.texture;
+        if (groupe.mesh->material[i].hasTexture && groupe.mesh->material[i].texture != activeTexture)
+        {
+            glBindTexture(GL_TEXTURE_2D, groupe.mesh->material[i].texture);
+            activeTexture = groupe.mesh->material[i].texture;
+        }
+
+        Shader_SendUniform(groupe.shader, "matDiff", GL_FLOAT_VEC3, &groupe.mesh->material[i].diffuse.x);
+        Shader_SendUniform(groupe.shader, "matSpec", GL_FLOAT_VEC3, &groupe.mesh->material[i].specular.x);
+        Shader_SendUniform(groupe.shader, "matShininess", GL_INT, &groupe.mesh->material[i].exponent);
+
+        glDrawArraysInstanced(groupe.mesh->primitiveType, groupe.mesh->drawStart[i], groupe.mesh->drawCount[i], groupe.nbInstances);
     }
-
-    glDrawArraysInstanced(groupe.mesh->primitiveType, groupe.mesh->drawStart, groupe.mesh->drawCount, groupe.nbInstances);
-
 }
 
-InstanceGroupe InstanceGroupe_Create(Mesh* mesh, int nbInstances, GLuint program, GLuint texture) {
+InstanceGroupe InstanceGroupe_Create(Mesh* mesh, int nbInstances, Shader shader, GLuint texture) {
 
     InstanceGroupe groupe = {};
 
     groupe.mesh = mesh;
+    groupe.mesh->material[0].hasTexture = true;
+    groupe.mesh->material[0].texture = texture;
+
     groupe.nbInstances = nbInstances;
-    groupe.program = program;
+    groupe.shader = shader;
     groupe.texture = texture;
 
     groupe.matrix = malloc(sizeof(float*) * nbInstances);
@@ -146,7 +139,7 @@ InstanceGroupe InstanceGroupe_Create(Mesh* mesh, int nbInstances, GLuint program
     {
         groupe.matrix[i] = malloc(sizeof(float)*16);
         loadIdentity(groupe.matrix[i]);
-        translate(groupe.matrix[i], -40 + rand() % 80, rand() % 30, -40+rand() % 80);
+        translate(groupe.matrix[i], -400 + rand() % 800, rand() % 30, -400+rand() % 800);
         transpose(groupe.matrix[i]); // On transpose à la main
     }
 

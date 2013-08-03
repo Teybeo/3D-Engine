@@ -3,6 +3,7 @@
 
 #include "physics/collision.h"
 #include "utils/matrix.h"
+#include "shader.h"
 
 typedef struct Plan {
 
@@ -12,7 +13,7 @@ typedef struct Plan {
 } Plan;
 
 void Plan_Draw(Plan plan, float* mondeToCam, float* camToClip);
-Plan Plan_Create(Mesh* mesh, CollisionPlan collisionPlan, GLuint program, GLuint texture);
+Plan Plan_Create(Mesh* mesh, CollisionPlan collisionPlan, Shader program, GLuint texture);
 void Plan_RotateBase(Plan* plan);
 
 #endif // PLAN

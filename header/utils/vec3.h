@@ -41,6 +41,7 @@ float Vec3_LenghtFromProjectionOnNormal(Vec3 u, Vec3 v);
 Vec3 Vec3_Random();
 Vec3 Vec3_RandomPos(int xMin, int xMax, int yMin, int yMax, int zMin, int zMax);
 
+Vec3 Vec3_Create(float x, float y, float z);
 void setVec3(Vec3* vec, float x, float y, float z);
 void afficheVec3(Vec3 a);
 

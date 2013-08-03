@@ -34,7 +34,7 @@ typedef struct Robot {
 
 } Robot;
 
-bool Robot_init(Robot* robot, GLuint program);
+bool Robot_init(Robot* robot, Shader shader);
 void Robot_draw(Robot* robot, float* worldCam, float* camClip);
 
 #endif // ROBOT

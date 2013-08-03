@@ -2,6 +2,7 @@
 #define _BULLET_GUARD
 
 #include "physics/collision.h"
+#include "shader.h"
 
 typedef struct Bullet {
 
@@ -18,12 +19,12 @@ typedef struct BulletGroupe {
     int nbBullets;
     int nbMax;
     Mesh* mesh;
-    GLuint program;
+    Shader program;
     GLuint texture;
 
 } BulletGroupe;
 
-BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, GLuint program, GLuint texture);
+BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, Shader program, GLuint texture);
 void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camToClip);
 void Bullet_Add(BulletGroupe* bulletGroupe, Vec3 position, Vec3 direction);
 
