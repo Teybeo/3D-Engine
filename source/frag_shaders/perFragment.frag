@@ -9,6 +9,9 @@ uniform sampler2D texture;
 
 uniform vec3 lightPos[10];
 uniform vec3 lightColor[10];
+uniform vec3 matDiff;
+uniform vec3 matSpec;
+uniform int matShininess;
 
 vec3 normal_view;
 
@@ -42,20 +45,20 @@ void main() {
         specColor += computeSpecular(light);
     }
 
-    outputColor = (texture(texture, texCoord).rgb * diffColor) + specColor;
+    outputColor = (texture(texture, texCoord).rgb * diffColor * matDiff) + (specColor * matSpec);
 //    outputColor = (texture(texture, texCoord).rgb);
+//    outputColor = normal_view;
 
 }
 
-#define ATTEN_CONST 0.01
+#define ATTEN_CONST 1
 #define ATTEN_LINEAR 0.01
-#define ATTEN_QUADRA 0.000005
+#define ATTEN_QUADRA 0.00005
 
 float calcAttenuation(vec3 lightVec) {
 
     float distance = length(lightVec);
-//    if (distance > 200)
-//        return 0.;
+
     return 1. / (ATTEN_CONST +
                 (ATTEN_LINEAR * distance) +
                 (ATTEN_QUADRA * distance * distance) );
@@ -100,6 +103,6 @@ vec3 computeSpecular(Light light) {
     if (dot(normal_view, light.vector) <= 0.0)
         return vec3(0);
     else
-        return light.intensity * light.color * pow( max( dot(normalize(reflectedLight), normalize(-fPosition_view)), 0.), 100.);
+        return light.intensity * light.color * pow( max( dot(normalize(reflectedLight), normalize(-fPosition_view)), 0.), matShininess);
 
 }
