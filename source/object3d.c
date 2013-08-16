@@ -1,4 +1,4 @@
-#include "instance.h"
+#include "object3d.h"
 
 #include "objLoader.h"
 #include "shader.h"

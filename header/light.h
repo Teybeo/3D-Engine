@@ -2,7 +2,7 @@
 #define _LIGHT_GUARD
 
 #include "utils/vec3.h"
-#include "instance.h"
+#include "object3d.h"
 
 typedef struct Light {
 

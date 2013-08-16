@@ -5,7 +5,7 @@
 #include "shader.h"
 #include "robot.h"
 #include "light.h"
-#include "instance.h"
+#include "object3d.h"
 #include "player.h"
 #include "physics/particule.h"
 #include "physics/collision.h"

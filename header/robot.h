@@ -1,7 +1,7 @@
 #ifndef _ROBOT_GUARD
 #define _ROBOT_GUARD
 
-#include "instance.h"
+#include "object3d.h"
 #include "utils/vec3.h"
 #include "physics/collision.h"
 

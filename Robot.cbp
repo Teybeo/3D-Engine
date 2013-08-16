@@ -67,10 +67,10 @@
 		<Unit filename="header/cube.h" />
 		<Unit filename="header/fenetre.h" />
 		<Unit filename="header/gl_debug.h" />
-		<Unit filename="header/instance.h" />
 		<Unit filename="header/light.h" />
 		<Unit filename="header/mesh.h" />
 		<Unit filename="header/objLoader.h" />
+		<Unit filename="header/object3d.h" />
 		<Unit filename="header/physics/collision.h" />
 		<Unit filename="header/physics/contact.h" />
 		<Unit filename="header/physics/particule.h" />
@@ -104,9 +104,6 @@
 		<Unit filename="source/gl_debug.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="source/instance.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="source/light.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -117,6 +114,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/objLoader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/object3d.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/physics/collision.c">
