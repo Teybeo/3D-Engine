@@ -2,10 +2,10 @@
 
 #include <stdlib.h>
 
-Plan Plan_Create(Mesh* mesh, CollisionPlan collisionPlan, Shader program, GLuint texture) {
+Plan Plan_Create(Mesh* mesh, CollisionPlan collisionPlan, Shader shader, GLuint texture) {
 
     Plan plan = {};
-    plan.instance = Instance_Create(mesh, program, texture);
+    plan.instance = Instance_Create(mesh, shader, texture);
 
     plan.collisionData = calloc(1, sizeof(CollisionObject));
     plan.collisionData->plan = collisionPlan;

@@ -4,12 +4,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, Shader program, GLuint texture) {
+SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, Shader shader, GLuint texture) {
 
     SphereGroupe groupe = {};
 
     groupe.mesh = mesh;
-    groupe.program = program;
+    groupe.shader = shader;
     groupe.texture = texture;
     groupe.nbMax = nbMax;
     groupe.nbSpheres = 0;
@@ -44,7 +44,7 @@ void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction) {
 
 void SphereGroupe_Draw(SphereGroupe sphereGroupe, float* mondeToCam, float* camToClip) {
 
-    Instance balleInstance = Instance_Create(sphereGroupe.mesh, sphereGroupe.program, sphereGroupe.texture);
+    Instance balleInstance = Instance_Create(sphereGroupe.mesh, sphereGroupe.shader, sphereGroupe.texture);
 
     int i;
     for (i = 0 ; i < sphereGroupe.nbSpheres ; i++ )

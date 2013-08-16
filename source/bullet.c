@@ -4,12 +4,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, Shader program, GLuint texture) {
+BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, Shader shader, GLuint texture) {
 
     BulletGroupe groupe = {};
 
     groupe.mesh = mesh;
-    groupe.program = program;
+    groupe.shader = shader;
     groupe.texture = texture;
     groupe.nbMax = nbMax;
     groupe.nbBullets = 0;
@@ -43,7 +43,7 @@ void Bullet_Add(BulletGroupe* bulletGroupe, Vec3 position, Vec3 direction) {
 
 void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camToClip) {
 
-    Instance bulletInstance = Instance_Create(bulletGroupe.mesh, bulletGroupe.program, bulletGroupe.texture);
+    Instance bulletInstance = Instance_Create(bulletGroupe.mesh, bulletGroupe.shader, bulletGroupe.texture);
     Vec3 color = {1, 1, 0};
     int i;
     for (i = 0 ; i < bulletGroupe.nbBullets ; i++ )
@@ -54,9 +54,9 @@ void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camT
 
         char name[50] = "";
         sprintf(name, "lightPos[%d]", i+6);
-        glUniform3fv(glGetUniformLocation(bulletGroupe.program.id, name), 1, &bulletGroupe.collisionData[i].sphere.particule.position.x);
+        glUniform3fv(glGetUniformLocation(bulletGroupe.shader.id, name), 1, &bulletGroupe.collisionData[i].sphere.particule.position.x);
         sprintf(name, "lightColor[%d]", i+6);
-        glUniform3fv(glGetUniformLocation(bulletGroupe.program.id, name), 1, &color.x);
+        glUniform3fv(glGetUniformLocation(bulletGroupe.shader.id, name), 1, &color.x);
 
         Instance_Draw(bulletInstance, mondeToCam, camToClip);
     }

@@ -23,11 +23,11 @@
 typedef struct App {
 
     Fenetre fenetre;
-    Shader noTexNoLightProgram;
-    Shader texProgram;
-    Shader perVertexProgram;
-    Shader perFragmentProgram;
-    Shader instancePerFragmentProgram;
+    Shader noTexNoLight;
+    Shader onlyTex;
+    Shader perVertex;
+    Shader perFragment;
+    Shader instancePerFragment;
     Player player;
     Robot robot;
     Instance objects[10000];

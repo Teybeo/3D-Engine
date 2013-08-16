@@ -27,35 +27,35 @@ void App_Draw(App* app) {
         {
             char name[50] = "";
             sprintf(name, "lightPos[%d]", i);
-            glUniform3fv(glGetUniformLocation(app->instancePerFragmentProgram, name), 1, &app->lampe[i].pos.x);
+            glUniform3fv(glGetUniformLocation(app->instancePerFragment, name), 1, &app->lampe[i].pos.x);
             sprintf(name, "lightColor[%d]", i);
-            glUniform3fv(glGetUniformLocation(app->instancePerFragmentProgram, name), 1, &app->lampe[i].color.x);
+            glUniform3fv(glGetUniformLocation(app->instancePerFragment, name), 1, &app->lampe[i].color.x);
         }
     glUseProgram(0);
-    */glUseProgram(app->perFragmentProgram.id);
+    */glUseProgram(app->perFragment.id);
 //        for (i = 0 ; i < 6 ; i++ )
 //        {
 //            char name[50] = "";
 //            sprintf(name, "lightPos[%d]", i);
-//            glUniform3fv(glGetUniformLocation(app->perFragmentProgram.id, name), 1, &app->lampe[i].pos.x);
+//            glUniform3fv(glGetUniformLocation(app->perFragment.id, name), 1, &app->lampe[i].pos.x);
 //            sprintf(name, "lightColor[%d]", i);
-//            glUniform3fv(glGetUniformLocation(app->perFragmentProgram.id, name), 1, &app->lampe[i].color.x);
+//            glUniform3fv(glGetUniformLocation(app->perFragment.id, name), 1, &app->lampe[i].color.x);
 //        }
     Vec3* light = Light_Serialize(app->lampe, 6);
-    glUseProgram(app->perFragmentProgram.id);
-    Shader_SendUniformArray(app->perFragmentProgram, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
-    Shader_SendUniformArray(app->perFragmentProgram, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
-    glUseProgram(app->instancePerFragmentProgram.id);
-    Shader_SendUniformArray(app->instancePerFragmentProgram, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
-    Shader_SendUniformArray(app->instancePerFragmentProgram, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
+    glUseProgram(app->perFragment.id);
+    Shader_SendUniformArray(app->perFragment, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
+    Shader_SendUniformArray(app->perFragment, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
+    glUseProgram(app->instancePerFragment.id);
+    Shader_SendUniformArray(app->instancePerFragment, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
+    Shader_SendUniformArray(app->instancePerFragment, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
     free(light);
 //        for (i = 0 ; i < 6 ; i++ )
 //        {
 //            char name[50] = "";
 //            sprintf(name, "lightInput[%d].pos", i);
-//            Shader_SendUniform(app->perFragmentProgram, name, GL_FLOAT_VEC3, &app->lampe[i].pos.x);
+//            Shader_SendUniform(app->perFragment, name, GL_FLOAT_VEC3, &app->lampe[i].pos.x);
 //            sprintf(name, "lightInput[%d].color", i);
-//            Shader_SendUniform(app->perFragmentProgram, name, GL_FLOAT_VEC3, &app->lampe[i].color.x);
+//            Shader_SendUniform(app->perFragment, name, GL_FLOAT_VEC3, &app->lampe[i].color.x);
 //        }
 //    glUseProgram(0);
 
@@ -205,14 +205,14 @@ bool App_Init(App* app) {
         enableCallback(true);
     }
 
-    app->texProgram = Shader_Create("../source/vert_shaders/noLight.vert", "../source/frag_shaders/noLight.frag");
-    app->noTexNoLightProgram = Shader_Create("../source/vert_shaders/noTexNoLight.vert", "../source/frag_shaders/noTexNoLight.frag");
-    app->perFragmentProgram = Shader_Create("../source/vert_shaders/perFragment.vert", "../source/frag_shaders/perFragment.frag");
-    app->perVertexProgram = Shader_Create("../source/vert_shaders/perVertex.vert", "../source/frag_shaders/perVertex.frag");
+    app->onlyTex = Shader_Create("../source/vert_shaders/noLight.vert", "../source/frag_shaders/noLight.frag");
+    app->noTexNoLight = Shader_Create("../source/vert_shaders/noTexNoLight.vert", "../source/frag_shaders/noTexNoLight.frag");
+    app->perFragment = Shader_Create("../source/vert_shaders/perFragment.vert", "../source/frag_shaders/perFragment.frag");
+    app->perVertex = Shader_Create("../source/vert_shaders/perVertex.vert", "../source/frag_shaders/perVertex.frag");
 
 ///////////////////// ROBOT
 
-    if (Robot_init(&app->robot, app->perFragmentProgram) == false)
+    if (Robot_init(&app->robot, app->perFragment) == false)
         return false;
 
     app->player = Player_init(&app->robot);
@@ -233,7 +233,7 @@ bool App_Init(App* app) {
     if (carre20 == NULL)
         return false;*/
 
-    app->objects[0] = Instance_Load("../models/cs3.obj", app->perFragmentProgram);
+    app->objects[0] = Instance_Load("../models/cs3.obj", app->perFragment);
 
     loadIdentity(app->objects[0].matrix);
     scale(app->objects[0].matrix, 5, 5, 5);
@@ -269,7 +269,7 @@ bool App_Init(App* app) {
     if (skyboxMesh == NULL)
         return false;
 
-    app->skybox = Instance_Create(skyboxMesh, app->texProgram, skyboxTexture);
+    app->skybox = Instance_Create(skyboxMesh, app->onlyTex, skyboxTexture);
     loadIdentity(app->skybox.matrix);
 
 //////////////// LUMIERES
@@ -278,7 +278,7 @@ bool App_Init(App* app) {
     if (sphere == NULL)
         return false;
 
-    Instance light = Instance_Create(sphere, app->perFragmentProgram, stoneTexture);
+    Instance light = Instance_Create(sphere, app->perFragment, stoneTexture);
 
     for (i = 0 ; i < 6 ; i++ )
         app->lampe[i].instance = light;
@@ -296,14 +296,14 @@ bool App_Init(App* app) {
     if (geomMesh == 0)
         return false;
 
-    app->instancePerFragmentProgram = Shader_Create("../source/vert_shaders/instancePerFragment.vert", "../source/frag_shaders/perFragment.frag");
+    app->instancePerFragment = Shader_Create("../source/vert_shaders/instancePerFragment.vert", "../source/frag_shaders/perFragment.frag");
 
-    app->objectGroupe = InstanceGroupe_Create(geomMesh, 200, app->instancePerFragmentProgram, stoneTexture);
+    app->objectGroupe = InstanceGroupe_Create(geomMesh, 200, app->instancePerFragment, stoneTexture);
 
 
 //////////// BALLES
 
-    app->sphereGroupe = SphereGroupe_Create(NB_BALLS_MAX, sphere, app->perFragmentProgram, solTexture);
+    app->sphereGroupe = SphereGroupe_Create(NB_BALLS_MAX, sphere, app->perFragment, solTexture);
     SphereGroupe_Randomize(&app->sphereGroupe);
 
 //////////// BULLETS
@@ -316,7 +316,7 @@ bool App_Init(App* app) {
     if (bulletTex == 0)
         return false;
 
-    app->bulletGroupe = BulletGroupe_Create(NB_BULLETS_MAX, sphere, app->perFragmentProgram, bulletTex);
+    app->bulletGroupe = BulletGroupe_Create(NB_BULLETS_MAX, sphere, app->perFragment, bulletTex);
 
 ////////////////////////
 
@@ -379,9 +379,9 @@ bool App_Init(App* app) {
 
     for (i = 0 ; i < 3 ; i++ )
     {
-        app->planes[i] = Plan_Create(carre, plan[i], app->perFragmentProgram, planTex);
+        app->planes[i] = Plan_Create(carre, plan[i], app->perFragment, planTex);
     }
-  //  app->planes[0] = Plan_Create(carre20, plan[0], app->perFragmentProgram, solTexture);
+  //  app->planes[0] = Plan_Create(carre20, plan[0], app->perFragment, solTexture);
     return true;
 }
 

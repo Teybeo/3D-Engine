@@ -93,7 +93,7 @@ void Robot_draw(Robot* robot, float* worldCam, float* camClip) {
 
 }
 
-bool Robot_init(Robot* robot, Shader program) {
+bool Robot_init(Robot* robot, Shader shader) {
 
     GLuint jambeTex = chargerTexture("../images/steve3.png", GL_NEAREST);
     if (jambeTex == 0)
@@ -111,10 +111,10 @@ bool Robot_init(Robot* robot, Shader program) {
     if (brasMesh == NULL)
         return false;
 
-    Instance tete = Instance_Load("../models/tete.obj", program);
-    Instance cube = Instance_Create(cubeMesh, program, jambeTex);
-    Instance corps = Instance_Load("../models/corps.obj", program);
-    Instance bras = Instance_Create(brasMesh, program, skinTex);
+    Instance tete = Instance_Load("../models/tete.obj", shader);
+    Instance cube = Instance_Create(cubeMesh, shader, jambeTex);
+    Instance corps = Instance_Load("../models/corps.obj", shader);
+    Instance bras = Instance_Create(brasMesh, shader, skinTex);
 
     loadIdentity(robot->matrix);
 
