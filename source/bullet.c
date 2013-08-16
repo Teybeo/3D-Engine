@@ -43,14 +43,14 @@ void Bullet_Add(BulletGroupe* bulletGroupe, Vec3 position, Vec3 direction) {
 
 void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camToClip) {
 
-    Instance bulletInstance = Instance_Create(bulletGroupe.mesh, bulletGroupe.shader, bulletGroupe.texture);
+    Object3D bulletObject3D = Object3D_Create(bulletGroupe.mesh, bulletGroupe.shader, bulletGroupe.texture);
     Vec3 color = {1, 1, 0};
     int i;
     for (i = 0 ; i < bulletGroupe.nbBullets ; i++ )
     {
-        loadIdentity(bulletInstance.matrix);
-        translateByVec(bulletInstance.matrix, bulletGroupe.collisionData[i].sphere.particule.position);
-        scale(bulletInstance.matrix, bulletGroupe.collisionData[i].sphere.rayon, bulletGroupe.collisionData[i].sphere.rayon, bulletGroupe.collisionData[i].sphere.rayon);
+        loadIdentity(bulletObject3D.matrix);
+        translateByVec(bulletObject3D.matrix, bulletGroupe.collisionData[i].sphere.particule.position);
+        scale(bulletObject3D.matrix, bulletGroupe.collisionData[i].sphere.rayon, bulletGroupe.collisionData[i].sphere.rayon, bulletGroupe.collisionData[i].sphere.rayon);
 
         char name[50] = "";
         sprintf(name, "lightPos[%d]", i+6);
@@ -58,14 +58,14 @@ void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camT
         sprintf(name, "lightColor[%d]", i+6);
         glUniform3fv(glGetUniformLocation(bulletGroupe.shader.id, name), 1, &color.x);
 
-        Instance_Draw(bulletInstance, mondeToCam, camToClip);
+        Object3D_Draw(bulletObject3D, mondeToCam, camToClip);
     }
 }
 
 void Bullet_Draw(Bullet bullet, float* mondeToCam, float* camToClip) {
 
-    loadIdentity(bullet.instance.matrix);
-    translateByVec(bullet.instance.matrix, bullet.collisionData.particule.position);
-    scale(bullet.instance.matrix, bullet.collisionData.rayon, bullet.collisionData.rayon, bullet.collisionData.rayon);
-    Instance_Draw(bullet.instance, mondeToCam, camToClip);
+    loadIdentity(bullet.object.matrix);
+    translateByVec(bullet.object.matrix, bullet.collisionData.particule.position);
+    scale(bullet.object.matrix, bullet.collisionData.rayon, bullet.collisionData.rayon, bullet.collisionData.rayon);
+    Object3D_Draw(bullet.object, mondeToCam, camToClip);
 }

@@ -62,13 +62,13 @@ void App_Draw(App* app) {
 //    for (i = 1 ; i <2 ; i++ )
 //        Plan_Draw(app->planes[i], app->player.mondeToCam, app->fenetre.camToClip);
 
-    InstanceGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
+    Object3DGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
 
     for (i = 0 ; i < 1 ; i++ )
-        Instance_Draw(app->objects[i], app->player.mondeToCam, app->fenetre.camToClip);
+        Object3D_Draw(app->objects[i], app->player.mondeToCam, app->fenetre.camToClip);
 
-//    for (i = 0 ; i < 6 ; i++ )
-//        Instance_Draw(app->lampe[i].instance, app->player.mondeToCam, app->fenetre.camToClip);
+    for (i = 0 ; i < 6 ; i++ )
+        Object3D_Draw(app->lampe[i].object, app->player.mondeToCam, app->fenetre.camToClip);
 
     Robot_draw(&app->robot, app->player.mondeToCam, app->fenetre.camToClip);
 
@@ -83,7 +83,7 @@ void App_Draw(App* app) {
     else
         translateByVec(app->skybox.matrix, app->player.posRobot);
     scale(app->skybox.matrix, 2000, 2000, 2000);
-    Instance_Draw(app->skybox, app->player.mondeToCam, app->fenetre.camToClip);
+    Object3D_Draw(app->skybox, app->player.mondeToCam, app->fenetre.camToClip);
 
 //    glFinish();
     SDL_GL_SwapWindow(app->fenetre.ecran);
@@ -128,8 +128,8 @@ void App_Logic(App* app, float duree) {
     int i;
     for (i = 0 ; i < 6 ; i++ )
     {
-        loadIdentity(app->lampe[i].instance.matrix);
-        translate(app->lampe[i].instance.matrix, app->lampe[i].pos.x, app->lampe[i].pos.y, app->lampe[i].pos.z);
+        loadIdentity(app->lampe[i].object.matrix);
+        translate(app->lampe[i].object.matrix, app->lampe[i].pos.x, app->lampe[i].pos.y, app->lampe[i].pos.z);
     }
 /*
     for (i = 1 ; i < 100 ; i++ )
@@ -142,7 +142,7 @@ void App_Logic(App* app, float duree) {
     }*/
 
     float scaleFactor;
-    for (i = 0 ; i < app->objectGroupe.nbInstances ; i++ )
+    for (i = 0 ; i < app->objectGroupe.nbObject3Ds ; i++ )
     {
         scaleFactor = 3+(i/100);
         loadIdentity(app->objectGroupe.matrix[i]);
@@ -233,7 +233,7 @@ bool App_Init(App* app) {
     if (carre20 == NULL)
         return false;*/
 
-    app->objects[0] = Instance_Load("../models/cs3.obj", app->perFragment);
+    app->objects[0] = Object3D_Load("../models/cs3.obj", app->perFragment);
 
     loadIdentity(app->objects[0].matrix);
     scale(app->objects[0].matrix, 5, 5, 5);
@@ -244,7 +244,7 @@ bool App_Init(App* app) {
     if (sphere == NULL)
         return false;
 
-    Instance object = Instance_Load("../models/sphere.obj", app->perFragmentProgram);
+    Object3D object = Object3D_Load("../models/sphere.obj", app->perFragmentProgram);
 
     srand(time(NULL));
 
@@ -269,7 +269,7 @@ bool App_Init(App* app) {
     if (skyboxMesh == NULL)
         return false;
 
-    app->skybox = Instance_Create(skyboxMesh, app->onlyTex, skyboxTexture);
+    app->skybox = Object3D_Create(skyboxMesh, app->onlyTex, skyboxTexture);
     loadIdentity(app->skybox.matrix);
 
 //////////////// LUMIERES
@@ -278,10 +278,10 @@ bool App_Init(App* app) {
     if (sphere == NULL)
         return false;
 
-    Instance light = Instance_Create(sphere, app->perFragment, stoneTexture);
+    Object3D light = Object3D_Create(sphere, app->perFragment, stoneTexture);
 
     for (i = 0 ; i < 6 ; i++ )
-        app->lampe[i].instance = light;
+        app->lampe[i].object = light;
 
     Light_SetPosColor(&app->lampe[0], (Vec3){-15, 2, 0}, (Vec3){0, 1., 0});
     Light_SetPosColor(&app->lampe[1], (Vec3){15, 2, 0}, (Vec3){1., 0, 0});
@@ -298,7 +298,7 @@ bool App_Init(App* app) {
 
     app->instancePerFragment = Shader_Create("../source/vert_shaders/instancePerFragment.vert", "../source/frag_shaders/perFragment.frag");
 
-    app->objectGroupe = InstanceGroupe_Create(geomMesh, 200, app->instancePerFragment, stoneTexture);
+    app->objectGroupe = Object3DGroupe_Create(geomMesh, 200, app->instancePerFragment, stoneTexture);
 
 
 //////////// BALLES

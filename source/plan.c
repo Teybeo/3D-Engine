@@ -5,7 +5,7 @@
 Plan Plan_Create(Mesh* mesh, CollisionPlan collisionPlan, Shader shader, GLuint texture) {
 
     Plan plan = {};
-    plan.instance = Instance_Create(mesh, shader, texture);
+    plan.object = Object3D_Create(mesh, shader, texture);
 
     plan.collisionData = calloc(1, sizeof(CollisionObject));
     plan.collisionData->plan = collisionPlan;
@@ -17,13 +17,13 @@ Plan Plan_Create(Mesh* mesh, CollisionPlan collisionPlan, Shader shader, GLuint 
 
 void Plan_Draw(Plan plan, float* mondeToCam, float* camToClip) {
 
-    loadIdentity(plan.instance.matrix);
+    loadIdentity(plan.object.matrix);
 
-    translateByVec(plan.instance.matrix, plan.collisionData->plan.pos);
-    scale(plan.instance.matrix, plan.collisionData->plan.xLength, plan.collisionData->plan.xLength, plan.collisionData->plan.zLength);
-    rotate(plan.instance.matrix, plan.collisionData->plan.angleX, plan.collisionData->plan.angleY, plan.collisionData->plan.angleZ);
+    translateByVec(plan.object.matrix, plan.collisionData->plan.pos);
+    scale(plan.object.matrix, plan.collisionData->plan.xLength, plan.collisionData->plan.xLength, plan.collisionData->plan.zLength);
+    rotate(plan.object.matrix, plan.collisionData->plan.angleX, plan.collisionData->plan.angleY, plan.collisionData->plan.angleZ);
 
-    Instance_Draw(plan.instance, mondeToCam, camToClip);
+    Object3D_Draw(plan.object, mondeToCam, camToClip);
 }
 
 void Plan_RotateBase(Plan* plan) {

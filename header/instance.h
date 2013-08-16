@@ -1,35 +1,35 @@
-#ifndef _INSTANCE_GUARD
-#define _INSTANCE_GUARD
+#ifndef _OBJECT3D_GUARD
+#define _OBJECT3D_GUARD
 
 #include "mesh.h"
 #include "shader.h"
 
-typedef struct Instance {
+typedef struct Object3D {
 
     Mesh* mesh;
     float matrix[16];
     Shader shader;
 
-} Instance;
+} Object3D;
 
-typedef struct InstanceGroupe {
+typedef struct Object3DGroupe {
 
     Mesh* mesh;
-    int nbInstances;
+    int nbObject3Ds;
     GLuint matrixVBO;
     float **matrix;
     Shader shader;
     GLuint texture;
 
-} InstanceGroupe;
+} Object3DGroupe;
 
-Instance Instance_Load(const char* objFile, Shader shader);
-Instance Instance_Create(Mesh* mesh, Shader shader, GLuint texture);
-void Instance_Draw(Instance object, float* mondeToCam, float* camToClip);
+Object3D Object3D_Load(const char* objFile, Shader shader);
+Object3D Object3D_Create(Mesh* mesh, Shader shader, GLuint texture);
+void Object3D_Draw(Object3D object, float* mondeToCam, float* camToClip);
 
-void InstanceGroupe_Draw(InstanceGroupe groupe, float* mondeToCam, float* camToClip);
-InstanceGroupe InstanceGroupe_Create(Mesh* mesh, int nbInstances, Shader shader, GLuint texture);
-void uploadMatrix(InstanceGroupe groupe);
+void Object3DGroupe_Draw(Object3DGroupe groupe, float* mondeToCam, float* camToClip);
+Object3DGroupe Object3DGroupe_Create(Mesh* mesh, int nbObject3Ds, Shader shader, GLuint texture);
+void uploadMatrix(Object3DGroupe groupe);
 
-#endif // INSTANCE
+#endif // OBJECT3D
 

@@ -25,7 +25,7 @@ typedef enum Partie {
 
 typedef struct Robot {
 
-    Instance partie[PARTIE_NB];
+    Object3D partie[PARTIE_NB];
     float matrix[16];
     float angleJambeDroite;
     float angleJambeGauche;

@@ -3,13 +3,13 @@
 #include "utils/matrix.h"
 #include <stdlib.h>
 
-Light createLight(Instance instance, Vec3 pos, Vec3 color) {
+Light createLight(Object3D object, Vec3 pos, Vec3 color) {
 
     Light light = {};
     light.pos = pos;
     light.color = color;
-    light.instance = instance;
-    loadIdentity(light.instance.matrix);
+    light.object = object;
+    loadIdentity(light.object.matrix);
 
     return light;
 }

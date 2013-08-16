@@ -44,28 +44,28 @@ void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction) {
 
 void SphereGroupe_Draw(SphereGroupe sphereGroupe, float* mondeToCam, float* camToClip) {
 
-    Instance balleInstance = Instance_Create(sphereGroupe.mesh, sphereGroupe.shader, sphereGroupe.texture);
+    Object3D balleObject3D = Object3D_Create(sphereGroupe.mesh, sphereGroupe.shader, sphereGroupe.texture);
 
     int i;
     for (i = 0 ; i < sphereGroupe.nbSpheres ; i++ )
     {
-        loadIdentity(balleInstance.matrix);
-        translateByVec(balleInstance.matrix, sphereGroupe.collisionData[i].sphere.particule.position);
-        scale(balleInstance.matrix, sphereGroupe.collisionData[i].sphere.rayon, sphereGroupe.collisionData[i].sphere.rayon, sphereGroupe.collisionData[i].sphere.rayon);
+        loadIdentity(balleObject3D.matrix);
+        translateByVec(balleObject3D.matrix, sphereGroupe.collisionData[i].sphere.particule.position);
+        scale(balleObject3D.matrix, sphereGroupe.collisionData[i].sphere.rayon, sphereGroupe.collisionData[i].sphere.rayon, sphereGroupe.collisionData[i].sphere.rayon);
 
-        Instance_Draw(balleInstance, mondeToCam, camToClip);
+        Object3D_Draw(balleObject3D, mondeToCam, camToClip);
     }
 }
 
 void Sphere_Draw(Sphere sphere, float* mondeToCam, float* camToClip) {
 
-    loadIdentity(sphere.instance.matrix);
-    translateByVec(sphere.instance.matrix, sphere.collisionData.particule.position);
-    scale(sphere.instance.matrix, sphere.collisionData.rayon, sphere.collisionData.rayon, sphere.collisionData.rayon);
-    Instance_Draw(sphere.instance, mondeToCam, camToClip);
+    loadIdentity(sphere.object.matrix);
+    translateByVec(sphere.object.matrix, sphere.collisionData.particule.position);
+    scale(sphere.object.matrix, sphere.collisionData.rayon, sphere.collisionData.rayon, sphere.collisionData.rayon);
+    Object3D_Draw(sphere.object, mondeToCam, camToClip);
 }
 
-//Sphere* initGroupeSphere(Instance instance, int nombre) {
+//Sphere* initGroupeSphere(Object3D object, int nombre) {
 //
 //    Sphere* balle = calloc(NB_BALLS_MAX, sizeof(Sphere));
 //
@@ -76,7 +76,7 @@ void Sphere_Draw(Sphere sphere, float* mondeToCam, float* camToClip) {
 //    {
 //        balle[i].collisionData.particule = Particule_Init(0.8, 10 + i % 12);
 //        balle[i].collisionData.rayon = 2;
-//        balle[i].instance = instance;
+//        balle[i].object = object;
 
 //        Particule_AjouteForceRand(&balle[i].collisionData.particule, true, true);
 //        Particule_SetPosition(&balle[i], (-FEN_L/2) + rand() % FEN_L, (-FEN_H/2) + rand() % FEN_H);

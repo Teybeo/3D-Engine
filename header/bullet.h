@@ -7,7 +7,7 @@
 typedef struct Bullet {
 
     CollisionSphere collisionData;
-    Instance instance;
+    Object3D object;
     Vec3 pos;
     Vec3 color;
 

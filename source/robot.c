@@ -88,7 +88,7 @@ void Robot_draw(Robot* robot, float* worldCam, float* camClip) {
     for (i = 0 ; i < PARTIE_NB; i++ )
     {
         Mat_Mul_GaucheVersDroite2(robot->partie[i].matrix, robot->matrix);
-        Instance_Draw(robot->partie[i], worldCam, camClip);
+        Object3D_Draw(robot->partie[i], worldCam, camClip);
     }
 
 }
@@ -111,10 +111,10 @@ bool Robot_init(Robot* robot, Shader shader) {
     if (brasMesh == NULL)
         return false;
 
-    Instance tete = Instance_Load("../models/tete.obj", shader);
-    Instance cube = Instance_Create(cubeMesh, shader, jambeTex);
-    Instance corps = Instance_Load("../models/corps.obj", shader);
-    Instance bras = Instance_Create(brasMesh, shader, skinTex);
+    Object3D tete = Object3D_Load("../models/tete.obj", shader);
+    Object3D cube = Object3D_Create(cubeMesh, shader, jambeTex);
+    Object3D corps = Object3D_Load("../models/corps.obj", shader);
+    Object3D bras = Object3D_Create(brasMesh, shader, skinTex);
 
     loadIdentity(robot->matrix);
 

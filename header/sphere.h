@@ -7,7 +7,7 @@
 typedef struct Sphere {
 
     CollisionSphere collisionData;
-    Instance instance;
+    Object3D object;
 
 } Sphere;
 
@@ -28,7 +28,7 @@ void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction);
 void SphereGroupe_Randomize(SphereGroupe* groupe);
 
 void Sphere_Draw(Sphere sphere, float* mondeToCam, float* camToClip);
-Sphere* initGroupeSphere(Instance instance, int nombre);
+Sphere* initGroupeSphere(Object3D object, int nombre);
 
 #endif // SPHERE
 

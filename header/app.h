@@ -30,9 +30,9 @@ typedef struct App {
     Shader instancePerFragment;
     Player player;
     Robot robot;
-    Instance objects[10000];
-    InstanceGroupe objectGroupe;
-    Instance skybox;
+    Object3D objects[10000];
+    Object3DGroupe objectGroupe;
+    Object3D skybox;
     Light lampe[6];
     SphereGroupe sphereGroupe;
     BulletGroupe bulletGroupe;

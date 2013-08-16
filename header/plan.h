@@ -8,7 +8,7 @@
 typedef struct Plan {
 
     CollisionObject* collisionData;
-    Instance instance;
+    Object3D object;
 
 } Plan;
 

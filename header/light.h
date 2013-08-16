@@ -8,12 +8,12 @@ typedef struct Light {
 
     Vec3 pos;
     Vec3 color;
-    Instance instance;
+    Object3D object;
 
 } Light;
 
 void Light_SetPosColor(Light* light, Vec3 pos, Vec3 color);
-Light createLight(Instance instance, Vec3 pos, Vec3 color);
+Light createLight(Object3D object, Vec3 pos, Vec3 color);
 Vec3* Light_Serialize(Light* light, int nb);
 
 #endif // LIGHT
