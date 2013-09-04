@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-Plan Plan_Create(Mesh* mesh, CollisionPlan collisionPlan, Shader shader, GLuint texture) {
+Plan Plan_Create(Mesh* mesh, CollisionPlan collisionPlan, Shader* shader, GLuint texture) {
 
     Plan plan = {};
     plan.object = Object3D_Create(mesh, shader, texture);

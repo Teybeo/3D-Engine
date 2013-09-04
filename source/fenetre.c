@@ -35,7 +35,7 @@ bool initFenetre(Fenetre* fen) {
 //    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 //    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
-    fen->ecran = SDL_CreateWindow("Vertex Sending", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, fen->largeur, fen->hauteur, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_GRABBED);
+    fen->ecran = SDL_CreateWindow("Vertex Sending", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, fen->largeur, fen->hauteur, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
     if (fen->ecran == NULL)
     {
         printf("La fenetre n'a pas pu etre creee\n");
@@ -64,8 +64,6 @@ bool initFenetre(Fenetre* fen) {
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-
-    grabMouse(fen, true);
 
     return true;
 }

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, Shader shader, GLuint texture) {
+BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, Shader* shader, GLuint texture) {
 
     BulletGroupe groupe = {};
 
@@ -54,9 +54,9 @@ void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camT
 
         char name[50] = "";
         sprintf(name, "lightPos[%d]", i+6);
-        glUniform3fv(glGetUniformLocation(bulletGroupe.shader.id, name), 1, &bulletGroupe.collisionData[i].sphere.particule.position.x);
+        glUniform3fv(glGetUniformLocation(bulletGroupe.shader->id, name), 1, &bulletGroupe.collisionData[i].sphere.particule.position.x);
         sprintf(name, "lightColor[%d]", i+6);
-        glUniform3fv(glGetUniformLocation(bulletGroupe.shader.id, name), 1, &color.x);
+        glUniform3fv(glGetUniformLocation(bulletGroupe.shader->id, name), 1, &color.x);
 
         Object3D_Draw(bulletObject3D, mondeToCam, camToClip);
     }

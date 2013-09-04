@@ -19,7 +19,6 @@ void App_Draw(App* app) {
 //    else {
 
     glClear(GL_DEPTH_BUFFER_BIT);
-//    glClear(GL_DEPTH_BUFFER_BIT);
 
         int i;
     /*glUseProgram(app->instancePerFragmentProgram);
@@ -43,11 +42,11 @@ void App_Draw(App* app) {
 //        }
     Vec3* light = Light_Serialize(app->lampe, 6);
     glUseProgram(app->perFragment.id);
-    Shader_SendUniformArray(app->perFragment, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
-    Shader_SendUniformArray(app->perFragment, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
+    Shader_SendUniformArray(&app->perFragment, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
+    Shader_SendUniformArray(&app->perFragment, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
     glUseProgram(app->instancePerFragment.id);
-    Shader_SendUniformArray(app->instancePerFragment, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
-    Shader_SendUniformArray(app->instancePerFragment, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
+    Shader_SendUniformArray(&app->instancePerFragment, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
+    Shader_SendUniformArray(&app->instancePerFragment, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
     free(light);
 //        for (i = 0 ; i < 6 ; i++ )
 //        {
@@ -179,6 +178,8 @@ void App_Logic(App* app, float duree) {
     Container_Process(container, nbObjects, duree*0.01, false);
     free(container);
     t += 0.01;
+
+    Shader_Refresh(&app->perFragment);
 }
 
 bool App_Init(App* app) {
@@ -212,7 +213,7 @@ bool App_Init(App* app) {
 
 ///////////////////// ROBOT
 
-    if (Robot_init(&app->robot, app->perFragment) == false)
+    if (Robot_init(&app->robot, &app->perFragment) == false)
         return false;
 
     app->player = Player_init(&app->robot);
@@ -233,7 +234,7 @@ bool App_Init(App* app) {
     if (carre20 == NULL)
         return false;*/
 
-    app->objects[0] = Object3D_Load("../models/cs3.obj", app->perFragment);
+    app->objects[0] = Object3D_Load("../models/sponza_clean.obj", &app->perFragment);
 
     loadIdentity(app->objects[0].matrix);
     scale(app->objects[0].matrix, 5, 5, 5);
@@ -269,7 +270,7 @@ bool App_Init(App* app) {
     if (skyboxMesh == NULL)
         return false;
 
-    app->skybox = Object3D_Create(skyboxMesh, app->onlyTex, skyboxTexture);
+    app->skybox = Object3D_Create(skyboxMesh, &app->onlyTex, skyboxTexture);
     loadIdentity(app->skybox.matrix);
 
 //////////////// LUMIERES
@@ -278,7 +279,7 @@ bool App_Init(App* app) {
     if (sphere == NULL)
         return false;
 
-    Object3D light = Object3D_Create(sphere, app->perFragment, stoneTexture);
+    Object3D light = Object3D_Create(sphere, &app->perFragment, stoneTexture);
 
     for (i = 0 ; i < 6 ; i++ )
         app->lampe[i].object = light;
@@ -298,12 +299,12 @@ bool App_Init(App* app) {
 
     app->instancePerFragment = Shader_Create("../source/vert_shaders/instancePerFragment.vert", "../source/frag_shaders/perFragment.frag");
 
-    app->objectGroupe = Object3DGroupe_Create(geomMesh, 200, app->instancePerFragment, stoneTexture);
+    app->objectGroupe = Object3DGroupe_Create(geomMesh, 200, &app->instancePerFragment, stoneTexture);
 
 
 //////////// BALLES
 
-    app->sphereGroupe = SphereGroupe_Create(NB_BALLS_MAX, sphere, app->perFragment, solTexture);
+    app->sphereGroupe = SphereGroupe_Create(NB_BALLS_MAX, sphere, &app->perFragment, solTexture);
     SphereGroupe_Randomize(&app->sphereGroupe);
 
 //////////// BULLETS
@@ -316,7 +317,7 @@ bool App_Init(App* app) {
     if (bulletTex == 0)
         return false;
 
-    app->bulletGroupe = BulletGroupe_Create(NB_BULLETS_MAX, sphere, app->perFragment, bulletTex);
+    app->bulletGroupe = BulletGroupe_Create(NB_BULLETS_MAX, sphere, &app->perFragment, bulletTex);
 
 ////////////////////////
 
@@ -379,9 +380,12 @@ bool App_Init(App* app) {
 
     for (i = 0 ; i < 3 ; i++ )
     {
-        app->planes[i] = Plan_Create(carre, plan[i], app->perFragment, planTex);
+        app->planes[i] = Plan_Create(carre, plan[i], &app->perFragment, planTex);
     }
   //  app->planes[0] = Plan_Create(carre20, plan[0], app->perFragment, solTexture);
+
+    grabMouse(app->fenetre, true);
+
     return true;
 }
 

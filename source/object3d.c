@@ -15,10 +15,10 @@ static GLuint activeTexture = -1;
 
 void Object3D_Draw(Object3D object, float* mondeToCam, float* camToClip) {
 
-    if (object.shader.id != activeShader)
+    if (object.shader->id != activeShader)
     {
-        glUseProgram(object.shader.id);
-        activeShader = object.shader.id;
+        glUseProgram(object.shader->id);
+        activeShader = object.shader->id;
         Shader_SendUniform(object.shader, "worldCam", GL_FLOAT_MAT4, mondeToCam);
         Shader_SendUniform(object.shader, "camClip", GL_FLOAT_MAT4, camToClip);
     }
@@ -54,7 +54,7 @@ void Object3D_Draw(Object3D object, float* mondeToCam, float* camToClip) {
 }
 
 // Charge un fichier obj complet (mesh + texture) et en fait une object
-Object3D Object3D_Load(const char* objFile, Shader shader) {
+Object3D Object3D_Load(const char* objFile, Shader* shader) {
 
     Object3D object = {};
     object.shader = shader;
@@ -72,7 +72,7 @@ Object3D Object3D_Load(const char* objFile, Shader shader) {
 }
 
 // Crée une object à partir d'un mesh et d'une texture déjà chargé en mémoire
-Object3D Object3D_Create(Mesh* mesh, Shader shader, GLuint texture) {
+Object3D Object3D_Create(Mesh* mesh, Shader* shader, GLuint texture) {
 
     Object3D object = {};
 
@@ -91,10 +91,10 @@ Object3D Object3D_Create(Mesh* mesh, Shader shader, GLuint texture) {
 
 void Object3DGroupe_Draw(Object3DGroupe groupe, float* mondeToCam, float* camToClip) {
 
-    if (groupe.shader.id != activeShader)
+    if (groupe.shader->id != activeShader)
     {
-        glUseProgram(groupe.shader.id);
-        activeShader = groupe.shader.id;
+        glUseProgram(groupe.shader->id);
+        activeShader = groupe.shader->id;
         Shader_SendUniform(groupe.shader, "worldCam", GL_FLOAT_MAT4, mondeToCam);
         Shader_SendUniform(groupe.shader, "camClip", GL_FLOAT_MAT4, camToClip);
     }
@@ -121,7 +121,7 @@ void Object3DGroupe_Draw(Object3DGroupe groupe, float* mondeToCam, float* camToC
     }
 }
 
-Object3DGroupe Object3DGroupe_Create(Mesh* mesh, int nbObject3Ds, Shader shader, GLuint texture) {
+Object3DGroupe Object3DGroupe_Create(Mesh* mesh, int nbObject3Ds, Shader* shader, GLuint texture) {
 
     Object3DGroupe groupe = {};
 

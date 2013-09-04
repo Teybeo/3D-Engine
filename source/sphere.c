@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, Shader shader, GLuint texture) {
+SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, Shader* shader, GLuint texture) {
 
     SphereGroupe groupe = {};
 

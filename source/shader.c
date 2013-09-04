@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "SDL_timer.h"
+
+void cache_uniforms(Shader* shader);
 
 Shader Shader_Create(const char* vertexFile, const char* fragmentFile) {
 
@@ -13,51 +16,67 @@ Shader Shader_Create(const char* vertexFile, const char* fragmentFile) {
 
     initProgram(&shader.id, vertexFile, fragmentFile);
 
-    int uniformMaxLength = 0;
-    glGetProgramiv(shader.id, GL_ACTIVE_UNIFORMS, &shader.nbUniform);
-    glGetProgramiv(shader.id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength);
-    printf("%d uniforms\n", shader.nbUniform);
-    shader.uniformName = malloc(sizeof(char*) * shader.nbUniform);
-    shader.uniformLoc = malloc(sizeof(int) * shader.nbUniform);
+    strcpy(shader.vertexFile, vertexFile);
+    strcpy(shader.fragmentFile, fragmentFile);
+    shader.lastWrite = SDL_GetTicks();
 
-//    int i;
-//    for (i = 0 ; i < shader.nbUniform ; i++ )
-//    {
-//        shader.uniformName[i] = malloc(sizeof(char) * uniformMaxLength);
-//        glGetActiveUniformName(shader.id, i, uniformMaxLength, NULL, shader.uniformName[i]);
-//        shader.uniformLoc[i] = glGetUniformLocation(shader.id, shader.uniformName[i]);
-//        printf("%d: %s\n", shader.uniformLoc[i], shader.uniformName[i]);
-//    }
+    cache_uniforms(&shader);
+
+    return shader;
+}
+
+void cache_uniforms(Shader* shader) {
+
     char buffer[128] = "";
     int nameLength;
     int uniformSize;
     GLenum uniformType;
 
+    glGetProgramiv(shader->id, GL_ACTIVE_UNIFORMS, &shader->nbUniform);
+    printf("%d uniforms\n", shader->nbUniform);
+
+    shader->uniformName = malloc(sizeof(char*) * shader->nbUniform);
+    shader->uniformLoc = malloc(sizeof(int) * shader->nbUniform);
+
     int i;
-    for (i = 0 ; i < shader.nbUniform ; i++ )
+    for (i = 0 ; i < shader->nbUniform ; i++ )
     {
-        glGetActiveUniform(shader.id, i, 128, &nameLength, &uniformSize, &uniformType, buffer);
+        glGetActiveUniform(shader->id, i, 128, &nameLength, &uniformSize, &uniformType, buffer);
 
-        shader.uniformName[i] = malloc(sizeof(char) * nameLength + 1);
-        strcpy(shader.uniformName[i], buffer);
-        shader.uniformLoc[i] = glGetUniformLocation(shader.id, shader.uniformName[i]);
+        shader->uniformName[i] = malloc(sizeof(char) * nameLength + 1);
+        strcpy(shader->uniformName[i], buffer);
+        shader->uniformLoc[i] = glGetUniformLocation(shader->id, shader->uniformName[i]);
 
-        printf("%d: %s (%d)\n", shader.uniformLoc[i], shader.uniformName[i], uniformSize);
+        printf("%d: %s (%d)\n", shader->uniformLoc[i], shader->uniformName[i], uniformSize);
     }
-
-    return shader;
 
 }
 
-int Shader_FindUniform(Shader shader, const char* name);
+void Shader_Refresh(Shader* shader) {
 
-void Shader_SendUniform(Shader shader, const char* name, int type, void* data) {
+    uint32_t programTemp = 0;
+    if (SDL_GetTicks() > shader->lastWrite + 500)
+    {
+        if (initProgram(&programTemp, shader->vertexFile, shader->fragmentFile) == true)
+        {
+            glDeleteProgram(shader->id);
+            shader->id = programTemp;
+            cache_uniforms(shader);
+        }
+        shader->lastWrite = SDL_GetTicks();
+    }
+
+}
+
+int Shader_FindUniform(Shader* shader, const char* name);
+
+void Shader_SendUniform(Shader* shader, const char* name, int type, void* data) {
 
     Shader_SendUniformArray(shader, name, type, 1, data);
 
 }
 
-void Shader_SendUniformArray(Shader shader, const char* name, int type, int nb, void* data) {
+void Shader_SendUniformArray(Shader* shader, const char* name, int type, int nb, void* data) {
 
     int location = Shader_FindUniform(shader, name);
     if (location == -1)
@@ -81,13 +100,13 @@ void Shader_SendUniformArray(Shader shader, const char* name, int type, int nb, 
 
 }
 
-int Shader_FindUniform(Shader shader, const char* name) {
+int Shader_FindUniform(Shader* shader, const char* name) {
 
     int i;
-    for (i = 0 ; i < shader.nbUniform ; i++ )
+    for (i = 0 ; i < shader->nbUniform ; i++ )
     {
-        if (strcmp(shader.uniformName[i], name) == 0)
-            return shader.uniformLoc[i];
+        if (strcmp(shader->uniformName[i], name) == 0)
+            return shader->uniformLoc[i];
     }
 
     return -1;

@@ -17,12 +17,12 @@ typedef struct SphereGroupe {
     int nbSpheres;
     int nbMax;
     Mesh* mesh;
-    Shader shader;
+    Shader* shader;
     GLuint texture;
 
 } SphereGroupe;
 
-SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, Shader shader, GLuint texture);
+SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, Shader* shader, GLuint texture);
 void SphereGroupe_Draw(SphereGroupe sphereGroupe, float* mondeToCam, float* camToClip);
 void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction);
 void SphereGroupe_Randomize(SphereGroupe* groupe);
