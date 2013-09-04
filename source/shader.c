@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "SDL_timer.h"
+#include <windows.h>
+
+uint32_t GetLastWriteTime(const char* filename);
 
 void cache_uniforms(Shader* shader);
 
@@ -18,7 +21,7 @@ Shader Shader_Create(const char* vertexFile, const char* fragmentFile) {
 
     strcpy(shader.vertexFile, vertexFile);
     strcpy(shader.fragmentFile, fragmentFile);
-    shader.lastWrite = SDL_GetTicks();
+    shader.lastWrite = GetLastWriteTime(fragmentFile);
 
     cache_uniforms(&shader);
 
@@ -54,16 +57,24 @@ void cache_uniforms(Shader* shader) {
 
 void Shader_Refresh(Shader* shader) {
 
-    uint32_t programTemp = 0;
-    if (SDL_GetTicks() > shader->lastWrite + 500)
+    static uint32_t lastCheck = 0;
+
+    if (SDL_GetTicks() < lastCheck + 200)
+        return;
+    lastCheck = SDL_GetTicks();
+
+    uint32_t lastWrite = max(GetLastWriteTime(shader->fragmentFile), GetLastWriteTime(shader->vertexFile));
+
+    if (lastWrite > shader->lastWrite)
     {
+        uint32_t programTemp = 0;
         if (initProgram(&programTemp, shader->vertexFile, shader->fragmentFile) == true)
         {
             glDeleteProgram(shader->id);
             shader->id = programTemp;
             cache_uniforms(shader);
         }
-        shader->lastWrite = SDL_GetTicks();
+        shader->lastWrite = lastWrite;
     }
 
 }
@@ -112,6 +123,30 @@ int Shader_FindUniform(Shader* shader, const char* name) {
     return -1;
 }
 
+/// Retrieves the last-write time in millisecondes of a file since 00:00
+uint32_t GetLastWriteTime(const char* filename)
+{
+    FILETIME ftCreate, ftAccess, ftWrite;
+    SYSTEMTIME stUTC, stLocal;
+    unsigned int writeTime = 0;
+
+    HANDLE hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+
+    // Retrieve the file times for the file.
+    if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite))
+        puts("Error GetFiletime");
+
+    // Convert the last-write time to local time.
+    FileTimeToSystemTime(&ftWrite, &stUTC);
+    SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
+
+    // Convert and add the separate units in milliseconds
+    writeTime = (stLocal.wHour * 3600 + stLocal.wMinute * 60 + stLocal.wSecond) * 1000;
+
+    CloseHandle(hFile);
+
+    return writeTime;
+}
 /*
 void Shader_SendUniformVec3(Shader shader, const char* name, Vec3* value) {
 
