@@ -21,7 +21,8 @@ Shader Shader_Create(const char* vertexFile, const char* fragmentFile) {
 
     strcpy(shader.vertexFile, vertexFile);
     strcpy(shader.fragmentFile, fragmentFile);
-    shader.lastWrite = GetLastWriteTime(fragmentFile);
+    shader.lastWrite[VERTEX_SHADER] = GetLastWriteTime(vertexFile);
+    shader.lastWrite[FRAGMENT_SHADER] = GetLastWriteTime(fragmentFile);
 
     cache_uniforms(&shader);
 
@@ -63,9 +64,12 @@ void Shader_Refresh(Shader* shader) {
         return;
     lastCheck = SDL_GetTicks();
 
-    uint32_t lastWrite = max(GetLastWriteTime(shader->fragmentFile), GetLastWriteTime(shader->vertexFile));
+    uint32_t lastWrite[2];
+    lastWrite[VERTEX_SHADER] = GetLastWriteTime(shader->vertexFile);
+    lastWrite[FRAGMENT_SHADER] = GetLastWriteTime(shader->fragmentFile);
 
-    if (lastWrite > shader->lastWrite)
+    // Si la date de dernière modif à changé, on recompile le programme
+    if ((lastWrite[0] != shader->lastWrite[0]) || (lastWrite[1] != shader->lastWrite[1]))
     {
         uint32_t programTemp = 0;
         if (initProgram(&programTemp, shader->vertexFile, shader->fragmentFile) == true)
@@ -74,7 +78,8 @@ void Shader_Refresh(Shader* shader) {
             shader->id = programTemp;
             cache_uniforms(shader);
         }
-        shader->lastWrite = lastWrite;
+        shader->lastWrite[VERTEX_SHADER]   = lastWrite[VERTEX_SHADER];
+        shader->lastWrite[FRAGMENT_SHADER] = lastWrite[FRAGMENT_SHADER];
     }
 
 }
@@ -141,6 +146,7 @@ uint32_t GetLastWriteTime(const char* filename)
     SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
 
     // Convert and add the separate units in milliseconds
+    // 23:59:59 = 84 399 000, donc ca tient sur un uint
     writeTime = (stLocal.wHour * 3600 + stLocal.wMinute * 60 + stLocal.wSecond) * 1000;
 
     CloseHandle(hFile);

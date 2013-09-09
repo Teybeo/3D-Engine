@@ -10,7 +10,7 @@ typedef struct Shader {
     int nbAttrib;
     char** attribName;
     int* attribLoc;
-    unsigned int lastWrite;
+    unsigned int lastWrite[2];
     char vertexFile[128];
     char fragmentFile[128];
 
