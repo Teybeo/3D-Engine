@@ -101,15 +101,15 @@ void Shader_SendUniformArray(Shader* shader, const char* name, int type, int nb,
     switch (type) {
 
     case GL_FLOAT_VEC3:
-        glUniform3fv(location, nb, data);
+        glProgramUniform3fv(shader->id, location, nb, data);
         break;
 
     case GL_FLOAT_MAT4:
-        glUniformMatrix4fv(location, nb, GL_TRUE, data);
+        glProgramUniformMatrix4fv(shader->id, location, nb, GL_TRUE, data);
         break;
 
     case GL_INT:
-        glUniform1iv(location, nb, data);
+        glProgramUniform1iv(shader->id, location, nb, data);
         break;
 
     }

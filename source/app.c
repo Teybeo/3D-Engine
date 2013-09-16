@@ -31,7 +31,8 @@ void App_Draw(App* app) {
             glUniform3fv(glGetUniformLocation(app->instancePerFragment, name), 1, &app->lampe[i].color.x);
         }
     glUseProgram(0);
-    */glUseProgram(app->perFragment.id);
+    */
+//    glUseProgram(app->perFragment.id);
 //        for (i = 0 ; i < 6 ; i++ )
 //        {
 //            char name[50] = "";
@@ -41,10 +42,8 @@ void App_Draw(App* app) {
 //            glUniform3fv(glGetUniformLocation(app->perFragment.id, name), 1, &app->lampe[i].color.x);
 //        }
     Vec3* light = Light_Serialize(app->lampe, 6);
-    glUseProgram(app->perFragment.id);
     Shader_SendUniformArray(&app->perFragment, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
     Shader_SendUniformArray(&app->perFragment, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
-    glUseProgram(app->instancePerFragment.id);
     Shader_SendUniformArray(&app->instancePerFragment, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
     Shader_SendUniformArray(&app->instancePerFragment, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
     free(light);
