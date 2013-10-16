@@ -74,6 +74,8 @@ GLuint chargerTexture(const char* filename, GLenum filter) {
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    SDL_FreeSurface(img);
+
     puts("Ok");
 
     return texture;
