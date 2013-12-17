@@ -3,13 +3,13 @@
 in vec2 TexCoord;
 in float diffuseFactor;
 
-uniform sampler2D texture;
+uniform sampler2D tex_color;
 
 out vec3 outputColor;
 
 void main() {
 
-   outputColor = diffuseFactor * texture(texture, TexCoord).rgb;
+   outputColor = diffuseFactor * texture(tex_color, TexCoord).rgb;
 
 }
 

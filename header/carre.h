@@ -10,21 +10,23 @@
 
 const float carre[] =
 {
-	-1,  1,  1, // HAUT GAUCHE
-     1,  1,  1, // HAUT DROITE
-	 1, -1,  1, // BAS DROITE
+	// Avant
+	-1,  1,  0, // Haut gauche
+	-1, -1,  0, // Bas gauche
+	 1, -1,  0, // Bas droite
 
-	 1, -1,  1, // BAS DROITE
-	-1, -1,  1, // BAS GAUCHE
-	-1,  1,  1, // HAUT GAUCHE
+	 1, -1,  0, // Bas droite
+	 1,  1,  0, // Haut droite
+	-1,  1,  0, // Haut gauche
 
-    0, 20.,
-    20., 20.,
-    20., 0,
-
-    20., 0,
+    // Avant
+    0, 1,
     0, 0,
-    0, 20.
+    1, 0,
+
+    1, 0,
+    1, 1,
+    0, 1,
 
 };
 
@@ -41,13 +43,13 @@ const float carre[] =
 
 const float carreNorm20[] =
 {
-	-1,  0, -1, // Fond Gauche
      1,  0, -1, // Fond Droite
+	-1,  0, -1, // Fond Gauche
     -1,  0,  1, // Avant Gauche
 
     -1,  0,  1, // Avant Gauche
-	 1,  0, -1, // Fond Droite
 	 1,  0,  1, // Avant Droite
+	 1,  0, -1, // Fond Droite
 
      0, 20,
     20, 20,
@@ -69,21 +71,21 @@ const float carreNorm20[] =
 
 const float carreNorm[] =
 {
-	-1,  0, -1, // Fond Gauche
      1,  0, -1, // Fond Droite
+	-1,  0, -1, // Fond Gauche
     -1,  0,  1, // Avant Gauche
 
     -1,  0,  1, // Avant Gauche
-	 1,  0, -1, // Fond Droite
 	 1,  0,  1, // Avant Droite
+	 1,  0, -1, // Fond Droite
 
+    1, 1,
     0, 1,
-    1, 1,
     0, 0,
 
     0, 0,
-    1, 1,
     1, 0,
+    1, 1,
 
     0, 1, 0,
     0, 1, 0,

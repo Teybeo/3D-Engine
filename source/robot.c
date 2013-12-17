@@ -88,7 +88,7 @@ void Robot_draw(Robot* robot, float* worldCam, float* camClip) {
     for (i = 0 ; i < PARTIE_NB; i++ )
     {
         Mat_Mul_GaucheVersDroite2(robot->partie[i].matrix, robot->matrix);
-        Object3D_Draw(robot->partie[i], worldCam, camClip);
+        Object3D_Draw(robot->partie[i], false, worldCam, camClip, NULL);
     }
 
 }

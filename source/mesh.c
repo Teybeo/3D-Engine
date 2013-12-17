@@ -171,7 +171,7 @@ Mesh* Mesh_LoadBuiltin(int type) {
         mesh->drawStart[0] = 0;
         mesh->drawCount[0] = 6;
         Mesh_CreateVBO(mesh, sizeof(carre), (void*)carre);
-        Mesh_CreateVAO(mesh, 2, (int[2]){0, 1}, (int[2]){0, VBO_TEXCOORD_OFFSET}, (int[2]){3, 2});
+        Mesh_CreateVAO(mesh, 2, (int[2]){0, 2}, (int[2]){0, VBO_TEXCOORD_OFFSET}, (int[2]){3, 2});
 
         break;
 

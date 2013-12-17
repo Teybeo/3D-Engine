@@ -222,6 +222,17 @@ void projection(float matrix[16], float angle, float ratio, float zNear, float z
 
 }
 
+void ortho(float matrix[16], const float left, const float right, const float bottom, const float top, const float zNear, const float zFar) {
+
+    matrix[0]  =  2 / (right - left);
+    matrix[5]  =  2 / (top - bottom);
+    matrix[10] = -2 / (zFar - zNear);
+    matrix[3]  = - (right + left) / (right - left);
+    matrix[7]  = - (top + bottom) / (top - bottom);
+    matrix[11] = - (zFar + zNear) / (zFar - zNear);
+
+}
+
 void transpose(float matrix[16]) {
 
     float temp[16] = {};

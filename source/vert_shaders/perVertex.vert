@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 layout(location = 0) in vec4 position;
 layout(location = 1) in vec3 normal;
@@ -18,7 +18,7 @@ void main(void) {
 
     TexCoord = texcoord;
 
-    vec3 lightVec = lightDir - (modelWorld * position);
+    vec3 lightVec = lightDir - vec3(modelWorld * position);
 
     diffuseFactor = dot(normalize(lightVec), normal);
     diffuseFactor /= ( lightVec.length());

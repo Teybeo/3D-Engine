@@ -1,13 +1,13 @@
 #version 330 core
 
 in vec3 fPosition_view;
+in vec3 fPosition_clip_fromLight;
 in vec3 fNormal_view;
 in vec2 texCoord;
 in mat4 fWorldToView;
+uniform vec3 sunDirection;
 
-in vec3 fPosition;
-
-layout(binding = 0) uniform sampler2D tex_color;
+layout(binding = 0) uniform sampler2D colorTex;
 layout(binding = 2) uniform sampler2D shadowMap;
 
 uniform vec3 lightPos[10];
@@ -34,14 +34,16 @@ vec3 computeSpecular(Light light);
 Light computePointLight(vec3 lightPos, vec3 color);
 Light computeDirectionalLight(vec3 vector, vec3 color);
 
-vec3 sunPos = vec3(0, 0, 500000);
+
 vec3 sunColor = vec3(1, .8, .7);
 
 void main() {
-
-    vec3 diffColor = vec3(0);
+vec3 sunPos = normalize(vec3(0, 0.1, 1));
+sunPos = normalize(-sunDirection);
+    vec3 diffColor = vec3(0.0);
     vec3 specColor = vec3(0);
     normal_view = normalize(fNormal_view);
+//    normal_view += normalize((texture(normal, texCoord)));
 
     for (int i = 0; i < 10 ; i++)
     {
@@ -52,22 +54,28 @@ void main() {
     }
     Light sun = computeDirectionalLight(sunPos, sunColor);
 
-    diffColor += computeDiffuse(sun);
-    specColor += computeSpecular(sun);
+    float occlusion = 1;
+    if (texture(shadowMap, vec2(fPosition_clip_fromLight)).z < fPosition_clip_fromLight.z -0.005)
+        occlusion = 0.2;
 
-    outputColor = (texture(tex_color, texCoord).rgb * diffColor * matDiff) + (specColor * matSpec);
-//    outputColor = (texture(shadowMap, texCoord).rgb*2-1);
-//    outputColor = normal_view;
+    if (occlusion == 1)
+        specColor += computeSpecular(sun);
+    diffColor += (computeDiffuse(sun) * occlusion);
+
+    outputColor = (texture(colorTex, texCoord).rgb * diffColor * matDiff) + (specColor * matSpec);
+//    outputColor = texture(colorTex, texCoord).rgba;
 //    outputColor = lightPos[6];
-//    outputColor = fPosition_view;
-//    outputColor = vec3((1-fPosition_view.z)/1000.);
-//    outputColor = vec3(gl_FragCoord.z);
+//    outputColor = vec3(occlusion);
+//    outputColor = normal_view;
+//    outputColor = (sunPos+1)/2;
+//    outputColor = shadow2D(shadowMap, (fPosition_clip_fromLight), 0.05);
+//    outputColor = vec3(fPosition_clip_fromLight.z+1)/2;
 
 }
 
 #define ATTEN_CONST 1
-#define ATTEN_LINEAR 0.01
-#define ATTEN_QUADRA 0.0001
+#define ATTEN_LINEAR 0.001
+#define ATTEN_QUADRA 0.0005
 
 float calcAttenuation(vec3 lightVec) {
 
@@ -119,6 +127,7 @@ vec3 computeSpecular(Light light) {
     if (dot(normal_view, light.vector) <= 0.0)
         return vec3(0);
     else
-        return light.intensity * light.color * pow( max( dot(normalize(reflectedLight), normalize(-fPosition_view)), 0.), clamp(matShininess, 100., 10000));
+        return light.intensity * light.color * pow( max( dot(normalize(reflectedLight), normalize(-fPosition_view)), 0.), clamp(matShininess, 100., 1000));
 
 }
+

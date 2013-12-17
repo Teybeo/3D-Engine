@@ -23,7 +23,7 @@ typedef struct SphereGroupe {
 } SphereGroupe;
 
 SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, Shader* shader, GLuint texture);
-void SphereGroupe_Draw(SphereGroupe sphereGroupe, float* mondeToCam, float* camToClip);
+void SphereGroupe_Draw(SphereGroupe sphereGroupe, bool onlyDepth, float* mondeToCam, float* camToClip, Shader* depthShader);
 void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction);
 void SphereGroupe_Randomize(SphereGroupe* groupe);
 

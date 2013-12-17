@@ -97,10 +97,12 @@
 		<Unit filename="source/fenetre.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="source/frag_shaders/depth.frag" />
 		<Unit filename="source/frag_shaders/noLight.frag" />
 		<Unit filename="source/frag_shaders/noTexNoLight.frag" />
 		<Unit filename="source/frag_shaders/perFragment.frag" />
 		<Unit filename="source/frag_shaders/perVertex.frag" />
+		<Unit filename="source/frag_shaders/shadow.frag" />
 		<Unit filename="source/gl_debug.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -170,11 +172,13 @@
 		<Unit filename="source/utils/vec4.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="source/vert_shaders/depth.vert" />
 		<Unit filename="source/vert_shaders/instancePerFragment.vert" />
 		<Unit filename="source/vert_shaders/noLight.vert" />
 		<Unit filename="source/vert_shaders/noTexNoLight.vert" />
 		<Unit filename="source/vert_shaders/perFragment.vert" />
 		<Unit filename="source/vert_shaders/perVertex.vert" />
+		<Unit filename="source/vert_shaders/shadow.vert" />
 		<Extensions>
 			<code_completion />
 			<envvars />

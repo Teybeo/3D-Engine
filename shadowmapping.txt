@@ -1,0 +1,20 @@
+Shadow mapping
+
+L'idée:
+On a une lampe dans la scène, ici directionnelle donc placée à l'infini, on n'a que sa direction.
+Dans une première passe:
+	On définit la matrice monde->camera pour qu'elle aligne le monde selon la direction de la lumière.
+	La matrice de projection est orthographique car le point de vue (la lumière) est à l'infini.
+	Le vertex shader transforme chaque point avec ces matrices
+	Le fragment shader écrit la profondeur du fragment dans une texture (en clip-space, donc [-1, 1])
+	
+Dans une seconde passe:
+	On définit la matrice monde->camera pour qu'elle aligne le monde selon la direction controllée par la souris et la position par le clavier.
+	La matrice de projection est perspective car le point de vue est dans la scène.
+	Le vertex shader transforme 2 fois les points: une fois avec les matrices de la caméra, l'autre avec les matrices de la lumière de la passe précédente.
+	Le fragment récupère donc les points dans 2 espaces différents, caméra et lumière
+	Il va alors utiliser les coordonées x et y d'un point en espace lumière pour récupérer un texel de la shadowmap. Ce texel indique la profondeur du premier obstacle en face de la lumière à ces coordonnées.
+	Le fragment shader a également accès à la profondeur du point étant évalué par rapport à cette lumière.
+	Si la shadowmap renvoie une profondeur plus petite à ces coordonnées que la profondeur du point actuel, cela signifie qu'un objet se trouve devant la lampe et donc obstrue les rayons lumineux.
+
+

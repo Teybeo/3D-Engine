@@ -8,9 +8,12 @@
 #include <time.h>
 
 #include "SDL.h"
+#include "SDL_image.h"
 #include "glew.h"
 #include "texture.h"
 
+float identity[16];
+Vec3 sunDir;
 void App_Draw(App* app) {
 
 //    if (app->fenetre.grab == false) {
@@ -46,6 +49,8 @@ void App_Draw(App* app) {
     Shader_SendUniformArray(&app->perFragment, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
     Shader_SendUniformArray(&app->instancePerFragment, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
     Shader_SendUniformArray(&app->instancePerFragment, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
+    Shader_SendUniformArray(&app->shadow, "lightPos", GL_FLOAT_VEC3, 6, &light->x);
+    Shader_SendUniformArray(&app->shadow, "lightColor", GL_FLOAT_VEC3, 6, &light[6].x);
     free(light);
 //        for (i = 0 ; i < 6 ; i++ )
 //        {
@@ -60,17 +65,44 @@ void App_Draw(App* app) {
 //    for (i = 1 ; i <2 ; i++ )
 //        Plan_Draw(app->planes[i], app->player.mondeToCam, app->fenetre.camToClip);
 
-    Object3DGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
+//    Object3DGroupe_Draw(app->objectGroupe, app->player.mondeToCam, app->fenetre.camToClip);
 
-    for (i = 0 ; i < 1 ; i++ )
-        Object3D_Draw(app->objects[i], app->player.mondeToCam, app->fenetre.camToClip);
+    glBindFramebuffer(GL_FRAMEBUFFER, app->framebuffer);
+    glViewport(0, 0, SHADOWMAP_W, SHADOWMAP_H);
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glCullFace(GL_FRONT);
+        // Render shadowmap for object 0
+        Object3D_Draw(app->objects[0], true, app->depth_mondeToCam, app->depth_camToProj, &app->depth);
+        SphereGroupe_Draw(app->sphereGroupe, true, app->depth_mondeToCam, app->depth_camToProj, &app->depth);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    setPerspective(&app->fenetre);
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glCullFace(GL_BACK);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, app->shadowMap);
+    glActiveTexture(GL_TEXTURE0);
+
+    Shader_SendUniform(&app->shadow, "depth_mvp", GL_FLOAT_MAT4, MatxMat_GaucheVersDroite(app->depth_mondeToCam, app->depth_camToProj));
+    Shader_SendUniform(&app->shadow, "depth_worldCam", GL_FLOAT_MAT4, app->depth_mondeToCam);
+    Shader_SendUniform(&app->shadow, "depth_camClip", GL_FLOAT_MAT4, app->depth_camToProj);
+
+    // Render object 0 with shadows
+    Object3D_Draw(app->objects[0], false, app->player.mondeToCam, app->fenetre.camToClip, NULL);
+    Plan_Draw(app->planes[0], app->player.mondeToCam, app->fenetre.camToClip);
+
+    // shadowmap texture to quad
+    glDisable(GL_DEPTH_TEST);
+    Object3D_Draw(app->objects[1], false, identity, app->fenetre.camToClip, NULL);
+    glEnable(GL_DEPTH_TEST);
 
     for (i = 0 ; i < 6 ; i++ )
-        Object3D_Draw(app->lampe[i].object, app->player.mondeToCam, app->fenetre.camToClip);
+        Object3D_Draw(app->lampe[i].object, false, app->player.mondeToCam, app->fenetre.camToClip, NULL);
 
     Robot_draw(&app->robot, app->player.mondeToCam, app->fenetre.camToClip);
 
-    SphereGroupe_Draw(app->sphereGroupe, app->player.mondeToCam, app->fenetre.camToClip);
+    SphereGroupe_Draw(app->sphereGroupe, false, app->player.mondeToCam, app->fenetre.camToClip, NULL);
     BulletGroupe_Draw(app->bulletGroupe, app->player.mondeToCam, app->fenetre.camToClip);
 //    for (i = 0 ; i < app->nb ; i++ )
 //        Sphere_Draw(app->balle[i], app->player.mondeToCam, app->fenetre.camToClip);
@@ -81,7 +113,7 @@ void App_Draw(App* app) {
     else
         translateByVec(app->skybox.matrix, app->player.posRobot);
     scale(app->skybox.matrix, 2000, 2000, 2000);
-    Object3D_Draw(app->skybox, app->player.mondeToCam, app->fenetre.camToClip);
+    Object3D_Draw(app->skybox, false, app->player.mondeToCam, app->fenetre.camToClip, NULL);
 
 //    glFinish();
     SDL_GL_SwapWindow(app->fenetre.ecran);
@@ -96,6 +128,7 @@ void App_Logic(App* app, float duree) {
 
 //    memcpy(&app->player.posRobot, &app->lampe[0].pos, sizeof(Vec3));
     Player_update(&app->player);
+    updateShadowMatrix(app);
 
     static float t = 0;
 
@@ -139,20 +172,20 @@ void App_Logic(App* app, float duree) {
 //        translate(app->objects[i].matrix, 0.1*i, 5, 5);
     }*/
 
-    float scaleFactor;
-    for (i = 0 ; i < app->objectGroupe.nbObject3Ds ; i++ )
-    {
-        scaleFactor = 3+(i/100);
-        loadIdentity(app->objectGroupe.matrix[i]);
-        translate(app->objectGroupe.matrix[i], 400*sin(0.1*i - t), 5 + i/10., 400*cos(i+-t));
-        scale(app->objectGroupe.matrix[i], scaleFactor, scaleFactor, scaleFactor);
-        transpose(app->objectGroupe.matrix[i]);
-    }
+//    float scaleFactor;
+//    for (i = 0 ; i < app->objectGroupe.nbObject3Ds ; i++ )
+//    {
+//        scaleFactor = 3+(i/100);
+//        loadIdentity(app->objectGroupe.matrix[i]);
+//        translate(app->objectGroupe.matrix[i], 400*sin(0.1*i - t), 5 + i/10., 400*cos(i+-t));
+//        scale(app->objectGroupe.matrix[i], scaleFactor, scaleFactor, scaleFactor);
+//        transpose(app->objectGroupe.matrix[i]);
+//    }
 
-    app->planes[0].collisionData->plan.angleZ = 5*cos(t/2.);
-    app->planes[0].collisionData->plan.angleX = 5*sin(t/2.);
+//    app->planes[0].collisionData->plan.angleZ = 5*cos(t/2.);
+//    app->planes[0].collisionData->plan.angleX = 5*sin(t/2.);
     app->planes[2].collisionData->plan.angleZ -= .2;
-    Plan_RotateBase(&app->planes[0]);
+//    Plan_RotateBase(&app->planes[0]);
     Plan_RotateBase(&app->planes[2]);
 //    Plan_RotateBase(&app->planes[3]);
 
@@ -179,6 +212,9 @@ void App_Logic(App* app, float duree) {
     t += 0.01;
 
     Shader_Refresh(&app->perFragment);
+    Shader_Refresh(&app->depth);
+    Shader_Refresh(&app->shadow);
+    Shader_Refresh(&app->onlyTex);
 }
 
 bool App_Init(App* app) {
@@ -209,6 +245,8 @@ bool App_Init(App* app) {
     app->noTexNoLight = Shader_Create("../source/vert_shaders/noTexNoLight.vert", "../source/frag_shaders/noTexNoLight.frag");
     app->perFragment = Shader_Create("../source/vert_shaders/perFragment.vert", "../source/frag_shaders/perFragment.frag");
     app->perVertex = Shader_Create("../source/vert_shaders/perVertex.vert", "../source/frag_shaders/perVertex.frag");
+    app->depth = Shader_Create("../source/vert_shaders/depth.vert", "../source/frag_shaders/depth.frag");
+    app->shadow = Shader_Create("../source/vert_shaders/shadow.vert", "../source/frag_shaders/shadow.frag");
 
 ///////////////////// ROBOT
 
@@ -229,14 +267,21 @@ bool App_Init(App* app) {
 
     int i;
 
+    glGenTextures(1, &app->shadowMap);
 /*    Mesh* carre20 = Mesh_Load(MESH_CARRE_TEX_NORM2, NULL);
     if (carre20 == NULL)
         return false;*/
 
-    app->objects[0] = Object3D_Load("../models/sponza_clean.obj", &app->perFragment);
+    loadIdentity(identity);
 
+    app->objects[1] = Object3D_Create(Mesh_LoadBuiltin(MESH_CARRE_TEX), &app->onlyTex, app->shadowMap);
+    scale(app->objects[1].matrix, 5, 5, 5);
+    translate(app->objects[1].matrix, 2.1, -1.1, -3);
+
+    app->objects[0] = Object3D_Load("../models/totem.obj", &app->shadow);
     loadIdentity(app->objects[0].matrix);
-    scale(app->objects[0].matrix, 5, 5, 5);
+    scale(app->objects[0].matrix, 10, 10, 10);
+    translate(app->objects[0].matrix, 0, 0.1, 0);
 
 ////////////////////  GROUPE D'INSTANCES SANS INSTANCIATION GEOMETRIQUE
 
@@ -379,15 +424,53 @@ bool App_Init(App* app) {
 
     for (i = 0 ; i < 3 ; i++ )
     {
-        app->planes[i] = Plan_Create(carre, plan[i], &app->perFragment, planTex);
+        app->planes[i] = Plan_Create(carre, plan[i], &app->shadow, planTex);
     }
   //  app->planes[0] = Plan_Create(carre20, plan[0], app->perFragment, solTexture);
 
-    grabMouse(app->fenetre, true);
+    glGenFramebuffers(1, &app->framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, app->framebuffer);
+
+
+    glBindTexture(GL_TEXTURE_2D, app->shadowMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, SHADOWMAP_W, SHADOWMAP_H, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, app->shadowMap, 0);
+
+    glDrawBuffer(GL_NONE); // No color buffer is drawn to.
+
+    // Always check that our framebuffer is ok
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        puts("Framebuffer incomplete");
+        return false;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     return true;
 }
+void updateShadowMatrix(App* app) {
 
+    static float angleY = 0;
+    static float angleX = 40;
+    loadIdentity(app->depth_mondeToCam);
+    rotate(app->depth_mondeToCam, angleX, angleY, 0);
+    sunDir.x =  sin(angleY*TAU/360) * cos(angleX*TAU/360);
+    sunDir.y = -sin(angleX*TAU/360);
+    sunDir.z = -cos(angleY*TAU/360) * cos(angleX*TAU/360);
+    Shader_SendUniform(&app->shadow, "sunDirection", GL_FLOAT_VEC3, &sunDir);
+    angleY += 0.1;
+//    angleX += 0.1;
+//    memcpy(app->depth_mondeToCam, app->player.mondeToCam, sizeof(float)*16);
+            loadIdentity(app->depth_camToProj);
+//            memcpy(app->depth_camToProj, app->fenetre.camToClip, sizeof(float)*16);
+//            ortho(app->depth_camToProj, -15, 15,-15, 15, -5, 10);
+            ortho(app->depth_camToProj, -150, 150,-150, 150, -120, 150);
+}
 void App_Event(App* app) {
 
     SDL_Event ev;

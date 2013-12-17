@@ -20,6 +20,9 @@
 
 #define NB_BULLETS_MAX 4
 
+#define SHADOWMAP_W 1024
+#define SHADOWMAP_H SHADOWMAP_W
+
 typedef struct App {
 
     Fenetre fenetre;
@@ -28,6 +31,10 @@ typedef struct App {
     Shader perVertex;
     Shader perFragment;
     Shader instancePerFragment;
+    Shader shadow;
+    Shader depth;
+    GLuint framebuffer;
+    GLuint shadowMap;
     Player player;
     Robot robot;
     Object3D objects[10];
@@ -38,6 +45,8 @@ typedef struct App {
     BulletGroupe bulletGroupe;
     CollisionObject wall[6];
     Plan planes[3];
+    float depth_mondeToCam[16];
+    float depth_camToProj[16];
 
 } App;
 
