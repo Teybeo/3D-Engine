@@ -13,18 +13,19 @@ uint32_t GetLastWriteTime(const char* filename);
 
 void cache_uniforms(Shader* shader);
 
-Shader Shader_Create(const char* vertexFile, const char* fragmentFile) {
+Shader* Shader_Create(const char* name, const char* vertexFile, const char* fragmentFile) {
 
-    Shader shader = {};
+    Shader* shader = malloc(sizeof(Shader));
 
-    initProgram(&shader.id, vertexFile, fragmentFile);
+    initProgram(&shader->id, vertexFile, fragmentFile);
 
-    strcpy(shader.vertexFile, vertexFile);
-    strcpy(shader.fragmentFile, fragmentFile);
-    shader.lastWrite[VERTEX_SHADER] = GetLastWriteTime(vertexFile);
-    shader.lastWrite[FRAGMENT_SHADER] = GetLastWriteTime(fragmentFile);
+    strcpy(shader->name, name);
+    strcpy(shader->vertexFile, vertexFile);
+    strcpy(shader->fragmentFile, fragmentFile);
+    shader->lastWrite[VERTEX_SHADER] = GetLastWriteTime(vertexFile);
+    shader->lastWrite[FRAGMENT_SHADER] = GetLastWriteTime(fragmentFile);
 
-    cache_uniforms(&shader);
+    cache_uniforms(shader);
 
     return shader;
 }
@@ -60,7 +61,7 @@ void Shader_Refresh(Shader* shader) {
 
     static uint32_t lastCheck = 0;
 
-    if (SDL_GetTicks() < lastCheck + 200)
+    if (SDL_GetTicks() < lastCheck + 0)
         return;
     lastCheck = SDL_GetTicks();
 
@@ -96,7 +97,10 @@ void Shader_SendUniformArray(Shader* shader, const char* name, int type, int nb,
 
     int location = Shader_FindUniform(shader, name);
     if (location == -1)
+    {
+        printf("Uniform [%s] non trouve dans [%s] !\n", name, shader->name);
         return;
+    }
 
     switch (type) {
 

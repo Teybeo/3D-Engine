@@ -1,15 +1,17 @@
 #include "bullet.h"
 
 #include "utils/matrix.h"
+#include "shader_library.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
-BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, Shader* shader, GLuint texture) {
+BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, const char* shader, GLuint texture) {
 
     BulletGroupe groupe = {};
 
     groupe.mesh = mesh;
-    groupe.shader = shader;
+    groupe.shader = ShaderLibrary_Get(shader);
     groupe.texture = texture;
     groupe.nbMax = nbMax;
     groupe.nbBullets = 0;
@@ -43,7 +45,7 @@ void Bullet_Add(BulletGroupe* bulletGroupe, Vec3 position, Vec3 direction) {
 
 void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camToClip) {
 
-    Object3D bulletObject3D = Object3D_Create(bulletGroupe.mesh, bulletGroupe.shader, bulletGroupe.texture);
+    Object3D bulletObject3D = Object3D_Create(bulletGroupe.mesh, bulletGroupe.shader->name, bulletGroupe.texture);
     Vec3 color = {1, 1, 0};
     int i;
     for (i = 0 ; i < bulletGroupe.nbBullets ; i++ )

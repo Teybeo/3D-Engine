@@ -4,6 +4,7 @@
 typedef struct Shader {
 
     unsigned int id;
+    char name[128];
     int nbUniform;
     char** uniformName;
     int* uniformLoc;
@@ -16,7 +17,7 @@ typedef struct Shader {
 
 } Shader;
 
-Shader Shader_Create(const char* vertexFile, const char* fragmentFile);
+Shader* Shader_Create(const char* name, const char* vertexFile, const char* fragmentFile);
 void Shader_SendUniform(Shader* shader, const char* name, int type, void* data);
 void Shader_SendUniformArray(Shader* shader, const char* name, int type, int nb, void* data);
 void Shader_Refresh(Shader* shader);

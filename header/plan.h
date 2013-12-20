@@ -13,7 +13,7 @@ typedef struct Plan {
 } Plan;
 
 void Plan_Draw(Plan plan, float* mondeToCam, float* camToClip);
-Plan Plan_Create(Mesh* mesh, CollisionPlan collisionPlan, Shader* shader, GLuint texture);
+Plan Plan_Create(Mesh* mesh, CollisionPlan collisionPlan, const char* shader, GLuint texture);
 void Plan_RotateBase(Plan* plan);
 
 #endif // PLAN

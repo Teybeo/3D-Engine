@@ -2,6 +2,7 @@
 
 #include "objLoader.h"
 #include "shader.h"
+#include "shader_library.h"
 #include "texture.h"
 #include "utils/matrix.h"
 #include "utils/vec3.h"
@@ -60,10 +61,10 @@ void Object3D_Draw(Object3D object, bool onlyDepth, float* mondeToCam, float* ca
 }
 
 // Charge un fichier obj complet (mesh + texture) et en fait une object
-Object3D Object3D_Load(const char* objFile, Shader* shader) {
+Object3D Object3D_Load(const char* objFile, const char* shader) {
 
     Object3D object = {};
-    object.shader = shader;
+    object.shader = ShaderLibrary_Get(shader);
 
     char texFile[256] = "";
 
@@ -78,14 +79,14 @@ Object3D Object3D_Load(const char* objFile, Shader* shader) {
 }
 
 // Crée une object à partir d'un mesh et d'une texture déjà chargé en mémoire
-Object3D Object3D_Create(Mesh* mesh, Shader* shader, GLuint texture) {
+Object3D Object3D_Create(Mesh* mesh, const char* shader, GLuint texture) {
 
     Object3D object = {};
 
     mesh->material[0].texture = texture;
     mesh->material[0].hasTexture = true;
     object.mesh = mesh;
-    object.shader = shader;
+    object.shader = ShaderLibrary_Get(shader);
     object.mesh->material[0].texture = texture;
     object.mesh->material[0].hasTexture = true;
 
@@ -127,7 +128,7 @@ void Object3DGroupe_Draw(Object3DGroupe groupe, float* mondeToCam, float* camToC
     }
 }
 
-Object3DGroupe Object3DGroupe_Create(Mesh* mesh, int nbObject3Ds, Shader* shader, GLuint texture) {
+Object3DGroupe Object3DGroupe_Create(Mesh* mesh, int nbObject3Ds, const char* shader, GLuint texture) {
 
     Object3DGroupe groupe = {};
 
@@ -136,7 +137,7 @@ Object3DGroupe Object3DGroupe_Create(Mesh* mesh, int nbObject3Ds, Shader* shader
     groupe.mesh->material[0].texture = texture;
 
     groupe.nbObject3Ds = nbObject3Ds;
-    groupe.shader = shader;
+    groupe.shader = ShaderLibrary_Get(shader);
     groupe.texture = texture;
 
     groupe.matrix = malloc(sizeof(float*) * nbObject3Ds);

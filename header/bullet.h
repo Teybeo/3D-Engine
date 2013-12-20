@@ -24,7 +24,7 @@ typedef struct BulletGroupe {
 
 } BulletGroupe;
 
-BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, Shader* shader, GLuint texture);
+BulletGroupe BulletGroupe_Create(int nbMax, Mesh* mesh, const char* shader, GLuint texture);
 void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camToClip);
 void Bullet_Add(BulletGroupe* bulletGroupe, Vec3 position, Vec3 direction);
 

@@ -1,15 +1,17 @@
 #include "sphere.h"
 
 #include "utils/matrix.h"
+#include "shader_library.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
-SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, Shader* shader, GLuint texture) {
+SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, const char* shader, GLuint texture) {
 
     SphereGroupe groupe = {};
 
     groupe.mesh = mesh;
-    groupe.shader = shader;
+    groupe.shader = ShaderLibrary_Get(shader);
     groupe.texture = texture;
     groupe.nbMax = nbMax;
     groupe.nbSpheres = 0;
@@ -44,7 +46,7 @@ void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction) {
 
 void SphereGroupe_Draw(SphereGroupe sphereGroupe, bool onlyDepth, float* mondeToCam, float* camToClip, Shader* depthShader) {
 
-    Object3D balleObject3D = Object3D_Create(sphereGroupe.mesh, sphereGroupe.shader, sphereGroupe.texture);
+    Object3D balleObject3D = Object3D_Create(sphereGroupe.mesh, sphereGroupe.shader->name, sphereGroupe.texture);
 
     int i;
     for (i = 0 ; i < sphereGroupe.nbSpheres ; i++ )

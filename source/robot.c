@@ -93,7 +93,7 @@ void Robot_draw(Robot* robot, float* worldCam, float* camClip) {
 
 }
 
-bool Robot_init(Robot* robot, Shader* shader) {
+bool Robot_init(Robot* robot, const char* shader) {
 
     GLuint jambeTex = chargerTexture("../images/steve3.png", GL_NEAREST);
     if (jambeTex == 0)

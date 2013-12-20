@@ -2,16 +2,8 @@
 #define _APP_GUARD
 
 #include "fenetre.h"
-#include "shader.h"
-#include "robot.h"
-#include "light.h"
-#include "object3d.h"
-#include "player.h"
-#include "physics/particule.h"
-#include "physics/collision.h"
-#include "sphere.h"
-#include "bullet.h"
-#include "plan.h"
+#include "scene.h"
+#include "renderer.h"
 
 #include <stdbool.h>
 
@@ -20,33 +12,11 @@
 
 #define NB_BULLETS_MAX 4
 
-#define SHADOWMAP_W 1024
-#define SHADOWMAP_H SHADOWMAP_W
-
 typedef struct App {
 
     Fenetre fenetre;
-    Shader noTexNoLight;
-    Shader onlyTex;
-    Shader perVertex;
-    Shader perFragment;
-    Shader instancePerFragment;
-    Shader shadow;
-    Shader depth;
-    GLuint framebuffer;
-    GLuint shadowMap;
-    Player player;
-    Robot robot;
-    Object3D objects[10];
-    Object3DGroupe objectGroupe;
-    Object3D skybox;
-    Light lampe[6];
-    SphereGroupe sphereGroupe;
-    BulletGroupe bulletGroupe;
-    CollisionObject wall[6];
-    Plan planes[3];
-    float depth_mondeToCam[16];
-    float depth_camToProj[16];
+    Scene* scene;
+    Renderer renderer;
 
 } App;
 

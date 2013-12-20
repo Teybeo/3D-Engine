@@ -55,10 +55,10 @@
 			<Add directory="header/Glew" />
 		</Compiler>
 		<Linker>
+			<Add library="SDL2_image" />
 			<Add library="glew32" />
 			<Add library="SDL2" />
 			<Add library="opengl32" />
-			<Add library="SDL2_image" />
 			<Add directory="bin" />
 		</Linker>
 		<Unit filename="header/app.h" />
@@ -76,9 +76,12 @@
 		<Unit filename="header/physics/particule.h" />
 		<Unit filename="header/plan.h" />
 		<Unit filename="header/player.h" />
+		<Unit filename="header/renderer.h" />
 		<Unit filename="header/robot.h" />
+		<Unit filename="header/scene.h" />
 		<Unit filename="header/shader.h" />
 		<Unit filename="header/shaderLoader.h" />
+		<Unit filename="header/shader_library.h" />
 		<Unit filename="header/sphere.h" />
 		<Unit filename="header/texture.h" />
 		<Unit filename="header/utils/liste.h" />
@@ -136,13 +139,22 @@
 		<Unit filename="source/player.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="source/renderer.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="source/robot.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/scene.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/shader.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/shaderLoader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/shader_library.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/sphere.c">
