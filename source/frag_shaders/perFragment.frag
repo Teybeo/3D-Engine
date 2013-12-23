@@ -5,8 +5,6 @@ in vec3 fNormal_view;
 in vec2 texCoord;
 in mat4 fWorldToView;
 
-in vec3 fPosition;
-
 layout(binding = 0) uniform sampler2D tex_color;
 layout(binding = 2) uniform sampler2D shadowMap;
 
@@ -15,6 +13,7 @@ uniform vec3 lightColor[10];
 uniform vec3 matDiff;
 uniform vec3 matSpec;
 uniform int matShininess;
+uniform vec3 sunDirection;
 
 vec3 normal_view;
 
@@ -22,8 +21,7 @@ out vec3 outputColor;
 
 struct Light {
 
-    vec3 pos;
-    vec3 vector; // Vecteur du fragment évalué à la source de lumière
+    vec3 surfaceToLight; // Vecteur du fragment évalué à la source de lumière
     vec3 color;
     float intensity;
 };
@@ -34,7 +32,6 @@ vec3 computeSpecular(Light light);
 Light computePointLight(vec3 lightPos, vec3 color);
 Light computeDirectionalLight(vec3 vector, vec3 color);
 
-vec3 sunPos = vec3(0, 0, 500000);
 vec3 sunColor = vec3(1, .8, .7);
 
 void main() {
@@ -50,7 +47,7 @@ void main() {
         diffColor += computeDiffuse(light);
         specColor += computeSpecular(light);
     }
-    Light sun = computeDirectionalLight(sunPos, sunColor);
+    Light sun = computeDirectionalLight(sunDirection, sunColor);
 
     diffColor += computeDiffuse(sun);
     specColor += computeSpecular(sun);
@@ -66,8 +63,8 @@ void main() {
 }
 
 #define ATTEN_CONST 1
-#define ATTEN_LINEAR 0.01
-#define ATTEN_QUADRA 0.0001
+#define ATTEN_LINEAR 0.001
+#define ATTEN_QUADRA 0.0005
 
 float calcAttenuation(vec3 lightVec) {
 
@@ -79,15 +76,14 @@ float calcAttenuation(vec3 lightVec) {
 
 }
 
-Light computeDirectionalLight(vec3 vector, vec3 color) {
+Light computeDirectionalLight(vec3 lightDirection, vec3 color) {
 
-    vector = vec3(fWorldToView * vec4(vector, 0));
+    lightDirection = vec3(fWorldToView * vec4(lightDirection, 0));
 
     Light direcLight;
-    direcLight.pos = vector; // En théorie à l'infini, donc a vérifier cette ligne
-    direcLight.vector = normalize(vector); // Lampe à l'infini
+    direcLight.surfaceToLight = normalize(lightDirection); // Lumière à l'infini
     direcLight.color = color;
-    direcLight.intensity = 1;
+    direcLight.intensity = 1.;
     return direcLight;
 }
 
@@ -96,29 +92,24 @@ Light computePointLight(vec3 lightPos, vec3 color) {
     lightPos = vec3(fWorldToView * vec4(lightPos, 1));
 
     Light pointLight;
-    pointLight.pos = lightPos;
+    pointLight.surfaceToLight = normalize(lightPos - fPosition_view);
     pointLight.color = color;
-    pointLight.vector = normalize(lightPos - fPosition_view);
     pointLight.intensity = calcAttenuation(lightPos - fPosition_view);
+
     return pointLight;
 }
 
 vec3 computeDiffuse(Light light) {
 
-    return light.color * (light.intensity * max(dot(light.vector, normal_view), 0.));
+    return light.color * (light.intensity * max(dot(light.surfaceToLight, normal_view), 0.));
 }
 
 vec3 computeSpecular(Light light) {
 
-//    vec3 viewVector = normalize(-camPosition.xyz);
-//    vec3 reflectedLight = 2.0 * dot(light.vector, normal) * normal - light.vector;
+    // On fait rebondir le rayon de lumière sur la surface grâce à sa normale
+    vec3 reflectedLight = reflect(light.surfaceToLight, normal_view);
 
-//    vec4 camPosition = normalize(fWorldToView * vec4(position, 1));
-//    vec4 reflectedLight = reflect(-normalize(fWorldToView * vec4(light.pos, 1) - camPosition), normalize(vec4(transpose(inverse(mat3(fWorldToView))) * normal, 0)));
-    vec3 reflectedLight = reflect(-normalize(light.pos - fPosition_view), normal_view);
-    if (dot(normal_view, light.vector) <= 0.0)
-        return vec3(0);
-    else
-        return light.intensity * light.color * pow( max( dot(normalize(reflectedLight), normalize(-fPosition_view)), 0.), clamp(matShininess, 100., 10000));
-
+    // Plus les rayons refletés seront en direction de la caméra, plus il y aura de lumière à cet endroit
+    // On est en espace caméra, cad que la caméra est en (0, 0, 0), donc la direction vers la caméra est surface - (0, 0, 0)
+    return light.intensity * light.color * pow( max( dot(reflectedLight, normalize(fPosition_view)), 0.), clamp(matShininess, 100., 1000));
 }

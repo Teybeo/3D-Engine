@@ -170,6 +170,7 @@ void updateShadowMatrix(Renderer* renderer) {
     rotate(renderer->depth_mondeToCam, angleX, angleY, 0);
 
     Shader_SendUniform(ShaderLibrary_Get("shadow"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
+    Shader_SendUniform(ShaderLibrary_Get("perFragment"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
 
     angleY += 0.1;
 //    angleX += 0.1;

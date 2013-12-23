@@ -13,13 +13,10 @@ out vec3 fPosition_view;
 out vec3 fNormal_view;
 out mat4 fWorldToView;
 
-out vec3 fPosition;
-
 void main(void){
 
     texCoord = attrTexcoord;
     fWorldToView = worldCam;
-    fPosition = vec3(modelWorld * attrPosition);
     fPosition_view = vec3(worldCam * modelWorld * attrPosition);
 
     fNormal_view = vec3(normalize(worldCam * modelWorld * vec4(attrNormal, 0)));
