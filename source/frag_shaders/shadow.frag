@@ -5,7 +5,6 @@ in vec3 fPosition_clip_fromLight;
 in vec3 fNormal_view;
 in vec2 texCoord;
 in mat4 fWorldToView;
-uniform vec3 sunDirection;
 
 layout(binding = 0) uniform sampler2D colorTex;
 layout(binding = 2) uniform sampler2D shadowMap;
@@ -15,6 +14,7 @@ uniform vec3 lightColor[10];
 uniform vec3 matDiff;
 uniform vec3 matSpec;
 uniform int matShininess;
+uniform vec3 sunDirection;
 
 vec3 normal_view;
 
@@ -52,7 +52,7 @@ sunPos = normalize(-sunDirection);
         diffColor += computeDiffuse(light);
         specColor += computeSpecular(light);
     }
-    Light sun = computeDirectionalLight(sunPos, sunColor);
+    Light sun = computeDirectionalLight(sunDirection, sunColor);
 
     float occlusion = 1;
     if (texture(shadowMap, vec2(fPosition_clip_fromLight)).z < fPosition_clip_fromLight.z -0.005)

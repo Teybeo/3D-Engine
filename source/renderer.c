@@ -7,7 +7,6 @@
 void updateShadowMatrix(Renderer* renderer);
 void Renderer_SetPerspective(Renderer* renderer);
 
-Vec3 sunDir;
 float identity[16];
 
 void Renderer_Render(Renderer* renderer) {
@@ -81,8 +80,6 @@ void Renderer_Render(Renderer* renderer) {
 
     Shader* shadow = ShaderLibrary_Get("shadow");
     Shader_SendUniform(shadow, "depth_mvp", GL_FLOAT_MAT4, MatxMat_GaucheVersDroite(renderer->depth_mondeToCam, renderer->depth_camToProj));
-//    Shader_SendUniform(shadow, "depth_worldCam", GL_FLOAT_MAT4, renderer->depth_mondeToCam);
-//    Shader_SendUniform(shadow, "depth_camClip", GL_FLOAT_MAT4, renderer->depth_camToProj);
 
     // Render object 0 with shadows
     Object3D_Draw(scene->objects[0], false, scene->player.mondeToCam, renderer->camToClip, NULL);
@@ -171,10 +168,9 @@ void updateShadowMatrix(Renderer* renderer) {
     static float angleX = 40;
     loadIdentity(renderer->depth_mondeToCam);
     rotate(renderer->depth_mondeToCam, angleX, angleY, 0);
-    sunDir.x =  sin(angleY*TAU/360) * cos(angleX*TAU/360);
-    sunDir.y = -sin(angleX*TAU/360);
-    sunDir.z = -cos(angleY*TAU/360) * cos(angleX*TAU/360);
-    Shader_SendUniform(ShaderLibrary_Get("shadow"), "sunDirection", GL_FLOAT_VEC3, &sunDir);
+
+    Shader_SendUniform(ShaderLibrary_Get("shadow"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
+
     angleY += 0.1;
 //    angleX += 0.1;
 //    memcpy(renderer->depth_mondeToCam, renderer->player.mondeToCam, sizeof(float)*16);

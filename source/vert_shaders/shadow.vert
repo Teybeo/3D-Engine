@@ -9,15 +9,12 @@ uniform mat4 worldCam;
 uniform mat4 camClip;
 
 uniform mat4 depth_mvp;
-uniform mat4 depth_worldCam;
-uniform mat4 depth_camClip;
 
 out vec3 fPosition_view;
 out vec3 fPosition_clip_fromLight;
 out vec3 fNormal_view;
 out vec2 texCoord;
 out mat4 fWorldToView;
-out vec3 sunDirection;
 
 void main(void){
 
@@ -41,5 +38,5 @@ void main(void){
 //    gl_Position = depth_mvp * attrPosition;
 
     fPosition_clip_fromLight = vec3(clipToRGB * depth_mvp * modelWorld * attrPosition);
-    sunDirection = vec3(normalize(depth_worldCam * vec4(1, 1, -1, 0)));
+
 }
