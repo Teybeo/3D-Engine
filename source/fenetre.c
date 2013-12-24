@@ -77,7 +77,8 @@ void eventFenetre(Fenetre* fen, SDL_WindowEvent ev) {
             printf("[Resized] : %d %d\n", ev.data1, ev.data2);
             fen->largeur = ev.data1;
             fen->hauteur = ev.data2;
-            setPerspective(fen);
+//            setPerspective(fen);
+
 
             break;
 

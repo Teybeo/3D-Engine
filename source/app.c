@@ -170,7 +170,7 @@ void App_Event(App* app) {
     case SDL_WINDOWEVENT:
 
         eventFenetre(&app->fenetre, ev.window);
-        if (ev.window.type == SDL_WINDOWEVENT_RESIZED)
+        if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
             Renderer_Resize(&app->renderer, ev.window.data1, ev.window.data2);
 
         break;

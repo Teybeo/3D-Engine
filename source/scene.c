@@ -95,7 +95,7 @@ bool Scene_Init(Scene* scene) {
 ///////////////////// ROBOT
 
     scene->robot = malloc(sizeof(Robot));
-    if (Robot_init(scene->robot, "perFragment") == false)
+    if (Robot_init(scene->robot, "shadow") == false)
         return false;
 
     scene->player = Player_init(scene->robot);
@@ -124,7 +124,7 @@ bool Scene_Init(Scene* scene) {
     scene->objects[0] = Object3D_Load("../models/totem.obj", "shadow");
     loadIdentity(scene->objects[0].matrix);
     scale(scene->objects[0].matrix, 10, 10, 10);
-    translate(scene->objects[0].matrix, 0, 0.1, 0);
+    translate(scene->objects[0].matrix, 0, 0.01, 0);
 
 ////////////////////  GROUPE D'INSTANCES SANS INSTANCIATION GEOMETRIQUE
 
@@ -166,7 +166,7 @@ bool Scene_Init(Scene* scene) {
     if (sphere == NULL)
         return false;
 
-    Object3D light = Object3D_Create(sphere, "perFragment", stoneTexture);
+    Object3D light = Object3D_Create(sphere, "shadow", stoneTexture);
 
     for (i = 0 ; i < 6 ; i++ )
         scene->lampe[i].object = light;
@@ -189,7 +189,7 @@ bool Scene_Init(Scene* scene) {
 
 //////////// BALLES
 
-    scene->sphere = SphereGroupe_Create(NB_BALLS_MAX, sphere, "perFragment", solTexture);
+    scene->sphere = SphereGroupe_Create(NB_BALLS_MAX, sphere, "shadow", solTexture);
     SphereGroupe_Randomize(&scene->sphere);
 
 //////////// BULLETS
@@ -202,7 +202,7 @@ bool Scene_Init(Scene* scene) {
     if (bulletTex == 0)
         return false;
 
-    scene->bullet = BulletGroupe_Create(NB_BULLETS_MAX, sphere, "perFragment", bulletTex);
+    scene->bullet = BulletGroupe_Create(NB_BULLETS_MAX, sphere, "shadow", bulletTex);
 
 ////////////////////////
 
