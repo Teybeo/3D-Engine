@@ -18,6 +18,7 @@ bool writeUnindexedObj(const char* filename, Vec3* vertices, Vec3* normals, Vec2
 
 bool loadMtl(char* filename, Material** material, int* nbFinal);
 
+void computeTangentSpace(Vec3* vertices, Vec3* normals, Vec2* uvs, int nbVertices, Vec3* tangents, Vec3* bitangents);
 
 #endif // OBJLOADER
 

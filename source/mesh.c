@@ -58,6 +58,26 @@ void Mesh_CreateVBO2(Mesh* mesh, Vec3* vertices, Vec3* normals, Vec2* uvs, int n
 
 }
 
+void Mesh_CreateVBO3(Mesh* mesh, Vec3* vertices, Vec3* normals, Vec3* tangents, Vec3* bitangents, Vec2* uvs, int nb) {
+
+    glGenBuffers(1, &mesh->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
+
+    int size_Vec3 = sizeof(Vec3) * nb;
+    int size_Vec2  = sizeof(Vec2) * nb;
+
+    glBufferData(GL_ARRAY_BUFFER, size_Vec3 * 4 + size_Vec2, NULL, GL_STATIC_DRAW);
+
+    glBufferSubData(GL_ARRAY_BUFFER, 0            , size_Vec3, vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, size_Vec3 * 1, size_Vec3, normals);
+    glBufferSubData(GL_ARRAY_BUFFER, size_Vec3 * 2, size_Vec3, tangents);
+    glBufferSubData(GL_ARRAY_BUFFER, size_Vec3 * 3, size_Vec3, bitangents);
+    glBufferSubData(GL_ARRAY_BUFFER, size_Vec3 * 4, size_Vec2, uvs);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+}
+
 
 Mesh* Mesh_Load(const char* filename) {
 
@@ -106,8 +126,21 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
     mesh->primitiveType = GL_TRIANGLES;
     mesh->nb = nbObjects;
 
-    Mesh_CreateVBO2(mesh, vertices, normals, uvs, nbVertices);
-    Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nbVertices, (sizeof(Vec3)*nbVertices) + sizeof(Vec3)*nbVertices}, (int[3]){3, 3, 2});
+    if (mesh->material[0].hasNormal == true)
+    {
+        Vec3* tangents = malloc(sizeof(Vec3) * nbVertices);
+        Vec3* bitangents = malloc(sizeof(Vec3) * nbVertices);
+        computeTangentSpace(vertices, normals, uvs, nbVertices, tangents, bitangents);
+        Mesh_CreateVBO3(mesh, vertices, normals, tangents, bitangents, uvs, nbVertices);
+        Mesh_CreateVAO(mesh, 5, (int[5]){0, 1, 3, 4, 2}, (int[5]){0, sizeof(Vec3)*nbVertices, sizeof(Vec3)*nbVertices*2, sizeof(Vec3)*nbVertices*3, sizeof(Vec3)*nbVertices*4}, (int[5]){3, 3, 3, 3, 2});
+        free(tangents);
+        free(bitangents);
+    }
+    else
+    {
+        Mesh_CreateVBO2(mesh, vertices, normals, uvs, nbVertices);
+        Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nbVertices, (sizeof(Vec3)*nbVertices) + sizeof(Vec3)*nbVertices}, (int[3]){3, 3, 2});
+    }
 
     free(vertices);
     free(normals);
@@ -238,7 +271,9 @@ Material Material_GetDefault() {
     mat.specular = Vec3_Create(1, 1, 1);
     mat.exponent = 20;
     mat.hasTexture = false;
+    mat.hasNormal = false;
     mat.texture = 0;
+    mat.normalMap = 0;
 
     return mat;
 }

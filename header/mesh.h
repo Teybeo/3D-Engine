@@ -29,7 +29,9 @@ typedef struct Material {
     Vec3 specular;
     unsigned int exponent;
     bool hasTexture;
+    bool hasNormal;
     GLuint texture;
+    GLuint normalMap;
 
 } Material;
 

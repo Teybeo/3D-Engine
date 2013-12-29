@@ -285,6 +285,7 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
 
     ElemString* pileName = NULL;
     ElemString* pileTexture = NULL;
+    ElemString* pileNormalMap = NULL;
     ElemVec3* pileAmbient = NULL;
     ElemVec3* pileDiffuse = NULL;
     ElemVec3* pileSpecular = NULL;
@@ -312,6 +313,7 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
             fscanf(file, "%s", chaine);
             pileName = empilerStr(pileName, chaine);
             pileTexture = empilerStr(pileTexture, "");
+            pileNormalMap = empilerStr(pileNormalMap, "");
             pileExponent = empiler(pileExponent, (Vec3){20, 0, 0});
             pileSpecular = empiler(pileSpecular, (Vec3){1, 1, 1});
             pileDiffuse = empiler(pileDiffuse, (Vec3){1, 1, 1});
@@ -334,6 +336,12 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
             {
                 fscanf(file, "%s", chaine);
                 strcpy(pileTexture->chaine, chaine);
+            }
+            // Normal map
+            else if ( strcmp( lineHeader, "map_bump" ) == 0 )
+            {
+                fscanf(file, "%s", chaine);
+                strcpy(pileNormalMap->chaine, chaine);
             }
             // Couleur ambiante
             else if ( strcmp( lineHeader, "Ka") == 0)
@@ -374,6 +382,7 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
 
     char** names = dumpListeToArrayStr(pileName);
     char** textures = dumpListeToArrayStr(pileTexture);
+    char** normalMaps = dumpListeToArrayStr(pileNormalMap);
     Vec3* ambient = dumpVec3ListeToArray(pileAmbient);
     Vec3* diffuse = dumpVec3ListeToArray(pileDiffuse);
     Vec3* specular = dumpVec3ListeToArray(pileSpecular);
@@ -383,13 +392,21 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
     for (i = 0 ; i < nb ; i++ )
     {
         strcpy((*material)[i].nom, names[i]);
-        if (strlen(textures[i]) == 0)
-            (*material)[i].hasTexture = false;
-        else
+        if (strlen(textures[i]) > 0)
         {
             (*material)[i].texture = chargerTexture(textures[i], GL_LINEAR);
             (*material)[i].hasTexture = true;
         }
+        else
+            (*material)[i].hasTexture = false;
+
+        if (strlen(normalMaps[i]) > 0)
+        {
+            (*material)[i].normalMap = chargerTexture(normalMaps[i], GL_LINEAR);
+            (*material)[i].hasNormal = true;
+        }
+        else
+            (*material)[i].hasNormal = false;
 
         (*material)[i].ambient = ambient[i];
         (*material)[i].diffuse = diffuse[i];
@@ -568,4 +585,141 @@ bool loadUnindexedObj(const char* filename, Vec3** vertices, Vec3** normals, Vec
     puts("Ok");
 
     return true;
+}
+
+// TODO: compute the tangent space here, by computing a tangent an binormal for every vertex //
+void computeTangentSpace(Vec3* vertices, Vec3* normals, Vec2* uvs, int nbVertices, Vec3* tangents, Vec3* bitangents) {
+
+    int i;
+    int j;
+    Vec3 positions[3];
+    Vec2 texCoords[3];
+
+	for(i = 0; i < nbVertices - 2; i += 3){
+
+		for( j = 0; j < 3; j++)
+		{
+			positions[j] = vertices[i + j];
+            texCoords[j] = uvs[i + j];
+        }
+
+		Vec3 Q1 = Vec3_SubOut(positions[1], positions[0]);
+		Vec3 Q2 = Vec3_SubOut(positions[2], positions[0]);
+
+        Vec2 deltaUV_1 = Vec2_SubOut(texCoords[1], texCoords[0]);
+        Vec2 deltaUV_2 = Vec2_SubOut(texCoords[2], texCoords[0]);
+
+		float det = deltaUV_1.x * deltaUV_2.y - deltaUV_1.y * deltaUV_2.x;
+
+
+		Vec3 tangent = Vec3_Create(1, 0, 0);
+		Vec3 bitangent = Vec3_Create(0, 1, 0);
+		if (det < 0.05) {
+			tangent = Vec3_Mul_Scal_out(Vec3_SubOut(Vec3_Mul_Scal_out(Q1, deltaUV_2.y), Vec3_Mul_Scal_out(Q2, deltaUV_1.y)), (1.0f / det));
+            bitangent = Vec3_Mul_Scal_out(Vec3_SubOut(Vec3_Mul_Scal_out(Q2, deltaUV_1.x), Vec3_Mul_Scal_out(Q1, deltaUV_2.x)), (1.0f / det));
+		}
+
+		for ( j = 0; j < 3; j++)
+        {
+            tangents[i + j] = tangent;
+            bitangents[i + j] = bitangent;
+		}
+
+	}
+	// Ende der Tangent Berechnung
+
+
+//	unsigned int indexCount = meshData.indices.size();
+//	for(unsigned int i = 0; i <(indexCount - 2); i += 3){
+//		glm::vec3 v[3];
+//		glm::vec2 t[3];
+//
+//		int positionIndex[3];
+//		int textureIndex[3];
+//		for( int j = 0; j < 3; ++j){
+//
+//			positionIndex[j] = 3 * meshData.indices[i+j];
+//			textureIndex[j] = 2 * meshData.indices[i+j];
+//
+//
+//			v[j] = glm::vec3(
+//								meshData.vertex_position[positionIndex[j] + 0],
+//								meshData.vertex_position[positionIndex[j] + 1],
+//								meshData.vertex_position[positionIndex[j] + 2]
+//							);
+//
+//			t[j] = glm::vec2(
+//								meshData.vertex_texcoord[textureIndex[j] + 0],
+//								meshData.vertex_texcoord[textureIndex[j] + 1]
+//							);
+//		}
+//
+//		glm::vec3 Q1 = v[1] - v[0];
+//		glm::vec3 Q2 = v[2] - v[0];
+//
+//
+//
+//		GLfloat du1 = t[1].x - t[0].x;
+//		GLfloat dv1 = t[1].y - t[0].y;
+//
+//		GLfloat du2 = t[2].x - t[0].x;
+//		GLfloat dv2 = t[2].y - t[0].y;
+//
+//
+//
+//		GLfloat det = du1 * dv2 - dv1 * du2;
+//
+//
+//		glm::vec3 tangent(1,0,0);
+//		if(det != 0){
+//			tangent = (Q1 * dv2 - Q2 *dv1) *  (1.0f / det);
+//		}
+//
+//
+//		for(int j = 0; j < 3; ++j){
+//			meshData.vertex_tangent[positionIndex[j] +0] += tangent.x;
+//			meshData.vertex_tangent[positionIndex[j] +1] += tangent.y;
+//			meshData.vertex_tangent[positionIndex[j] +2] += tangent.z;
+//		}
+//	}
+//	// Ende der Tangent Berechnung
+
+
+	// Gram Schmidt apprach for reothogonalize tangent to normal
+//
+//	unsigned int vertexCount = meshData.vertex_position.size();
+//	for(unsigned int i = 0; i < (vertexCount - 2); i += 3){
+//		Vec3 tangent = Vec3(
+//										meshData.vertex_tangent[i +0],
+//										meshData.vertex_tangent[i +1],
+//										meshData.vertex_tangent[i +2]
+//									 );
+//
+//		tangent = glm::normalize(tangent);
+//
+//		Vec3 normal = Vec3(
+//										meshData.vertex_normal[i +0],
+//										meshData.vertex_normal[i +1],
+//										meshData.vertex_normal[i +2]
+//									);
+//
+//		GLfloat NdotT = glm::dot(normal, tangent);
+//
+//		for(unsigned int j = 0; j < 3; ++j){
+//			tangent[j] = tangent[j] - NdotT * normal[j];
+//		}
+//		tangent = glm::normalize(tangent);
+//
+//
+//		Vec3 binormal = glm::normalize(glm::cross(tangent, normal));
+//
+//
+//
+//		for(int j = 0; j < 3; ++j){
+//			meshData.vertex_tangent[i+j] = tangent[j];
+//			meshData.vertex_binormal[i+j] = binormal[j];
+//		}
+//
+//
+//	}
 }
