@@ -106,13 +106,26 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
     mesh->primitiveType = GL_TRIANGLES;
     mesh->nb = nbObjects;
 
+    int* indices = NULL;
+    int nb_uniq_vertices = 0;
+
+    indexAttribs(&vertices, &normals, &uvs, nbVertices, &indices, &nb_uniq_vertices);
+
     Mesh_CreateVBO2(mesh, vertices, normals, uvs, nbVertices);
-    Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nbVertices, (sizeof(Vec3)*nbVertices) + sizeof(Vec3)*nbVertices}, (int[3]){3, 3, 2});
+    Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nb_uniq_vertices, sizeof(Vec3)*nb_uniq_vertices * 2}, (int[3]){3, 3, 2});
+
+    glBindVertexArray(mesh->vao);
+    glGenBuffers(1, &mesh->vbo_indices);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vbo_indices);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, nbVertices * sizeof(int), indices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
     free(vertices);
     free(normals);
     free(uvs);
     free(range);
+    free(indices);
 
     return mesh;
 }
@@ -241,4 +254,82 @@ Material Material_GetDefault() {
     mat.texture = 0;
 
     return mat;
+}
+
+int searchVec3(Vec3* array, int nb, Vec3 data) {
+
+    int i;
+    for (i = 0 ; i < nb ; i++ )
+        if (memcmp(&array[i], &data, sizeof(Vec3)) == 0)
+            return i;
+
+    return -1;
+}
+
+int searchVec2(Vec2* array, int nb, Vec2 data) {
+
+    int i;
+    for (i = 0 ; i < nb ; i++ )
+        if (memcmp(&array[i], &data, sizeof(Vec2)) == 0)
+            return i;
+
+    return -1;
+}
+
+void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, int** indices_out, int* uniq_vertices_out) {
+
+    // On crée des nouveaux tableaux de même taille que les anciens pour être sur que les données rentreront
+    // Au final seulement 70-80% de l'espace sera utilisé mais ils seront redimensionnés à la fin de la fonction
+    // On fait cela car on suppose que des listes chainées auraient été plus lentes
+    Vec3* new_vertices = malloc(sizeof(Vec3) * nbVertices);
+    Vec3* new_normals = malloc(sizeof(Vec3) * nbVertices);
+    Vec2* new_uvs = malloc(sizeof(Vec2) * nbVertices);
+
+    // Par contre cette taille est correcte
+    int* indices = malloc(sizeof(int) * nbVertices);
+
+    int pos_vertex_stored = 0;
+    int pos_normal_stored = 0;
+    int pos_uv_stored = 0;
+
+    int uniq_vertices = 0;
+
+    int i;
+    for (i = 0 ; i < nbVertices ; i++ )
+    {
+        // On regarde si un vertex avec ces 3 attributs existe déjà
+        pos_vertex_stored = searchVec3(new_vertices, uniq_vertices, (*vertices)[i]);
+        pos_normal_stored = searchVec3(new_normals, uniq_vertices, (*normals)[i]);
+        pos_uv_stored = searchVec2(new_uvs, uniq_vertices, (*uvs)[i]);
+
+        // Si oui, on les indexe dans indices
+        if ((pos_vertex_stored == pos_normal_stored) && (pos_vertex_stored == pos_uv_stored) && pos_vertex_stored != 0)
+        {
+            indices[i] = pos_vertex_stored;
+        }
+        // Si non, on les enregistre et on les indexe
+        else
+        {
+            new_vertices[uniq_vertices] = (*vertices)[i];
+            new_normals[uniq_vertices] = (*normals)[i];
+            new_uvs[uniq_vertices] = (*uvs)[i];
+            indices[i] = uniq_vertices;
+            uniq_vertices++;
+        }
+
+    }
+
+    new_vertices = realloc(new_vertices, sizeof(Vec3) * uniq_vertices);
+    new_normals = realloc(new_normals, sizeof(Vec3) * uniq_vertices);
+    new_uvs = realloc(new_uvs, sizeof(Vec2) * uniq_vertices);
+
+    *indices_out = indices;
+    *uniq_vertices_out = uniq_vertices;
+    free(*vertices);
+    free(*normals);
+    free(*uvs);
+    *vertices = new_vertices;
+    *normals = new_normals;
+    *uvs = new_uvs;
+
 }

@@ -55,6 +55,9 @@ void Object3D_Draw(Object3D object, bool onlyDepth, float* mondeToCam, float* ca
         if (!onlyDepth)
             SendMaterial(shader, &object.mesh->material[i]);
 
+//        glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart[i], object.mesh->drawCount[i]);
+//        glDrawRangeElements(object.mesh->primitiveType, object.mesh->drawCount[i], GL_UNSIGNED_INT, 0, object.mesh->drawStart[i]);
+        glDrawElements(object.mesh->primitiveType, object.mesh->drawCount[i], GL_UNSIGNED_INT, 0);
         glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart[i], object.mesh->drawCount[i]);
     }
 

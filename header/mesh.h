@@ -39,6 +39,7 @@ typedef struct Mesh {
 
     GLuint vao;
     GLuint vbo;
+    GLuint vbo_indices;
     GLenum primitiveType;
     int nb;
     GLint* drawStart;
@@ -52,6 +53,7 @@ Mesh* Mesh_FullLoad(const char* filename, char* texFile);
 void Mesh_Draw(Mesh* model);
 Material Material_GetDefault();
 Material* desindexeMaterial(Material* material, int nbMat, char** mtlRef, int nbRef);
+void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, int** indices_out, int* uniq_vertices_out);
 
 
 #endif // MODEL
