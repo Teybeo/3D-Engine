@@ -21,6 +21,12 @@ void SendMaterial(Shader* shader, Material* material) {
         glBindTexture(GL_TEXTURE_2D, material->texture);
         activeTexture = material->texture;
     }
+    if (material->hasNormal)
+    {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, material->normalMap);
+        glActiveTexture(GL_TEXTURE0);
+    }
 
     Shader_SendUniform(shader, "matDiff", GL_FLOAT_VEC3, &material->diffuse.x);
     Shader_SendUniform(shader, "matSpec", GL_FLOAT_VEC3, &material->specular.x);

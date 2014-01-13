@@ -11,6 +11,7 @@ typedef struct Vec2 {
 void Vec2_Mul_Scal(Vec2* vec, float scal);
 void Vec2_Mul(Vec2 *p, Vec2 a);
 void Vec2_Add(Vec2* a, Vec2 b);
+Vec2 Vec2_SubOut(const Vec2 a, const Vec2 b);
 void setVec2(Vec2* vec, float x, float y);
 void afficheVec2(Vec2 a);
 

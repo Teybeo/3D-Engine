@@ -45,6 +45,8 @@ void Renderer_Render(Renderer* renderer) {
     Shader_SendUniformArray(ShaderLibrary_Get("instance"), "lightColor[0]", GL_FLOAT_VEC3, 6, &light[6].x);
     Shader_SendUniformArray(ShaderLibrary_Get("shadow"), "lightPos[0]", GL_FLOAT_VEC3, 6, &light->x);
     Shader_SendUniformArray(ShaderLibrary_Get("shadow"), "lightColor[0]", GL_FLOAT_VEC3, 6, &light[6].x);
+    Shader_SendUniformArray(ShaderLibrary_Get("normalMap"), "lightPos[0]", GL_FLOAT_VEC3, 6, &light->x);
+    Shader_SendUniformArray(ShaderLibrary_Get("normalMap"), "lightColor[0]", GL_FLOAT_VEC3, 6, &light[6].x);
     free(light);
 
 //        for (i = 0 ; i < 6 ; i++ )
@@ -110,6 +112,7 @@ void Renderer_RenderMeshesShadowed(Renderer* renderer) {
 
     Shader* shadow = ShaderLibrary_Get("shadow");
     Shader_SendUniform(shadow, "depth_mvp", GL_FLOAT_MAT4, MatxMat_GaucheVersDroite(renderer->depth_mondeToCam, renderer->depth_camToProj));
+    Shader_SendUniform(ShaderLibrary_Get("normalMap"), "depth_mvp", GL_FLOAT_MAT4, MatxMat_GaucheVersDroite(renderer->depth_mondeToCam, renderer->depth_camToProj));
 
     // Render object 0 with shadows
     Object3D_Draw(scene->objects[0], false, scene->player.mondeToCam, renderer->camToClip, NULL);
@@ -184,6 +187,7 @@ void updateShadowMatrix(Renderer* renderer) {
 
     Shader_SendUniform(ShaderLibrary_Get("shadow"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
     Shader_SendUniform(ShaderLibrary_Get("perFragment"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
+    Shader_SendUniform(ShaderLibrary_Get("normalMap"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
 
     angleY += 0.1;
 //    angleX += 0.1;
