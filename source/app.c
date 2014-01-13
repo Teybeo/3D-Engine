@@ -185,18 +185,29 @@ void App_Run(App* app) {
 
     Uint32 debut = SDL_GetTicks();
     float duree = 0, precedenteDuree = 0;
+    Uint64 gpuDuration = 0;
+    unsigned int query;
+    glGenQueries(1, &query);
+    int done;
 
     while (app->fenetre.arret == false) {
 
         App_Event(app);
         App_Logic(app, duree);
-        App_Draw(app);
 
+        glBeginQuery(GL_TIME_ELAPSED, query);
+            App_Draw(app);
+        glEndQuery(GL_TIME_ELAPSED);
+        while (!done) {
+            glGetQueryObjectiv(query, GL_QUERY_RESULT_AVAILABLE, &done);
+        }
+
+        glGetQueryObjectui64v(query, GL_QUERY_RESULT, &gpuDuration);
         char title[20] = "";
         duree = SDL_GetTicks() - debut;
         if (fabsf(duree - precedenteDuree) >= 1)
         {
-            sprintf(title, "%.0f ms", duree);
+            sprintf(title, "%.0f ms / GPU %f", duree, ((float)gpuDuration)/1000000.);
             SDL_SetWindowTitle(app->fenetre.ecran, title);
             precedenteDuree = duree;
         }
