@@ -81,7 +81,7 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
     if (loadObj(filename, &vertices, &normals, &uvs, &nbVertices, &range, &nbObjects, &matNames, mtlFile) == false)
         return NULL;
 
-    if (mtlFile)
+    if (mtlFile != NULL && strlen(mtlFile) != 0)
         if (loadMtl(mtlFile, &materialList, &nbMat) == false)
             return NULL;
     if (materialList != NULL && matNames != NULL)
