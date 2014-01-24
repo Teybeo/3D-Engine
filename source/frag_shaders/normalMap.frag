@@ -39,28 +39,31 @@ Light computeDirectionalLight(vec3 vector, vec3 color);
 vec3 sunColor = vec3(1, .8, .7);
 
 void main() {
-//sunDirection = normalize(vec3(0.9, 1, 0.));
+
     vec3 diffColor = vec3(0.0);
     vec3 specColor = vec3(0);
-    normal_view = normalize(fNormal_view);
+
     normal_view = normalize(texture(normalTex, texCoord).rgb*2 -1) ;
-//    fPosition_view = fViewToTangent * fPosition_view;
+//    normal_view.z =   -normal_view.z;
+    normal_view.y =   -normal_view.y;
+//    normal_view.x =   -normal_view.x;
+
     for (int i = 0; i < 10 ; i++)
     {
         Light light = computePointLight(lightPos[i], lightColor[i]);
 
-//        diffColor += computeDiffuse(light);
-        specColor += computeSpecular(light);
+        diffColor += computeDiffuse(light);
+        specColor += computeSpecular(light)*1;
     }
     Light sun = computeDirectionalLight(sunDirection, sunColor);
 
     float occlusion = 1;
-//    if (texture(shadowMap, vec2(fPosition_clip_fromLight)).z < fPosition_clip_fromLight.z -0.005)
-//        occlusion = 0.;
+    if (texture(shadowMap, vec2(fPosition_clip_fromLight)).z < fPosition_clip_fromLight.z -0.005)
+        occlusion = 0.;
 
-//    if (occlusion == 1)
-//        specColor += computeSpecular(sun);
-//    diffColor += (computeDiffuse(sun) * occlusion);
+    if (occlusion == 1)
+        specColor += computeSpecular(sun)*1;
+    diffColor += (computeDiffuse(sun) * occlusion);
 
     vec3 color = texture(colorTex, texCoord).rgb;
 //    color = pow(color, vec3(1/2.2));
@@ -69,7 +72,8 @@ void main() {
 //    outputColor = lightPos[6];
 //    outputColor = vec3(occlusion);
 //    outputColor = vec3(specColor);
-//    outputColor = normal_view;
+//    outputColor = texture(normalTex, texCoord).rgb;
+//    outputColor = fNormal_view;
 //    outputColor = texture(normalTex, texCoord);
 //    outputColor = (sunDirection+1)/2;
 //    outputColor = shadow2D(shadowMap, (fPosition_clip_fromLight), 0.05);
@@ -120,11 +124,15 @@ vec3 computeDiffuse(Light light) {
 
 vec3 computeSpecular(Light light) {
 
+    // Bricolage pour annuler certaines saturations (prob de normalisations ?)
+    if (dot(light.surfaceToLight, normal_view) <= 0)
+        return vec3(0);
+
     // On fait rebondir le rayon de lumière sur la surface grâce à sa normale
     vec3 reflectedLight = reflect(light.surfaceToLight, normal_view);
 
     // Plus les rayons refletés seront en direction de la caméra, plus il y aura de lumière à cet endroit
     // On est en espace caméra, cad que la caméra est en (0, 0, 0), donc la direction vers la caméra est surface - (0, 0, 0)
-    return light.intensity * light.color * pow( max( dot(reflectedLight, normalize(fViewToTangent * fPosition_view)), 0.), clamp(matShininess, 10, 1000));
+    return light.intensity * light.color * pow( max( dot(reflectedLight, normalize(fViewToTangent * fPosition_view)), 0.), clamp(matShininess, 100, 1000));
 }
 

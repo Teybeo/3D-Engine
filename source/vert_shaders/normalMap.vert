@@ -38,10 +38,10 @@ void main(void){
     fPosition_view = vec3(worldCam * modelWorld * attrPosition);
 //    fPosition_view = fViewToTangent * fPosition_view;
 
-    fNormal_view = normalize(vec3(worldCam * modelWorld * vec4(attrNormal, 0)));
+    fNormal_view = normalize(vec3(worldCam * modelWorld * vec4(normalize(attrNormal), 0)));
 //    fNormal_view  =  normalize(vec3((transpose(inverse(worldCam * modelWorld))) * vec4(attrNormal, 0) ));
-    vec3 fTangent_view = normalize(vec3(worldCam * modelWorld * vec4(attrTangent, 0)));
-    vec3 fBitangent_view = normalize(vec3(worldCam * modelWorld * vec4(attrBitangent, 0)));
+    vec3 fTangent_view = normalize(vec3(worldCam * modelWorld * vec4(normalize(attrTangent), 0)));
+    vec3 fBitangent_view = normalize(vec3(worldCam * modelWorld * vec4(normalize(attrBitangent), 0)));
 
     fViewToTangent = transpose(mat3(fTangent_view, fBitangent_view, fNormal_view));
 

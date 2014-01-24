@@ -614,15 +614,17 @@ void computeTangentSpace(Vec3* vertices, Vec3* normals, Vec2* uvs, int nbVertice
 
 		Vec3 tangent = Vec3_Create(1, 0, 0);
 		Vec3 bitangent = Vec3_Create(0, 1, 0);
-		if (det < 0.05) {
+		if (det > 0.05) {
 			tangent = Vec3_Mul_Scal_out(Vec3_SubOut(Vec3_Mul_Scal_out(Q1, deltaUV_2.y), Vec3_Mul_Scal_out(Q2, deltaUV_1.y)), (1.0f / det));
             bitangent = Vec3_Mul_Scal_out(Vec3_SubOut(Vec3_Mul_Scal_out(Q2, deltaUV_1.x), Vec3_Mul_Scal_out(Q1, deltaUV_2.x)), (1.0f / det));
 		}
 
+        tangent = Vec3_Normalise_Out(Vec3_SubOut(tangent, Vec3_Mul_Scal_out(normals[i], Vec3_Mul_Out(normals[i], tangent))));
+
 		for ( j = 0; j < 3; j++)
         {
             tangents[i + j] = tangent;
-            bitangents[i + j] = bitangent;
+            bitangents[i + j] = Vec3_Normalise_Out(bitangent);
 		}
 
 	}

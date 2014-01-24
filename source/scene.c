@@ -166,7 +166,7 @@ bool Scene_Init(Scene* scene) {
     if (sphere == NULL)
         return false;
 
-    Object3D light = Object3D_Create(sphere, "shadow", stoneTexture);
+    Object3D light = Object3D_Create(sphere, "normalMap", stoneTexture);
 
     for (i = 0 ; i < 6 ; i++ )
         scene->lampe[i].object = light;
