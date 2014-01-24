@@ -2,6 +2,7 @@
 
 #include "texture.h"
 
+#include <stdlib.h>
 #include <stdbool.h>
 
 float identity[16];

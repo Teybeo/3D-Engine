@@ -1,0 +1,46 @@
+Actuellement:
+
+Tout d'abord, un fichier .obj est ouvert, les points, uvs et normales sont lues, désindexées et placées dans un grand buffer (vbo) dans la carte graphique.
+Un vao est ensuite généré et configure l'utilisation des données par un shader à partir du nombre d'éléments lus pour chaque type (points, uvs, normales)
+
+Ce mesh (== Model) est référencé dans un objet Instance, contenant UNE texture, un programme et une matrice.
+
+Problème: les objets réalisés dans des logiciels de modélisation sont liées à des textures.
+Il faut donc adapter le chargement de ces fichiers pour prendre en compte les textures.
+
+Idée 1:
+Renommer Model en Mesh, objet représentant une forme et ses attributs, uvs et normales.
+
+typedef struct Mesh {
+
+    GLuint vao;
+    GLuint vbo;
+    GLenum primitiveType;
+    GLint drawStart;
+    GLint drawCount;
+
+} Mesh;
+
+L'objet Instance contiendrait une matrice, un programme, une référence vers un Mesh et une référence vers une texture (handle OpenGL).
+
+typedef struct Instance {
+
+    Mesh* mesh;
+    GLuint texture;
+	float matrice[16];
+	Gluint program;
+
+} Instance;
+
+De cette manière il sera toujours possible d'avoir plusieurs copies d'une forme avec des textures différentes en ayant qu'une seule forme en mémoire.
+
+L'objet Instance ne contiendrait dès lors plus qu'un objet Model et une matrice. Cela a pour effet de solidifier, réduire le sens de Instance car la seule propriété différente sera le placement/orientation/taille de l'objet. Néanmoins, il sera toujours possible d'instancier un Mesh avec des textures différentes, il faudra pour cela changer la texture du Model.
+
+
+Mise en place:
+
+Eclatement du chargement:
+loadObj va générer un MeshData ainsi que les noms des textures (et apres plus de données == Material ?)
+Ce MeshData est envoyé aux fonctions Mesh pour créer le vbo et le vao.
+Les infos sur la texture sont envoyés a Texture pour charger et paramétrer la texture.
+

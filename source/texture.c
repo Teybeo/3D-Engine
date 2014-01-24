@@ -5,6 +5,8 @@
 #include "SDL.h"
 #include "SDL_image.h"
 
+#include <stdio.h>
+
 SDL_Surface* inverserPixels(SDL_Surface *src);
 
 GLuint chargerTexture(const char* filename, GLenum filter) {

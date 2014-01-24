@@ -1,5 +1,9 @@
 #include "player.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 Player Player_init(Robot* robot) {
 
     Player player = {};

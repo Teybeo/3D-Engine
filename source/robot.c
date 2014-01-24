@@ -4,6 +4,8 @@
 #include "texture.h"
 
 #include <stdbool.h>
+#include <math.h>
+#include <string.h>
 
 #include "glew.h"
 

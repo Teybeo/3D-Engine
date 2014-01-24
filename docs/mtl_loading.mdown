@@ -1,0 +1,77 @@
+Donnée: attribut de vertex (Position, normal, Texcoord)
+
+Objectif: 
+	
+	Chargement des .obj contenant plusieurs objets avec des matériaux (textures) distincts
+
+Utilisation:
+
+	Une seule matrice sera attachée au groupe car chaque mesh fait partie de l'objet, (ex: Diddy.obj, cs.obj)
+	Les textures ne sont pas être changées programmatiquement, elles sont définies dans le modeleur 3D
+
+typedef struct InstanceOfGroup {
+	
+	Mesh* mesh;
+	int nb;
+	float matrix[16];
+	Gluint* texture;
+
+}
+
+Chargement: 
+
+	Actuellement, on détecte pour chaque ligne le type de donnée associé v, vn, vt ou f et on range la donnée dans une liste.
+	Une fois tout le fichier lu, on désindexe les données et on les range dans des tableaux.
+
+Solution 1:
+
+	On garde le même fonctionnement en ajoutant pour chaque mesh le stockage des début et des fins des indices indexant les tableaux globaux de données.
+		Pour récupérer ces intervalles, il faut déjà détecter les changements de mesh:
+		Pour ça, on peut utiliser mettre un booléen endMesh à VRAI lorsqu'après une série de "f" viendrait une ligne autre que "f"
+		Cela peut être "o" pour indiquer un nouvel objet (ou "g" pour groupe), "v", "vn", ou "vt" si les "o" ou "g" sont absents.
+		Une ligne vide n'est pas considérée comme fin d'un mesh.
+
+	i = 0;
+	for (i = 0; i < nbMesh; i++)
+	{
+		for (j = offset[i]; j < nbIndices[i]; j++)
+		{
+			mesh[i].vert[j] = vertices[vertexIndice[j]];
+			mesh[i].norm[j] = norm[normIndice[j]];
+			mesh[i].uv[j] = uv[uvIndice[j]];
+		}
+
+	}
+
+Autre utilisation:
+
+typedef struct Mesh {
+	
+	gluint* drawStart;
+	gluint* drawCount;
+	gluint* primitive;
+	gluint vao;
+	gluint vbo;
+	int nb;
+}
+
+Instance_Draw () {
+
+    glUniformMatrix4fv(worldCamLoc, 1, GL_TRUE, mondeToCam);
+    glUniformMatrix4fv(camClipLoc, 1, GL_TRUE, camToClip);			
+    glUniformMatrix4fv(modelWorldLoc, 1, GL_TRUE, object.matrix);
+
+    glBindVertexArray(mesh.vao);
+
+	for (int i=0; i < mesh.nb; i++)
+	{
+		glDrawArrays(mesh.primitive[i], mesh.drawStart[i], mesh.drawCount[i]);
+		glBindTexture(mesh.texture[i]);
+
+	}
+}
+
+Objectif:
+
+	Relier les données de matériaux aux bons objets
+

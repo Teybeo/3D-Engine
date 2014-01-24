@@ -1,6 +1,7 @@
 #include "shader_library.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 static ShaderLibrary* lib = NULL;

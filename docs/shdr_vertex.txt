@@ -1,0 +1,31 @@
+precision highp float;
+
+attribute vec3 position;
+attribute vec3 normal;
+
+uniform mat3 normalMatrix;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+
+varying vec3 fNormal_view;
+varying vec3 fPosition_view;
+varying mat4 fWorldToView;
+
+vec3 scale(vec3 pos) {
+  
+  pos.x *= .2;
+  return pos;
+}
+
+void main(void) {
+  
+  // compute position
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(scale(position), 1.0);
+
+  fWorldToView = modelViewMatrix;
+
+	//fNormal_view = normalize(normalMatrix * normal); 
+  fNormal_view  =  vec3(mat3(inverse(modelViewMatrix)) * normal);
+  fPosition_view = vec3(modelViewMatrix * vec4(scale(position), 1.0));
+}
+

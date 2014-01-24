@@ -1,6 +1,9 @@
 #include "renderer.h"
 #include "shader_library.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #define SHADOWMAP_W 1024
 #define SHADOWMAP_H SHADOWMAP_W
 

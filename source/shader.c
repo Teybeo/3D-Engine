@@ -98,7 +98,7 @@ void Shader_SendUniformArray(Shader* shader, const char* name, int type, int nb,
     int location = Shader_FindUniform(shader, name);
     if (location == -1)
     {
-        printf("Uniform [%s] non trouve dans [%s] !\n", name, shader->name);
+//        printf("Uniform [%s] non trouve dans [%s] !\n", name, shader->name);
         return;
     }
 
