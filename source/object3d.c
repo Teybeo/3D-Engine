@@ -66,8 +66,82 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
         if (renderer->depth_rendering == false)
             SendMaterial(shader, &object.mesh->material[i], renderer);
 
+        if (object.mesh->material[0].hasNormal == true && (renderer->debug_tangents || renderer->debug_bitangents || renderer->debug_normals))
+        {
+            Shader* debug_shader = ShaderLibrary_Get("noTexNoLight");
+            glUseProgram(debug_shader->id);
+            Shader_SendUniform(debug_shader, "worldCam", GL_FLOAT_MAT4, mondeToCam);
+            Shader_SendUniform(debug_shader, "camClip", GL_FLOAT_MAT4, camToClip);
+            Shader_SendUniform(debug_shader, "modelWorld", GL_FLOAT_MAT4, object.matrix);
 
-        glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart[i], object.mesh->drawCount[i]);
+            glBegin(GL_LINES);
+            int j;
+            for (j=0; j < object.mesh->drawCount[i] ; j++)
+            {
+                int k = j + object.mesh->drawStart[i];
+                Vec3 vertex = object.mesh->vertices[k];
+
+                if (renderer->debug_tangents)
+                {
+                    glColor3f(1, 0, 0);
+                    glVertex3fv(&vertex.x);
+                    Vec3 tangent = object.mesh->tangents[k];
+                    tangent = Vec3_AddOut(vertex, Vec3_Mul_Scal_out(tangent, .1));
+                    glVertex3fv(&tangent.x);
+                }
+
+                if (renderer->debug_bitangents)
+                {
+                    glColor3f(0, 1, 0);
+                    glVertex3fv(&vertex.x);
+                    Vec3 bitangent = object.mesh->bitangents[k];
+                    bitangent = Vec3_AddOut(vertex, Vec3_Mul_Scal_out(bitangent, .1));
+                    glVertex3fv(&bitangent.x);
+                }
+
+                if (renderer->debug_normals)
+                {
+                    glColor3f(0, 0, 1);
+                    glVertex3fv(&vertex.x);
+                    Vec3 normal = object.mesh->normals[k];
+                    normal = Vec3_AddOut(vertex, Vec3_Mul_Scal_out(normal, .1));
+                    glVertex3fv(&normal.x);
+                }
+
+            }
+            glEnd();
+            glUseProgram(renderer->currentShader);
+        }
+        if (renderer->debug_wireframe == true && object.mesh->vertices != NULL)
+        {
+            Shader* debug_shader = ShaderLibrary_Get("noTexNoLight");
+            glUseProgram(debug_shader->id);
+            Shader_SendUniform(debug_shader, "worldCam", GL_FLOAT_MAT4, mondeToCam);
+            Shader_SendUniform(debug_shader, "camClip", GL_FLOAT_MAT4, camToClip);
+            Shader_SendUniform(debug_shader, "modelWorld", GL_FLOAT_MAT4, object.matrix);
+
+            glBegin(GL_LINES);
+            glColor3f(.7, .7, .7);
+            int j;
+            for (j=0; j < object.mesh->drawCount[i] ; j += 3)
+            {
+                int k = j + object.mesh->drawStart[i];
+
+                glVertex3fv(&(object.mesh->vertices[k].x));
+                glVertex3fv(&(object.mesh->vertices[k+1].x));
+
+                glVertex3fv(&object.mesh->vertices[k].x);
+                glVertex3fv(&object.mesh->vertices[k+2].x);
+
+                glVertex3fv(&object.mesh->vertices[k+1].x);
+                glVertex3fv(&object.mesh->vertices[k+2].x);
+            }
+            glEnd();
+            glUseProgram(renderer->currentShader);
+
+        }
+        else
+            glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart[i], object.mesh->drawCount[i]);
     }
 
 }

@@ -88,7 +88,7 @@ Mesh* Mesh_Load(const char* filename) {
 // Ecrit le chemin du fichier mtl dans mtlFile
 Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
 
-    Mesh* mesh = malloc(sizeof(Mesh));
+    Mesh* mesh = calloc(1, sizeof(Mesh));
 
     Vec3* vertices = NULL;
     Vec3* normals = NULL;
@@ -133,17 +133,25 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
         computeTangentSpace(vertices, normals, uvs, nbVertices, tangents, bitangents);
         Mesh_CreateVBO3(mesh, vertices, normals, tangents, bitangents, uvs, nbVertices);
         Mesh_CreateVAO(mesh, 5, (int[5]){0, 1, 3, 4, 2}, (int[5]){0, sizeof(Vec3)*nbVertices, sizeof(Vec3)*nbVertices*2, sizeof(Vec3)*nbVertices*3, sizeof(Vec3)*nbVertices*4}, (int[5]){3, 3, 3, 3, 2});
-        free(tangents);
-        free(bitangents);
+        mesh->bitangents = bitangents;
+        mesh->tangents = tangents;
+        mesh->normals = normals;
+        mesh->vertices = vertices;
+//        free(tangents);
+//        free(bitangents);
     }
     else
     {
+        mesh->bitangents = NULL;
+        mesh->tangents = NULL;
+        mesh->normals = NULL;
+        mesh->vertices = vertices;
         Mesh_CreateVBO2(mesh, vertices, normals, uvs, nbVertices);
         Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nbVertices, (sizeof(Vec3)*nbVertices) + sizeof(Vec3)*nbVertices}, (int[3]){3, 3, 2});
     }
 
-    free(vertices);
-    free(normals);
+//    free(vertices);
+//    free(normals);
     free(uvs);
     free(range);
 
@@ -153,7 +161,7 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
 // Charge un mesh défini dans carre.h ou cube.h
 Mesh* Mesh_LoadBuiltin(int type) {
 
-    Mesh* mesh = malloc(sizeof(Mesh));
+    Mesh* mesh = calloc(1, sizeof(Mesh));
     mesh->nb = 1;
     mesh->drawStart = malloc(sizeof(int));
     mesh->drawCount = malloc(sizeof(int));

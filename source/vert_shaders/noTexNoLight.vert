@@ -1,4 +1,4 @@
-#version 330 core
+#version 330
 
 layout(location = 0) in vec4 position;
 layout(location = 1) in vec4 couleur;
@@ -31,7 +31,7 @@ void main(void){
 
 //    gl_Position = camClip * worldCam * modelWorld * newPos;
 
-    Color = couleur;
+    Color = gl_Color;
 
 }
 

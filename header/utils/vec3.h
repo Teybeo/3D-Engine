@@ -12,6 +12,8 @@ typedef struct Vec3 {
 } Vec3;
 
 void Vec3_Add(Vec3* a, Vec3 b);
+Vec3 Vec3_AddOut(Vec3 const a, Vec3 const b);
+
 void Vec3_Sub(Vec3* a, Vec3 b);
 Vec3 Vec3_SubOut(Vec3 const a, Vec3 const b);
 

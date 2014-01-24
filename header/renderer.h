@@ -17,6 +17,10 @@ typedef struct _Renderer {
     unsigned int currentNormalTex;
     unsigned int currentVAO;
     bool depth_rendering;
+    bool debug_bitangents;
+    bool debug_tangents;
+    bool debug_normals;
+    bool debug_wireframe;
 
 } Renderer;
 
@@ -24,6 +28,7 @@ void Renderer_Update(Renderer* renderer);
 bool Renderer_Init(Renderer* renderer, Scene* scene, int largeur, int hauteur);
 void Renderer_Render(Renderer* renderer);
 void Renderer_Resize(Renderer* renderer, int w, int h);
+void Renderer_keyEvent(Renderer* renderer, SDL_KeyboardEvent key);
 
 #endif // RENDERER
 

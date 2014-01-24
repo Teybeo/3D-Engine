@@ -101,6 +101,7 @@ void App_Event(App* app) {
             Player_keyEvent(&app->scene->player, ev.key);
 
         majFenetreKeys(&app->fenetre, ev.key);
+        Renderer_keyEvent(&app->renderer, ev.key);
 
         break;
 
@@ -110,6 +111,7 @@ void App_Event(App* app) {
             Player_keyEvent(&app->scene->player, ev.key);
 
         majFenetreKeys(&app->fenetre, ev.key);
+        Renderer_keyEvent(&app->renderer, ev.key);
 
         break;
 

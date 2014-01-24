@@ -220,3 +220,22 @@ void Renderer_Resize(Renderer* renderer, int w, int h) {
 
     Renderer_SetPerspective(renderer);
 }
+
+void Renderer_keyEvent(Renderer* renderer, SDL_KeyboardEvent key) {
+
+    if (key.type == SDL_KEYDOWN) {
+
+        if (key.keysym.sym == SDLK_w)
+            renderer->debug_wireframe = !renderer->debug_wireframe;
+
+        if (key.keysym.sym == SDLK_b)
+            renderer->debug_bitangents = !renderer->debug_bitangents;
+
+        if (key.keysym.sym == SDLK_t)
+            renderer->debug_tangents = !renderer->debug_tangents;
+
+        if (key.keysym.sym == SDLK_n)
+            renderer->debug_normals = !renderer->debug_normals;
+    }
+
+}

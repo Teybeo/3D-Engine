@@ -38,7 +38,16 @@ inline void Vec3_Add(Vec3* a, Vec3 b) {
     a->y += b.y;
     a->z += b.z;
 }
+inline Vec3 Vec3_AddOut(Vec3 const a, Vec3 const b) {
 
+    Vec3 res = a;
+
+    res.x += b.x;
+    res.y += b.y;
+    res.z += b.z;
+
+    return res;
+}
 inline void Vec3_Sub(Vec3* a, Vec3 b) {
     a->x -= b.x;
     a->y -= b.y;
@@ -178,6 +187,6 @@ void setVec3(Vec3* vec, float x, float y, float z) {
 void afficheVec3(Vec3 a) {
 
     printf("   x      y      z\n");
-    printf("%.2f  %.2f  %.2f\n", a.x, a.y, a.z);
+    printf("%.2f\t%.2f\t%.2f\n", a.x, a.y, a.z);
 
 }

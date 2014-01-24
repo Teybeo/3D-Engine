@@ -46,6 +46,11 @@ typedef struct Mesh {
     GLint* drawStart;
     GLint* drawCount;
     Material* material;
+    Vec3* tangents;
+    Vec3* bitangents;
+    Vec3* normals;
+    Vec3* vertices;
+
 } Mesh;
 
 Mesh* Mesh_LoadBuiltin(int type);
