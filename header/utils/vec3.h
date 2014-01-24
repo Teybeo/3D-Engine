@@ -3,6 +3,8 @@
 
 #define TAU 6.283185307179586476925286766559
 
+#include <stdbool.h>
+
 typedef struct Vec3 {
 
     float x;
@@ -23,6 +25,8 @@ Vec3 Vec3_Mul_Scal_out(Vec3 vec, float scal);
 
 void Vec3_Div_Scal(Vec3* vec, float scal);
 Vec3 Vec3_Div_Scal_Out(Vec3 const vec, float scal);
+
+bool Vec3_Equal(Vec3 a, Vec3 b);
 
 float Vec3_Length(Vec3 vec);
 

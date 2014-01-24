@@ -57,8 +57,12 @@ void Object3D_Draw(Object3D object, bool onlyDepth, float* mondeToCam, float* ca
 
 //        glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart[i], object.mesh->drawCount[i]);
 //        glDrawRangeElements(object.mesh->primitiveType, object.mesh->drawCount[i], GL_UNSIGNED_INT, 0, object.mesh->drawStart[i]);
-        glDrawElements(object.mesh->primitiveType, object.mesh->drawCount[i], GL_UNSIGNED_INT, 0);
-        glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart[i], object.mesh->drawCount[i]);
+        if (object.mesh->vbo_indices != 0)
+        {
+            glDrawElements(object.mesh->primitiveType, object.mesh->drawCount[i], GL_UNSIGNED_INT, 0);
+        }
+        else
+            glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart[i], object.mesh->drawCount[i]);
     }
 
 }

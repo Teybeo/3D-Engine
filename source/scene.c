@@ -121,7 +121,7 @@ bool Scene_Init(Scene* scene) {
     scale(scene->objects[1].matrix, 5, 5, 5);
     translate(scene->objects[1].matrix, 2.1, -1.1, -3);
 
-    scene->objects[0] = Object3D_Load("../models/totem.obj", "shadow");
+    scene->objects[0] = Object3D_Load("../models/debug_indices.obj", "shadow");
     loadIdentity(scene->objects[0].matrix);
     scale(scene->objects[0].matrix, 10, 10, 10);
     translate(scene->objects[0].matrix, 0, 0.01, 0);

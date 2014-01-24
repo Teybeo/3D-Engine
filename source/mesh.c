@@ -111,14 +111,13 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
 
     indexAttribs(&vertices, &normals, &uvs, nbVertices, &indices, &nb_uniq_vertices);
 
-    Mesh_CreateVBO2(mesh, vertices, normals, uvs, nbVertices);
+    Mesh_CreateVBO2(mesh, vertices, normals, uvs, nb_uniq_vertices);
     Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nb_uniq_vertices, sizeof(Vec3)*nb_uniq_vertices * 2}, (int[3]){3, 3, 2});
 
     glBindVertexArray(mesh->vao);
     glGenBuffers(1, &mesh->vbo_indices);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vbo_indices);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, nbVertices * sizeof(int), indices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     free(vertices);
@@ -133,7 +132,7 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
 // Charge un mesh défini dans carre.h ou cube.h
 Mesh* Mesh_LoadBuiltin(int type) {
 
-    Mesh* mesh = malloc(sizeof(Mesh));
+    Mesh* mesh = calloc(1, sizeof(Mesh));
     mesh->nb = 1;
     mesh->drawStart = malloc(sizeof(int));
     mesh->drawCount = malloc(sizeof(int));
@@ -256,12 +255,17 @@ Material Material_GetDefault() {
     return mat;
 }
 
-int searchVec3(Vec3* array, int nb, Vec3 data) {
+int search_vertex(Vec3* new_vertices, Vec3* new_normals, Vec2* new_uvs, Vec3 vertex, Vec3 normal, Vec2 uv, int uniq_vertices)
+{
 
     int i;
-    for (i = 0 ; i < nb ; i++ )
-        if (memcmp(&array[i], &data, sizeof(Vec3)) == 0)
-            return i;
+    for (i = 0 ; i < uniq_vertices ; i++ )
+    {
+        if (Vec3_Equal(new_vertices[i], vertex) &&
+            Vec3_Equal(new_normals[i], normal) &&
+            Vec2_Equal(new_uvs[i], uv))
+                return i;
+    }
 
     return -1;
 }
@@ -271,7 +275,7 @@ int searchVec2(Vec2* array, int nb, Vec2 data) {
     int i;
     for (i = 0 ; i < nb ; i++ )
         if (memcmp(&array[i], &data, sizeof(Vec2)) == 0)
-            return i;
+            return i + 1;
 
     return -1;
 }
@@ -288,33 +292,29 @@ void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, i
     // Par contre cette taille est correcte
     int* indices = malloc(sizeof(int) * nbVertices);
 
-    int pos_vertex_stored = 0;
-    int pos_normal_stored = 0;
-    int pos_uv_stored = 0;
+    int index;
 
     int uniq_vertices = 0;
 
     int i;
     for (i = 0 ; i < nbVertices ; i++ )
     {
-        // On regarde si un vertex avec ces 3 attributs existe déjà
-        pos_vertex_stored = searchVec3(new_vertices, uniq_vertices, (*vertices)[i]);
-        pos_normal_stored = searchVec3(new_normals, uniq_vertices, (*normals)[i]);
-        pos_uv_stored = searchVec2(new_uvs, uniq_vertices, (*uvs)[i]);
+        // On cherche la combinaison des 3 attributs d'un vertex dans les nouveaux tableaux
+        index = search_vertex(new_vertices, new_normals, new_uvs, (*vertices)[i], (*normals)[i], (*uvs)[i], uniq_vertices);
 
-        // Si oui, on les indexe dans indices
-        if ((pos_vertex_stored == pos_normal_stored) && (pos_vertex_stored == pos_uv_stored) && pos_vertex_stored != 0)
-        {
-            indices[i] = pos_vertex_stored;
-        }
-        // Si non, on les enregistre et on les indexe
-        else
+        // Si pas trouvé, on rentre cette combinaison dans les nouveaux tableaux et on rentre son index
+        if (index == -1)
         {
             new_vertices[uniq_vertices] = (*vertices)[i];
             new_normals[uniq_vertices] = (*normals)[i];
             new_uvs[uniq_vertices] = (*uvs)[i];
             indices[i] = uniq_vertices;
             uniq_vertices++;
+        }
+        // Si trouvé, alors on a juste à rentrer l'index de la combinaison
+        else
+        {
+            indices[i] = index;
         }
 
     }
