@@ -5,8 +5,7 @@ in vec3 fNormal_view;
 in vec2 texCoord;
 in mat4 fWorldToView;
 
-layout(binding = 0) uniform sampler2D tex_color;
-layout(binding = 2) uniform sampler2D shadowMap;
+layout(binding = 0) uniform sampler2D colorTex;
 
 uniform vec3 lightPos[10];
 uniform vec3 lightColor[10];
@@ -38,6 +37,7 @@ void main() {
 
     vec3 diffColor = vec3(0);
     vec3 specColor = vec3(0);
+
     normal_view = normalize(fNormal_view);
 
     for (int i = 0; i < 10 ; i++)
@@ -52,8 +52,8 @@ void main() {
     diffColor += computeDiffuse(sun);
     specColor += computeSpecular(sun);
 
-    outputColor = (texture(tex_color, texCoord).rgb * diffColor * matDiff) + (specColor * matSpec);
-//    outputColor = (texture(shadowMap, texCoord).rgb*2-1);
+    outputColor = (texture(colorTex, texCoord).rgb * diffColor * matDiff) + (specColor * matSpec);
+//    outputColor = texture(tex_color, texCoord).rgb;
 //    outputColor = normal_view;
 //    outputColor = lightPos[6];
 //    outputColor = fPosition_view;
@@ -83,7 +83,8 @@ Light computeDirectionalLight(vec3 lightDirection, vec3 color) {
     Light direcLight;
     direcLight.surfaceToLight = normalize(lightDirection); // Lumière à l'infini
     direcLight.color = color;
-    direcLight.intensity = 1.;
+    direcLight.intensity = 1;
+
     return direcLight;
 }
 

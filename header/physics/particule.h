@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 
-#include "object3d.h"
 #include "utils/vec3.h"
 
 typedef struct Particule {

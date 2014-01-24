@@ -73,7 +73,7 @@ void draw_corps(Robot* robot) {
     scale(robot->partie[CORPS].matrix, 1.8, 1.8, 1.8);
 }
 
-void Robot_draw(Robot* robot, float* worldCam, float* camClip) {
+void Robot_draw(Robot* robot, Renderer* renderer) {
 
     draw_jambe(robot, JAMBE_DROITE);
     draw_jambe(robot, JAMBE_GAUCHE);
@@ -88,14 +88,14 @@ void Robot_draw(Robot* robot, float* worldCam, float* camClip) {
     for (i = 0 ; i < PARTIE_NB; i++ )
     {
         Mat_Mul_GaucheVersDroite2(robot->partie[i].matrix, robot->matrix);
-        Object3D_Draw(robot->partie[i], false, worldCam, camClip, NULL);
+        Object3D_Draw(robot->partie[i], renderer);
     }
 
 }
 
 bool Robot_init(Robot* robot, const char* shader) {
 
-    GLuint jambeTex = chargerTexture("../images/steve3.png", GL_NEAREST);
+    GLuint jambeTex = chargerTexture("../images/stone.png", GL_NEAREST);
     if (jambeTex == 0)
         return false;
 

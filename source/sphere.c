@@ -44,7 +44,7 @@ void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction) {
         sphereGroupe->nbSpheres++;
 }
 
-void SphereGroupe_Draw(SphereGroupe sphereGroupe, bool onlyDepth, float* mondeToCam, float* camToClip, Shader* depthShader) {
+void SphereGroupe_Draw(SphereGroupe sphereGroupe, Renderer* renderer) {
 
     Object3D balleObject3D = Object3D_Create(sphereGroupe.mesh, sphereGroupe.shader->name, sphereGroupe.texture);
 
@@ -55,16 +55,16 @@ void SphereGroupe_Draw(SphereGroupe sphereGroupe, bool onlyDepth, float* mondeTo
         translateByVec(balleObject3D.matrix, sphereGroupe.collisionData[i].sphere.particule.position);
         scale(balleObject3D.matrix, sphereGroupe.collisionData[i].sphere.rayon, sphereGroupe.collisionData[i].sphere.rayon, sphereGroupe.collisionData[i].sphere.rayon);
 
-        Object3D_Draw(balleObject3D, onlyDepth, mondeToCam, camToClip, depthShader);
+        Object3D_Draw(balleObject3D, renderer);
     }
 }
 
-void Sphere_Draw(Sphere sphere, float* mondeToCam, float* camToClip) {
+void Sphere_Draw(Sphere sphere, Renderer* renderer) {
 
     loadIdentity(sphere.object.matrix);
     translateByVec(sphere.object.matrix, sphere.collisionData.particule.position);
     scale(sphere.object.matrix, sphere.collisionData.rayon, sphere.collisionData.rayon, sphere.collisionData.rayon);
-    Object3D_Draw(sphere.object, false, mondeToCam, camToClip, NULL);
+    Object3D_Draw(sphere.object, renderer);
 }
 
 //Sphere* initGroupeSphere(Object3D object, int nombre) {

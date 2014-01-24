@@ -30,9 +30,9 @@ void Scene_Update(Scene* scene, float duree) {
     scene->lampe[4].pos.z = -400;
     scene->lampe[4].pos.y = 20 + 20*sin(t*0.1);
 
-    scene->lampe[5].pos.x = 50*cos(t+0.4);
-    scene->lampe[5].pos.z = 50*sin(t+.6);
-    scene->lampe[5].pos.y = 30 + 20*sin(t*0.8);
+    scene->lampe[5].pos.x = 50*cos((t*0.2)+0.6);
+    scene->lampe[5].pos.z = 50*sin((t*0.2)+.6);
+    scene->lampe[5].pos.y = 30;
 
     int i;
     for (i = 0 ; i < 6 ; i++ )
@@ -50,15 +50,15 @@ void Scene_Update(Scene* scene, float duree) {
 //        translate(scene->objects[i].matrix, 0.1*i, 5, 5);
     }*/
 
-//    float scaleFactor;
-//    for (i = 0 ; i < scene->groupe.nbObject3Ds ; i++ )
-//    {
-//        scaleFactor = 3+(i/100);
-//        loadIdentity(scene->groupe.matrix[i]);
-//        translate(scene->groupe.matrix[i], 400*sin(0.1*i - t), 5 + i/10., 400*cos(i+-t));
-//        scale(scene->groupe.matrix[i], scaleFactor, scaleFactor, scaleFactor);
-//        transpose(scene->groupe.matrix[i]);
-//    }
+    float scaleFactor;
+    for (i = 0 ; i < scene->groupe.nbObject3Ds ; i++ )
+    {
+        scaleFactor = 3+(i/100);
+        loadIdentity(scene->groupe.matrix[i]);
+        translate(scene->groupe.matrix[i], 400*sin(0.1*i - t), 5 + i/10., 400*cos(i+-t));
+        scale(scene->groupe.matrix[i], scaleFactor, scaleFactor, scaleFactor);
+        transpose(scene->groupe.matrix[i]);
+    }
 
 //    scene->planes[0].collisionData->plan.angleZ = 5*cos(t/2.);
 //    scene->planes[0].collisionData->plan.angleX = 5*sin(t/2.);
@@ -121,7 +121,7 @@ bool Scene_Init(Scene* scene) {
     scale(scene->objects[1].matrix, 5, 5, 5);
     translate(scene->objects[1].matrix, 2.1, -1.1, -3);
 
-    scene->objects[0] = Object3D_Load("../models/totem.obj", "normalMap");
+    scene->objects[0] = Object3D_Load("../models/totemok.obj", "normalMap");
     loadIdentity(scene->objects[0].matrix);
     scale(scene->objects[0].matrix, 10, 10, 10);
     translate(scene->objects[0].matrix, 0, 0.01, 0);

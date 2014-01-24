@@ -15,7 +15,7 @@ Plan Plan_Create(Mesh* mesh, CollisionPlan collisionPlan, const char* shader, GL
 
 }
 
-void Plan_Draw(Plan plan, float* mondeToCam, float* camToClip) {
+void Plan_Draw(Plan plan, Renderer* renderer) {
 
     loadIdentity(plan.object.matrix);
 
@@ -23,7 +23,7 @@ void Plan_Draw(Plan plan, float* mondeToCam, float* camToClip) {
     scale(plan.object.matrix, plan.collisionData->plan.xLength, plan.collisionData->plan.xLength, plan.collisionData->plan.zLength);
     rotate(plan.object.matrix, plan.collisionData->plan.angleX, plan.collisionData->plan.angleY, plan.collisionData->plan.angleZ);
 
-    Object3D_Draw(plan.object, false, mondeToCam, camToClip, NULL);
+    Object3D_Draw(plan.object, renderer);
 }
 
 void Plan_RotateBase(Plan* plan) {

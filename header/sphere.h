@@ -2,6 +2,8 @@
 #define _SPHERE_GUARD
 
 #include "physics/collision.h"
+#include "object3d.h"
+
 #define NB_BALLS_MAX 20
 
 typedef struct Sphere {
@@ -22,12 +24,14 @@ typedef struct SphereGroupe {
 
 } SphereGroupe;
 
+typedef struct _Renderer Renderer;
+
 SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, const char* shader, GLuint texture);
-void SphereGroupe_Draw(SphereGroupe sphereGroupe, bool onlyDepth, float* mondeToCam, float* camToClip, Shader* depthShader);
+void SphereGroupe_Draw(SphereGroupe sphereGroupe, Renderer* renderer);
 void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction);
 void SphereGroupe_Randomize(SphereGroupe* groupe);
 
-void Sphere_Draw(Sphere sphere, float* mondeToCam, float* camToClip);
+void Sphere_Draw(Sphere sphere, Renderer* renderer);
 Sphere* initGroupeSphere(Object3D object, int nombre);
 
 #endif // SPHERE

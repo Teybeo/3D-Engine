@@ -130,7 +130,7 @@ void Container_Process(CollisionObject** objet, int nb, float duree, bool const 
             if (objet[i]->type == COLLISION_SPHERE)
             {
                 Particule_Integre(&objet[i]->sphere.particule, duree);
-//                resoudCollisionCercleMur(&objet[i]->sphere);
+                resoudCollisionCercleMur(&objet[i]->sphere);
             }
 
             for (j = i + 1; j < nb; j++) {

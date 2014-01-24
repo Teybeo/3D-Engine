@@ -43,7 +43,7 @@ void Bullet_Add(BulletGroupe* bulletGroupe, Vec3 position, Vec3 direction) {
         bulletGroupe->nbBullets++;
 }
 
-void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camToClip) {
+void BulletGroupe_Draw(BulletGroupe bulletGroupe, Renderer* renderer) {
 
     Object3D bulletObject3D = Object3D_Create(bulletGroupe.mesh, bulletGroupe.shader->name, bulletGroupe.texture);
     Vec3 color = {1, 1, 0};
@@ -60,14 +60,14 @@ void BulletGroupe_Draw(BulletGroupe bulletGroupe, float* mondeToCam, float* camT
         sprintf(name, "lightColor[%d]", i+6);
         glUniform3fv(glGetUniformLocation(bulletGroupe.shader->id, name), 1, &color.x);
 
-        Object3D_Draw(bulletObject3D, false, mondeToCam, camToClip, NULL);
+        Object3D_Draw(bulletObject3D, renderer);
     }
 }
 
-void Bullet_Draw(Bullet bullet, float* mondeToCam, float* camToClip) {
+void Bullet_Draw(Bullet bullet, Renderer* renderer) {
 
     loadIdentity(bullet.object.matrix);
     translateByVec(bullet.object.matrix, bullet.collisionData.particule.position);
     scale(bullet.object.matrix, bullet.collisionData.rayon, bullet.collisionData.rayon, bullet.collisionData.rayon);
-    Object3D_Draw(bullet.object, false, mondeToCam, camToClip, NULL);
+    Object3D_Draw(bullet.object, renderer);
 }

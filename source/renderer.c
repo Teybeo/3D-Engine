@@ -80,19 +80,24 @@ void Renderer_Render(Renderer* renderer) {
     else
         translateByVec(scene->skybox.matrix, scene->player.posRobot);
     scale(scene->skybox.matrix, 2000, 2000, 2000);
-    Object3D_Draw(scene->skybox, false, scene->player.mondeToCam, renderer->camToClip, NULL);
+    Object3D_Draw(scene->skybox, renderer);
 
 }
 
 void Renderer_GenerateShadowMap(Renderer* renderer) {
+
+    renderer->depth_rendering = true;
 
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->framebuffer);
     glViewport(0, 0, SHADOWMAP_W, SHADOWMAP_H);
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glCullFace(GL_FRONT);
         // Render shadowmap for object 0
-        Object3D_Draw(renderer->scene->objects[0], true, renderer->depth_mondeToCam, renderer->depth_camToProj, ShaderLibrary_Get("depth"));
-        SphereGroupe_Draw(renderer->scene->sphere, true, renderer->depth_mondeToCam, renderer->depth_camToProj, ShaderLibrary_Get("depth"));
+        Object3D_Draw(renderer->scene->objects[0], renderer);
+        SphereGroupe_Draw(renderer->scene->sphere, renderer);
+
+    renderer->depth_rendering = false;
+
 }
 
 void Renderer_RenderMeshesShadowed(Renderer* renderer) {
@@ -115,18 +120,18 @@ void Renderer_RenderMeshesShadowed(Renderer* renderer) {
     Shader_SendUniform(ShaderLibrary_Get("normalMap"), "depth_mvp", GL_FLOAT_MAT4, MatxMat_GaucheVersDroite(renderer->depth_mondeToCam, renderer->depth_camToProj));
 
     // Render object 0 with shadows
-    Object3D_Draw(scene->objects[0], false, scene->player.mondeToCam, renderer->camToClip, NULL);
-    Plan_Draw(scene->planes[0], scene->player.mondeToCam, renderer->camToClip);
+    Object3D_Draw(scene->objects[0], renderer);
+    Plan_Draw(scene->planes[0], renderer);
 
     int i;
     for (i = 0 ; i < 6 ; i++ )
-        Object3D_Draw(scene->lampe[i].object, false, scene->player.mondeToCam, renderer->camToClip, NULL);
+        Object3D_Draw(scene->lampe[i].object, renderer);
 
-    Robot_draw(scene->robot, scene->player.mondeToCam, renderer->camToClip);
+    Robot_draw(scene->robot, renderer);
 
-    SphereGroupe_Draw(scene->sphere, false, scene->player.mondeToCam, renderer->camToClip, NULL);
-    BulletGroupe_Draw(scene->bullet, scene->player.mondeToCam, renderer->camToClip);
-//    Object3DGroupe_Draw(scene->groupe, scene->player.mondeToCam, renderer->camToClip);
+    SphereGroupe_Draw(scene->sphere, renderer);
+    BulletGroupe_Draw(scene->bullet, renderer);
+    Object3DGroupe_Draw(scene->groupe, renderer);
 
 }
 
@@ -187,6 +192,7 @@ void updateShadowMatrix(Renderer* renderer) {
 
     Shader_SendUniform(ShaderLibrary_Get("shadow"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
     Shader_SendUniform(ShaderLibrary_Get("perFragment"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
+    Shader_SendUniform(ShaderLibrary_Get("instance"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
     Shader_SendUniform(ShaderLibrary_Get("normalMap"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
 
     angleY += 0.1;

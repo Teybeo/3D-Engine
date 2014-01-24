@@ -43,7 +43,7 @@ void main() {
     vec3 diffColor = vec3(0.0);
     vec3 specColor = vec3(0);
     normal_view = normalize(fNormal_view);
-//    normal_view = normalize(texture(normalTex, texCoord).rgb*2 -1) ;
+    normal_view = normalize(texture(normalTex, texCoord).rgb*2 -1) ;
 //    fPosition_view = fViewToTangent * fPosition_view;
     for (int i = 0; i < 10 ; i++)
     {

@@ -2,6 +2,7 @@
 #define _PLAN_GUARD
 
 #include "physics/collision.h"
+#include "object3d.h"
 #include "utils/matrix.h"
 #include "shader.h"
 
@@ -12,7 +13,9 @@ typedef struct Plan {
 
 } Plan;
 
-void Plan_Draw(Plan plan, float* mondeToCam, float* camToClip);
+
+
+void Plan_Draw(Plan plan, Renderer* renderer);
 Plan Plan_Create(Mesh* mesh, CollisionPlan collisionPlan, const char* shader, GLuint texture);
 void Plan_RotateBase(Plan* plan);
 

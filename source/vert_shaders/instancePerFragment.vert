@@ -10,26 +10,21 @@ uniform mat4 worldCam;
 uniform mat4 camClip;
 
 out vec2 texCoord;
-out vec3 normal;
-out vec3 position;
-out vec3 camNormal;
-out mat4 frag_worldCam;
+out vec3 fNormal_view;
+out vec3 fPosition_view;
+out mat4 fWorldToView;
 
 void main(void){
 
     texCoord = attrTexcoord;
 
-    position = vec3(attrModelWorld * attrPosition);
+    fPosition_view = vec3(worldCam * attrModelWorld * attrPosition);
 
-    vec4 temp = attrModelWorld * vec4(attrNormal, 0);
+    fNormal_view = vec3(normalize(worldCam * attrModelWorld * vec4(attrNormal, 0)));
 
-    normal = normalize( vec3(temp) );
+    fWorldToView = worldCam;
 
-    camNormal  = normalize( vec3(worldCam * temp) );
-
-    frag_worldCam = worldCam;
-
-    gl_Position = camClip * worldCam * vec4(position, 1);
+    gl_Position = camClip * vec4(fPosition_view, 1);
 }
 
 
