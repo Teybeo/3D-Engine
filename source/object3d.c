@@ -66,7 +66,8 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
         if (renderer->depth_rendering == false)
             SendMaterial(shader, &object.mesh->material[i], renderer);
 
-        if (object.mesh->material[0].hasNormal == true && (renderer->debug_tangents || renderer->debug_bitangents || renderer->debug_normals))
+        if (object.mesh->material[0].hasNormal == true && (renderer->debug_tangents || renderer->debug_bitangents || renderer->debug_normals)
+            && object.mesh->vbo_indices == 0)
         {
             Shader* debug_shader = ShaderLibrary_Get("noTexNoLight");
             glUseProgram(debug_shader->id);
@@ -112,7 +113,7 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
             glEnd();
             glUseProgram(renderer->currentShader);
         }
-        if (renderer->debug_wireframe == true && object.mesh->vertices != NULL)
+        if (renderer->debug_wireframe == true && object.mesh->vertices != NULL && object.mesh->vbo_indices == 0)
         {
             Shader* debug_shader = ShaderLibrary_Get("noTexNoLight");
             glUseProgram(debug_shader->id);
@@ -140,6 +141,8 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
             glUseProgram(renderer->currentShader);
 
         }
+        else if (object.mesh->vbo_indices != 0)
+            glDrawElements(object.mesh->primitiveType, object.mesh->drawCount[i], GL_UNSIGNED_INT, NULL+object.mesh->drawStart[i]*4);
         else
             glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart[i], object.mesh->drawCount[i]);
     }
@@ -201,8 +204,10 @@ void Object3DGroupe_Draw(Object3DGroupe groupe, Renderer* renderer) {
     for (i = 0 ; i < groupe.mesh->nb ; i++ )
     {
         SendMaterial(groupe.shader, &groupe.mesh->material[i], renderer);
-
-        glDrawArraysInstanced(groupe.mesh->primitiveType, groupe.mesh->drawStart[i], groupe.mesh->drawCount[i], groupe.nbObject3Ds);
+        if (groupe.mesh->vbo_indices != 0)
+            glDrawElementsInstanced(groupe.mesh->primitiveType, groupe.mesh->drawCount[i], GL_UNSIGNED_INT, NULL+groupe.mesh->drawStart[i]*4, groupe.nbObject3Ds);
+        else
+            glDrawArraysInstanced(groupe.mesh->primitiveType, groupe.mesh->drawStart[i], groupe.mesh->drawCount[i], groupe.nbObject3Ds);
     }
 }
 

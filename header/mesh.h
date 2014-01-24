@@ -8,6 +8,8 @@
 
 #include <stdbool.h>
 
+#define INDEXED_GEOMETRY 1
+
 typedef enum MeshType {
 
     MESH_CARRE,
@@ -41,6 +43,7 @@ typedef struct Mesh {
 
     GLuint vao;
     GLuint vbo;
+    GLuint vbo_indices;
     GLenum primitiveType;
     int nb;
     GLint* drawStart;
@@ -50,6 +53,7 @@ typedef struct Mesh {
     Vec3* bitangents;
     Vec3* normals;
     Vec3* vertices;
+    int* indices;
 
 } Mesh;
 
@@ -59,7 +63,8 @@ Mesh* Mesh_FullLoad(const char* filename, char* texFile);
 void Mesh_Draw(Mesh* model);
 Material Material_GetDefault();
 Material* desindexeMaterial(Material* material, int nbMat, char** mtlRef, int nbRef);
-
+void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, int** indices_out, int* uniq_vertices_out);
+void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangents, Vec3** bitangents, int nbVertices, int** indices_out, int* uniq_vertices_out);
 
 #endif // MODEL
 

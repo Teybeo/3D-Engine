@@ -78,6 +78,20 @@ void Mesh_CreateVBO3(Mesh* mesh, Vec3* vertices, Vec3* normals, Vec3* tangents, 
 
 }
 
+void Mesh_CreateIndexVBO(Mesh* mesh, int* indices, int nb) {
+
+    glGenBuffers(1, &mesh->vbo_indices);
+
+    glBindVertexArray(mesh->vao);
+
+    // Le binding du buffer a element_array_buffer est enregistré dans le vao
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vbo_indices);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * nb, indices, GL_STATIC_DRAW);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+}
 
 Mesh* Mesh_Load(const char* filename) {
 
@@ -126,34 +140,54 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
     mesh->primitiveType = GL_TRIANGLES;
     mesh->nb = nbObjects;
 
+    int* indices = NULL;
+    int nb_uniq_vertices = 0;
+
     if (mesh->material[0].hasNormal == true)
     {
         Vec3* tangents = malloc(sizeof(Vec3) * nbVertices);
         Vec3* bitangents = malloc(sizeof(Vec3) * nbVertices);
         computeTangentSpace(vertices, normals, uvs, nbVertices, tangents, bitangents);
-        Mesh_CreateVBO3(mesh, vertices, normals, tangents, bitangents, uvs, nbVertices);
-        Mesh_CreateVAO(mesh, 5, (int[5]){0, 1, 3, 4, 2}, (int[5]){0, sizeof(Vec3)*nbVertices, sizeof(Vec3)*nbVertices*2, sizeof(Vec3)*nbVertices*3, sizeof(Vec3)*nbVertices*4}, (int[5]){3, 3, 3, 3, 2});
+
+        if (INDEXED_GEOMETRY)
+        {
+            indexAttribs_TBN(&vertices, &normals, &uvs, &tangents, &bitangents, nbVertices, &indices, &nb_uniq_vertices);
+            Mesh_CreateVBO3(mesh, vertices, normals, tangents, bitangents, uvs, nb_uniq_vertices);
+            Mesh_CreateVAO(mesh, 5, (int[5]){0, 1, 3, 4, 2}, (int[5]){0, sizeof(Vec3)*nb_uniq_vertices, sizeof(Vec3)*nb_uniq_vertices*2, sizeof(Vec3)*nb_uniq_vertices*3, sizeof(Vec3)*nb_uniq_vertices*4}, (int[5]){3, 3, 3, 3, 2});
+            Mesh_CreateIndexVBO(mesh, indices, nbVertices);
+
+        }
+        else
+        {
+            Mesh_CreateVBO3(mesh, vertices, normals, tangents, bitangents, uvs, nbVertices);
+            Mesh_CreateVAO(mesh, 5, (int[5]){0, 1, 3, 4, 2}, (int[5]){0, sizeof(Vec3)*nbVertices, sizeof(Vec3)*nbVertices*2, sizeof(Vec3)*nbVertices*3, sizeof(Vec3)*nbVertices*4}, (int[5]){3, 3, 3, 3, 2});
+        }
+
         mesh->bitangents = bitangents;
         mesh->tangents = tangents;
         mesh->normals = normals;
-        mesh->vertices = vertices;
-//        free(tangents);
-//        free(bitangents);
+    }
+    else if (INDEXED_GEOMETRY)
+    {
+        indexAttribs(&vertices, &normals, &uvs, nbVertices, &indices, &nb_uniq_vertices);
+        Mesh_CreateVBO2(mesh, vertices, normals, uvs, nb_uniq_vertices);
+        Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nb_uniq_vertices, sizeof(Vec3)*nb_uniq_vertices * 2}, (int[3]){3, 3, 2});
+        Mesh_CreateIndexVBO(mesh, indices, nbVertices);
     }
     else
     {
-        mesh->bitangents = NULL;
-        mesh->tangents = NULL;
-        mesh->normals = NULL;
-        mesh->vertices = vertices;
         Mesh_CreateVBO2(mesh, vertices, normals, uvs, nbVertices);
         Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nbVertices, (sizeof(Vec3)*nbVertices) + sizeof(Vec3)*nbVertices}, (int[3]){3, 3, 2});
     }
+
+    mesh->vertices = vertices;
+    mesh->indices = indices;
 
 //    free(vertices);
 //    free(normals);
     free(uvs);
     free(range);
+//    free(indices);
 
     return mesh;
 }
@@ -284,4 +318,156 @@ Material Material_GetDefault() {
     mat.normalMap = 0;
 
     return mat;
+}
+
+int search_vertex(Vec3* new_vertices, Vec3* new_normals, Vec2* new_uvs, Vec3 vertex, Vec3 normal, Vec2 uv, int uniq_vertices)
+{
+
+    int i;
+    for (i = 0 ; i < uniq_vertices ; i++ )
+    {
+        if (Vec3_Equal(new_vertices[i], vertex) &&
+            Vec3_Equal(new_normals[i], normal) &&
+            Vec2_Equal(new_uvs[i], uv))
+                return i;
+    }
+
+    return -1;
+}
+
+int search_vertex_TBN(Vec3* new_vertices, Vec3* new_normals, Vec2* new_uvs, Vec3* new_tangents, Vec3* new_bitangents, Vec3 vertex, Vec3 normal, Vec2 uv, Vec3 tangent, Vec3 bitangent, int uniq_vertices)
+{
+
+    int i;
+    for (i = 0 ; i < uniq_vertices ; i++ )
+    {
+        if (Vec3_Equal(new_vertices[i], vertex) &&
+            Vec3_Equal(new_normals[i], normal) &&
+            Vec2_Equal(new_uvs[i], uv) &&
+            Vec3_Equal(new_tangents[i], tangent) &&
+            Vec3_Equal(new_bitangents[i], bitangent))
+                return i;
+    }
+
+    return -1;
+}
+
+void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, int** indices_out, int* uniq_vertices_out) {
+
+    // On crée des nouveaux tableaux de même taille que les anciens pour être sur que les données rentreront
+    // Au final seulement 70-80% de l'espace sera utilisé mais ils seront redimensionnés à la fin de la fonction
+    // On fait cela car on suppose que des listes chainées auraient été plus lentes
+    Vec3* new_vertices = malloc(sizeof(Vec3) * nbVertices);
+    Vec3* new_normals = malloc(sizeof(Vec3) * nbVertices);
+    Vec2* new_uvs = malloc(sizeof(Vec2) * nbVertices);
+
+    // Par contre cette taille est correcte
+    int* indices = malloc(sizeof(int) * nbVertices);
+
+    int index;
+
+    int uniq_vertices = 0;
+
+    int i;
+    for (i = 0 ; i < nbVertices ; i++ )
+    {
+        // On cherche la combinaison des 3 attributs d'un vertex dans les nouveaux tableaux
+        index = search_vertex(new_vertices, new_normals, new_uvs, (*vertices)[i], (*normals)[i], (*uvs)[i], uniq_vertices);
+
+        // Si pas trouvé, on rentre cette combinaison dans les nouveaux tableaux et on rentre son index
+        if (index == -1)
+        {
+            new_vertices[uniq_vertices] = (*vertices)[i];
+            new_normals[uniq_vertices] = (*normals)[i];
+            new_uvs[uniq_vertices] = (*uvs)[i];
+            indices[i] = uniq_vertices;
+            uniq_vertices++;
+        }
+        // Si trouvé, alors on a juste à rentrer l'index de la combinaison
+        else
+        {
+            indices[i] = index;
+        }
+
+    }
+
+    new_vertices = realloc(new_vertices, sizeof(Vec3) * uniq_vertices);
+    new_normals = realloc(new_normals, sizeof(Vec3) * uniq_vertices);
+    new_uvs = realloc(new_uvs, sizeof(Vec2) * uniq_vertices);
+
+    *indices_out = indices;
+    *uniq_vertices_out = uniq_vertices;
+    free(*vertices);
+    free(*normals);
+    free(*uvs);
+    *vertices = new_vertices;
+    *normals = new_normals;
+    *uvs = new_uvs;
+
+}
+
+void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangents, Vec3** bitangents, int nbVertices, int** indices_out, int* uniq_vertices_out/*, int const* const vertex_offsets*/) {
+
+    // On crée des nouveaux tableaux de même taille que les anciens pour être sur que les données rentreront
+    // Au final seulement 70-80% de l'espace sera utilisé mais ils seront redimensionnés à la fin de la fonction
+    // On fait cela car on suppose que des listes chainées auraient été plus lentes
+    Vec3* new_vertices = malloc(sizeof(Vec3) * nbVertices);
+    Vec3* new_normals = malloc(sizeof(Vec3) * nbVertices);
+    Vec2* new_uvs = malloc(sizeof(Vec2) * nbVertices);
+    Vec3* new_tangents = malloc(sizeof(Vec3) * nbVertices);
+    Vec3* new_bitangents = malloc(sizeof(Vec3) * nbVertices);
+//    int* offset_index = malloc()
+
+    // Par contre cette taille est correcte
+    int* indices = malloc(sizeof(int) * nbVertices);
+
+    int index;
+
+    int uniq_vertices = 0;
+
+    int i;
+    for (i = 0 ; i < nbVertices ; i++ )
+    {
+        // On cherche la combinaison des 3 attributs d'un vertex dans les nouveaux tableaux
+        index = search_vertex_TBN(new_vertices, new_normals, new_uvs, new_tangents, new_bitangents,
+                                (*vertices)[i], (*normals)[i], (*uvs)[i], (*tangents)[i], (*bitangents)[i], uniq_vertices);
+        printf("end search %d\n", i);
+        // Si pas trouvé, on rentre cette combinaison dans les nouveaux tableaux et on rentre son index
+        if (index == -1)
+        {
+            new_vertices[uniq_vertices] = (*vertices)[i];
+            new_normals[uniq_vertices] = (*normals)[i];
+            new_uvs[uniq_vertices] = (*uvs)[i];
+            new_tangents[uniq_vertices] = (*tangents)[i];
+            new_bitangents[uniq_vertices] = (*bitangents)[i];
+            indices[i] = uniq_vertices;
+            uniq_vertices++;
+        }
+        // Si trouvé, alors on a juste à rentrer l'index de la combinaison
+        else
+        {
+            indices[i] = index;
+        }
+
+    }
+
+    new_vertices = realloc(new_vertices, sizeof(Vec3) * uniq_vertices);
+    new_normals = realloc(new_normals, sizeof(Vec3) * uniq_vertices);
+    new_uvs = realloc(new_uvs, sizeof(Vec2) * uniq_vertices);
+    new_tangents = realloc(new_tangents, sizeof(Vec3) * uniq_vertices);
+    new_bitangents = realloc(new_bitangents, sizeof(Vec3) * uniq_vertices);
+
+    *indices_out = indices;
+    *uniq_vertices_out = uniq_vertices;
+    free(*vertices);
+    free(*normals);
+    free(*uvs);
+    free(*tangents);
+    free(*bitangents);
+    *vertices = new_vertices;
+    *normals = new_normals;
+    *uvs = new_uvs;
+    *tangents = new_tangents;
+    *bitangents = new_bitangents;
+
 }

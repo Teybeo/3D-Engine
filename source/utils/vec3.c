@@ -71,6 +71,13 @@ inline void Vec3_Mul(Vec3 *p, Vec3 a) {
     p->z *= a.z;
 }
 
+bool Vec3_Equal(Vec3 a, Vec3 b) {
+
+    return memcmp(&a, &b, sizeof(Vec3));
+
+}
+
+
 inline float Vec3_Length(Vec3 vec) {
 
 //    return sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);

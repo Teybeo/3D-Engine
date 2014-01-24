@@ -5,3 +5,5 @@
 *.objraw
 *.objunpacked
 *.db
+images
+models
