@@ -50,16 +50,12 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add directory="header" />
-			<Add directory="header/SDL2_image" />
-			<Add directory="header/SDL2" />
-			<Add directory="header/Glew" />
 		</Compiler>
 		<Linker>
 			<Add library="SDL2_image" />
 			<Add library="glew32" />
 			<Add library="SDL2" />
 			<Add library="opengl32" />
-			<Add directory="bin" />
 		</Linker>
 		<Unit filename="header/app.h" />
 		<Unit filename="header/bullet.h" />
@@ -195,10 +191,11 @@
 			<code_completion />
 			<envvars />
 			<debugger />
-			<lib_finder disable_auto="1">
+			<lib_finder disable_auto="0">
 				<lib name="SDL2" />
 				<lib name="Glew" />
 				<lib name="OpenGL" />
+				<lib name="SDL2_image" />
 			</lib_finder>
 			<DoxyBlocks>
 				<comment_style block="0" line="0" />
