@@ -121,7 +121,7 @@ bool Scene_Init(Scene* scene) {
     scale(scene->objects[1].matrix, 5, 5, 5);
     translate(scene->objects[1].matrix, 2.1, -1.1, -3);
 
-    scene->objects[0] = Object3D_Load("../models/totem.obj", "normalMap");
+    scene->objects[0] = Object3D_Load("../models/totemok.obj", "normalMap");
     loadIdentity(scene->objects[0].matrix);
     scale(scene->objects[0].matrix, 10, 10, 10);
     translate(scene->objects[0].matrix, 0, 0.01, 0);
@@ -166,7 +166,7 @@ bool Scene_Init(Scene* scene) {
     if (sphere == NULL)
         return false;
 
-    Object3D light = Object3D_Create(sphere, "shadow", stoneTexture);
+    Object3D light = Object3D_Create(sphere, "normalMap", stoneTexture);
 
     for (i = 0 ; i < 6 ; i++ )
         scene->lampe[i].object = light;

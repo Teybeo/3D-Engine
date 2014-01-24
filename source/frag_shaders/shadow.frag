@@ -41,7 +41,6 @@ void main() {
     vec3 diffColor = vec3(0.0);
     vec3 specColor = vec3(0);
     normal_view = normalize(fNormal_view);
-//    normal_view += normalize((texture(normal, texCoord)));
 
     for (int i = 0; i < 10 ; i++)
     {
@@ -60,15 +59,18 @@ void main() {
         specColor += computeSpecular(sun);
     diffColor += (computeDiffuse(sun) * occlusion);
 
-    outputColor = (texture(colorTex, texCoord).rgb * diffColor * matDiff) + (specColor * matSpec);
+    vec3 color = texture(colorTex, texCoord).rgb;
+//    color = pow(color, vec3(1/2.2));
+    outputColor = (color * diffColor * matDiff) + (specColor * matSpec);
 //    outputColor = texture(colorTex, texCoord).rgba;
 //    outputColor = lightPos[6];
 //    outputColor = vec3(occlusion);
 //    outputColor = normal_view;
+//    outputColor = texture(normalTex, texCoord);
 //    outputColor = (sunDirection+1)/2;
 //    outputColor = shadow2D(shadowMap, (fPosition_clip_fromLight), 0.05);
 //    outputColor = vec3(fPosition_clip_fromLight.z+1)/2;
-
+//    outputColor = pow(outputColor, vec3(2.2));
 }
 
 #define ATTEN_CONST 1
@@ -119,6 +121,6 @@ vec3 computeSpecular(Light light) {
 
     // Plus les rayons refletés seront en direction de la caméra, plus il y aura de lumière à cet endroit
     // On est en espace caméra, cad que la caméra est en (0, 0, 0), donc la direction vers la caméra est surface - (0, 0, 0)
-    return light.intensity * light.color * pow( max( dot(reflectedLight, normalize(fPosition_view)), 0.), clamp(matShininess, 100., 1000));
+    return light.intensity * light.color * pow( max( dot(reflectedLight, normalize(fPosition_view)), 0.), clamp(matShininess, 10., 1000));
 }
 
