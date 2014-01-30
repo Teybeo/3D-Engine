@@ -29,7 +29,7 @@ void Vec2_Mul(Vec2 *p, Vec2 a) {
 
 bool Vec2_Equal(Vec2 a, Vec2 b) {
 
-    return memcmp(&a, &b, sizeof(Vec2));
+    return !memcmp(&a, &b, sizeof(Vec2));
 }
 
 void setVec2(Vec2* vec, float x, float y) {

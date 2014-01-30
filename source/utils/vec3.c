@@ -73,7 +73,7 @@ inline void Vec3_Mul(Vec3 *p, Vec3 a) {
 
 bool Vec3_Equal(Vec3 a, Vec3 b) {
 
-    return memcmp(&a, &b, sizeof(Vec3));
+    return !memcmp(&a, &b, sizeof(Vec3));
 
 }
 
