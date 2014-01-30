@@ -40,13 +40,10 @@ vec3 sunColor = vec3(1, .8, .7);
 
 void main() {
 
-    vec3 diffColor = vec3(0.0);
+    vec3 diffColor = vec3(0);
     vec3 specColor = vec3(0);
 
     normal_view = normalize(texture(normalTex, texCoord).rgb*2 -1) ;
-//    normal_view.z =   -normal_view.z;
-    normal_view.y =   -normal_view.y;
-//    normal_view.x =   -normal_view.x;
 
     for (int i = 0; i < 10 ; i++)
     {
@@ -62,7 +59,7 @@ void main() {
         occlusion = 0.;
 
     if (occlusion == 1)
-        specColor += computeSpecular(sun)*1;
+        specColor += computeSpecular(sun);
     diffColor += (computeDiffuse(sun) * occlusion);
 
     vec3 color = texture(colorTex, texCoord).rgb;
@@ -119,13 +116,17 @@ Light computePointLight(vec3 lightPos, vec3 color) {
 
 vec3 computeDiffuse(Light light) {
 
+    // Vérifier que la lumière n'est pas derrière la surface grâce aux normales de bases
+    if (dot(light.surfaceToLight, fViewToTangent * fNormal_view) <= 0)
+        return vec3(0);
+
     return light.color * (light.intensity * max(dot(light.surfaceToLight, normal_view), 0.));
 }
 
 vec3 computeSpecular(Light light) {
 
-    // Bricolage pour annuler certaines saturations (prob de normalisations ?)
-    if (dot(light.surfaceToLight, normal_view) <= 0)
+    // Vérifier que la lumière n'est pas derrière la surface grâce aux normales de bases
+    if (dot(light.surfaceToLight, fViewToTangent * fNormal_view) <= 0)
         return vec3(0);
 
     // On fait rebondir le rayon de lumière sur la surface grâce à sa normale
@@ -133,6 +134,6 @@ vec3 computeSpecular(Light light) {
 
     // Plus les rayons refletés seront en direction de la caméra, plus il y aura de lumière à cet endroit
     // On est en espace caméra, cad que la caméra est en (0, 0, 0), donc la direction vers la caméra est surface - (0, 0, 0)
-    return light.intensity * light.color * pow( max( dot(reflectedLight, normalize(fViewToTangent * fPosition_view)), 0.), clamp(matShininess, 100, 1000));
+    return light.intensity * light.color * pow( max( dot(reflectedLight, normalize(fViewToTangent * fPosition_view)), 0.), clamp(matShininess, 1, 128));
 }
 
