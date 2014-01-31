@@ -45,8 +45,8 @@ void Mesh_CreateVBO2(Mesh* mesh, Vec3* vertices, Vec3* normals, Vec2* uvs, int n
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
 
     int sizeVertices = sizeof(Vec3) * nb;
-    int sizeUvs      = sizeof(Vec2) * nb;
     int sizeNormals  = sizeof(Vec3) * nb;
+    int sizeUvs      = sizeof(Vec2) * nb;
 
     glBufferData(GL_ARRAY_BUFFER, sizeVertices + sizeNormals + sizeUvs, NULL, GL_STATIC_DRAW);
 
@@ -391,6 +391,8 @@ void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, i
 
     }
 
+    printf("\t%d vertices indexed out of %d -> %.2f%%\n", uniq_vertices, i, ((float)uniq_vertices/i)*100);
+
     new_vertices = realloc(new_vertices, sizeof(Vec3) * uniq_vertices);
     new_normals = realloc(new_normals, sizeof(Vec3) * uniq_vertices);
     new_uvs = realloc(new_uvs, sizeof(Vec2) * uniq_vertices);
@@ -416,7 +418,6 @@ void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangen
     Vec2* new_uvs = malloc(sizeof(Vec2) * nbVertices);
     Vec3* new_tangents = malloc(sizeof(Vec3) * nbVertices);
     Vec3* new_bitangents = malloc(sizeof(Vec3) * nbVertices);
-//    int* offset_index = malloc()
 
     // Par contre cette taille est correcte
     int* indices = malloc(sizeof(int) * nbVertices);
@@ -429,8 +430,9 @@ void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangen
     for (i = 0 ; i < nbVertices ; i++ )
     {
         // On cherche la combinaison des 3 attributs d'un vertex dans les nouveaux tableaux
-        index = search_vertex_TBN(new_vertices, new_normals, new_uvs, new_tangents, new_bitangents,
-                                (*vertices)[i], (*normals)[i], (*uvs)[i], (*tangents)[i], (*bitangents)[i], uniq_vertices);
+
+        index = search_vertex(new_vertices, new_normals, new_uvs, (*vertices)[i], (*normals)[i], (*uvs)[i], uniq_vertices);
+
         printf("end search %d\n", i);
         // Si pas trouvé, on rentre cette combinaison dans les nouveaux tableaux et on rentre son index
         if (index == -1)
@@ -450,6 +452,8 @@ void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangen
         }
 
     }
+
+    printf("\t%d vertices indexed out of %d -> %.2f%%\n", uniq_vertices, i, ((float)uniq_vertices/i)*100);
 
     new_vertices = realloc(new_vertices, sizeof(Vec3) * uniq_vertices);
     new_normals = realloc(new_normals, sizeof(Vec3) * uniq_vertices);

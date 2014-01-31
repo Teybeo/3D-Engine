@@ -46,8 +46,8 @@ typedef struct Mesh {
     GLuint vbo_indices;
     GLenum primitiveType;
     int nb;
-    GLint* drawStart;
-    GLint* drawCount;
+    GLint* drawStart; // Offset des attributs de sommet de chaque sub-mesh dans le vbo
+    GLint* drawCount; // Nombre de sommets de chaque sub-mesh
     Material* material;
     Vec3* tangents;
     Vec3* bitangents;
