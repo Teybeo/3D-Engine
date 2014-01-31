@@ -35,6 +35,8 @@ void SendMaterial(Shader* shader, Material* material, Renderer* renderer) {
 void Object3D_Draw(Object3D object, Renderer* renderer) {
 
     Shader* shader = object.shader;
+    Mesh* mesh = object.mesh;
+
     float* mondeToCam = renderer->scene->player.mondeToCam;
     float* camToClip = renderer->camToClip;
 
@@ -52,22 +54,22 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
         Shader_SendUniform(shader, "worldCam", GL_FLOAT_MAT4, mondeToCam);
         Shader_SendUniform(shader, "camClip", GL_FLOAT_MAT4, camToClip);
     }
-    if (object.mesh->vao != renderer->currentVAO)
+    if (mesh->vao != renderer->currentVAO)
     {
-        glBindVertexArray(object.mesh->vao);
-        renderer->currentVAO = object.mesh->vao;
+        glBindVertexArray(mesh->vao);
+        renderer->currentVAO = mesh->vao;
     }
 
     Shader_SendUniform(shader, "modelWorld", GL_FLOAT_MAT4, object.matrix);
 
     int i;
-    for (i = 0 ; i < object.mesh->nb ; i++ )
+    for (i = 0 ; i < mesh->nb ; i++ )
     {
         if (renderer->depth_rendering == false)
-            SendMaterial(shader, &object.mesh->material[i], renderer);
+            SendMaterial(shader, &mesh->material[i], renderer);
 
-        if (object.mesh->material[0].hasNormal == true && (renderer->debug_tangents || renderer->debug_bitangents || renderer->debug_normals)
-            && object.mesh->vbo_indices == 0)
+        if (mesh->material[0].hasNormal == true && (renderer->debug_tangents || renderer->debug_bitangents || renderer->debug_normals)
+            && mesh->vbo_indices == 0)
         {
             Shader* debug_shader = ShaderLibrary_Get("noTexNoLight");
             glUseProgram(debug_shader->id);
@@ -77,17 +79,17 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
 
             glBegin(GL_LINES);
             int j;
-            for (j=0; j < object.mesh->drawCount[i] ; j++)
+            for (j=0; j < mesh->drawCount[i] ; j++)
             {
-                int k = j + object.mesh->drawStart[i];
-                Vec3 vertex = object.mesh->vertices[k];
+                int k = j + mesh->drawStart[i];
+                Vec3 vertex = mesh->vertices[k];
 
                 if (renderer->debug_tangents)
                 {
                     glColor3f(1, 0, 0);
                     glVertex3fv(&vertex.x);
-                    Vec3 tangent = object.mesh->tangents[k];
-                    tangent = Vec3_AddOut(vertex, Vec3_Mul_Scal_out(tangent, .1));
+                    Vec3 tangent = mesh->tangents[k];
+                    tangent = Vec3_AddOut(vertex, Vec3_Mul_Scal_out(tangent, .2));
                     glVertex3fv(&tangent.x);
                 }
 
@@ -95,8 +97,8 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
                 {
                     glColor3f(0, 1, 0);
                     glVertex3fv(&vertex.x);
-                    Vec3 bitangent = object.mesh->bitangents[k];
-                    bitangent = Vec3_AddOut(vertex, Vec3_Mul_Scal_out(bitangent, .1));
+                    Vec3 bitangent = mesh->bitangents[k];
+                    bitangent = Vec3_AddOut(vertex, Vec3_Mul_Scal_out(bitangent, .2));
                     glVertex3fv(&bitangent.x);
                 }
 
@@ -104,8 +106,8 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
                 {
                     glColor3f(0, 0, 1);
                     glVertex3fv(&vertex.x);
-                    Vec3 normal = object.mesh->normals[k];
-                    normal = Vec3_AddOut(vertex, Vec3_Mul_Scal_out(normal, .1));
+                    Vec3 normal = mesh->normals[k];
+                    normal = Vec3_AddOut(vertex, Vec3_Mul_Scal_out(normal, .2));
                     glVertex3fv(&normal.x);
                 }
 
@@ -113,7 +115,7 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
             glEnd();
             glUseProgram(renderer->currentShader);
         }
-        if (renderer->debug_wireframe == true && object.mesh->vertices != NULL && object.mesh->vbo_indices == 0)
+        if (renderer->debug_wireframe == true && mesh->vertices != NULL && mesh->vbo_indices == 0)
         {
             Shader* debug_shader = ShaderLibrary_Get("noTexNoLight");
             glUseProgram(debug_shader->id);
@@ -124,27 +126,27 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
             glBegin(GL_LINES);
             glColor3f(.7, .7, .7);
             int j;
-            for (j=0; j < object.mesh->drawCount[i] ; j += 3)
+            for (j=0; j < mesh->drawCount[i] ; j += 3)
             {
-                int k = j + object.mesh->drawStart[i];
+                int k = j + mesh->drawStart[i];
 
-                glVertex3fv(&(object.mesh->vertices[k].x));
-                glVertex3fv(&(object.mesh->vertices[k+1].x));
+                glVertex3fv(&(mesh->vertices[k].x));
+                glVertex3fv(&(mesh->vertices[k+1].x));
 
-                glVertex3fv(&object.mesh->vertices[k].x);
-                glVertex3fv(&object.mesh->vertices[k+2].x);
+                glVertex3fv(&mesh->vertices[k].x);
+                glVertex3fv(&mesh->vertices[k+2].x);
 
-                glVertex3fv(&object.mesh->vertices[k+1].x);
-                glVertex3fv(&object.mesh->vertices[k+2].x);
+                glVertex3fv(&mesh->vertices[k+1].x);
+                glVertex3fv(&mesh->vertices[k+2].x);
             }
             glEnd();
             glUseProgram(renderer->currentShader);
 
         }
-        else if (object.mesh->vbo_indices != 0)
-            glDrawElements(object.mesh->primitiveType, object.mesh->drawCount[i], GL_UNSIGNED_INT, NULL+object.mesh->drawStart[i]*4);
+        else if (mesh->vbo_indices != 0)
+            glDrawElements(mesh->primitiveType, mesh->drawCount[i], GL_UNSIGNED_INT, NULL+mesh->drawStart[i]*sizeof(GL_UNSIGNED_INT));
         else
-            glDrawArrays(object.mesh->primitiveType, object.mesh->drawStart[i], object.mesh->drawCount[i]);
+            glDrawArrays(mesh->primitiveType, mesh->drawStart[i], mesh->drawCount[i]);
     }
 
 }
