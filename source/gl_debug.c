@@ -50,7 +50,10 @@ int Init_DebugOutput() {
         // enable sync mode and set the callback
         glEnable (GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
         glDebugMessageCallbackARB (DebugLog, spUserParam);
-
+        // On récupère déjà manuellement les messages du compilateur
+        // Donc on désactive la gestion auto
+        glDebugMessageControlARB (GL_DEBUG_SOURCE_SHADER_COMPILER_ARB, GL_DONT_CARE,
+                              GL_DONT_CARE, 0, NULL, false);
         return true;
     }
     else // extension has not been loaded

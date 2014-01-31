@@ -3,6 +3,8 @@
 
 #include "shader.h"
 
+#include <stdbool.h>
+
 typedef struct _ShaderLibrary {
 
     Shader* shader;
@@ -10,6 +12,7 @@ typedef struct _ShaderLibrary {
 
 } ShaderLibrary;
 
+bool ShaderLibrary_Init();
 void ShaderLibrary_Refresh();
 Shader* ShaderLibrary_Get(const char* shader);
 void ShaderLibrary_Add(Shader* shader);

@@ -63,14 +63,8 @@ bool App_Init(App* app) {
         enableCallback(true);
     }
 
-    ShaderLibrary_Add(Shader_Create("noLight",       "../source/vert_shaders/noLight.vert",             "../source/frag_shaders/noLight.frag"));
-    ShaderLibrary_Add(Shader_Create("noTexNoLight",  "../source/vert_shaders/noTexNoLight.vert",        "../source/frag_shaders/noTexNoLight.frag"));
-    ShaderLibrary_Add(Shader_Create("perFragment",   "../source/vert_shaders/perFragment.vert",         "../source/frag_shaders/perFragment.frag"));
-    ShaderLibrary_Add(Shader_Create("perVertex",     "../source/vert_shaders/perVertex.vert",           "../source/frag_shaders/perVertex.frag"));
-    ShaderLibrary_Add(Shader_Create("depth",         "../source/vert_shaders/depth.vert",               "../source/frag_shaders/depth.frag"));
-    ShaderLibrary_Add(Shader_Create("shadow",        "../source/vert_shaders/shadow.vert",              "../source/frag_shaders/shadow.frag"));
-    ShaderLibrary_Add(Shader_Create("instance",      "../source/vert_shaders/instancePerFragment.vert", "../source/frag_shaders/perFragment.frag"));
-    ShaderLibrary_Add(Shader_Create("normalMap",     "../source/vert_shaders/normalMap.vert",           "../source/frag_shaders/normalMap.frag"));
+    if (ShaderLibrary_Init() == false)
+        return false;
 
     app->scene = malloc(sizeof(Scene));
     if (Scene_Init(app->scene) == false)
