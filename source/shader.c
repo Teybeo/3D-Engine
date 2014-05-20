@@ -103,6 +103,8 @@ void Shader_SendUniformArray(Shader* shader, const char* name, int type, int nb,
         return;
     }
 
+    int real_bool;
+
     switch (type) {
 
     case GL_FLOAT_VEC3:
@@ -113,6 +115,9 @@ void Shader_SendUniformArray(Shader* shader, const char* name, int type, int nb,
         glProgramUniformMatrix4fv(shader->id, location, nb, GL_TRUE, data);
         break;
 
+    case GL_BOOL:
+        real_bool = *(bool*)data;
+        data = &real_bool;
     case GL_INT:
         glProgramUniform1iv(shader->id, location, nb, data);
         break;
