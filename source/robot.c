@@ -95,7 +95,7 @@ void Robot_draw(Robot* robot, Renderer* renderer) {
 
 }
 
-bool Robot_init(Robot* robot, const char* shader) {
+bool Robot_init(Robot* robot) {
 
     GLuint jambeTex = chargerTexture("../images/stone.png", GL_NEAREST);
     if (jambeTex == 0)
@@ -113,10 +113,10 @@ bool Robot_init(Robot* robot, const char* shader) {
     if (brasMesh == NULL)
         return false;
 
-    Object3D tete = Object3D_Load("../models/tete.obj", shader);
-    Object3D cube = Object3D_Create(cubeMesh, shader, jambeTex);
-    Object3D corps = Object3D_Load("../models/corps.obj", shader);
-    Object3D bras = Object3D_Create(brasMesh, shader, skinTex);
+    Object3D tete = Object3D_Load("../models/tete.obj");
+    Object3D cube = Object3D_Create(cubeMesh, "shadow", jambeTex);
+    Object3D corps = Object3D_Load("../models/corps.obj");
+    Object3D bras = Object3D_Create(brasMesh, "shadow", skinTex);
 
     loadIdentity(robot->matrix);
 

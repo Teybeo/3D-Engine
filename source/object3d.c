@@ -10,22 +10,36 @@
 #include "utils/vec2.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 void SendMaterial(Shader* shader, Material* material, Renderer* renderer) {
 
-    if (material->hasTexture && material->texture != renderer->currentColorTex)
+    bool has_color_map = material->type & COLOR_MAP;
+    bool has_normal_map = material->type & NORMAL_MAP;
+    bool has_specular_map = material->type & SPECULAR_MAP;
+
+    if (has_color_map && material->texture != renderer->currentColorTex)
     {
         glBindTexture(GL_TEXTURE_2D, material->texture);
         renderer->currentColorTex = material->texture;
     }
-    if (material->hasNormal && material->normalMap != renderer->currentNormalTex)
+    if (has_normal_map && material->normalMap != renderer->currentNormalTex)
     {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, material->normalMap);
         renderer->currentNormalTex = material->normalMap;
         glActiveTexture(GL_TEXTURE0);
     }
+    if (has_specular_map && material->specularMap != renderer->currentSpecularTex)
+    {
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, material->specularMap);
+        renderer->currentSpecularTex = material->specularMap;
+        glActiveTexture(GL_TEXTURE0);
+    }
 
+    Shader_SendUniform(shader, "has_normal_map", GL_BOOL, &has_normal_map);
+    Shader_SendUniform(shader, "has_specular_map", GL_BOOL, &has_specular_map);
     Shader_SendUniform(shader, "matDiff", GL_FLOAT_VEC3, &material->diffuse.x);
     Shader_SendUniform(shader, "matSpec", GL_FLOAT_VEC3, &material->specular.x);
     Shader_SendUniform(shader, "matShininess", GL_INT, &material->exponent);
@@ -34,41 +48,44 @@ void SendMaterial(Shader* shader, Material* material, Renderer* renderer) {
 
 void Object3D_Draw(Object3D object, Renderer* renderer) {
 
-    Shader* shader = object.shader;
+    Shader* shader = NULL;
     Mesh* mesh = object.mesh;
 
     float* mondeToCam = renderer->scene->player.mondeToCam;
     float* camToClip = renderer->camToClip;
 
-    if (renderer->depth_rendering == true)
-    {
-        shader = ShaderLibrary_Get("depth");
-        mondeToCam = renderer->depth_mondeToCam;
-        camToClip = renderer->depth_camToProj;
-    }
-
-    if (shader->id != renderer->currentShader)
-    {
-        glUseProgram(shader->id);
-        renderer->currentShader = shader->id;
-        Shader_SendUniform(shader, "worldCam", GL_FLOAT_MAT4, mondeToCam);
-        Shader_SendUniform(shader, "camClip", GL_FLOAT_MAT4, camToClip);
-    }
     if (mesh->vao != renderer->currentVAO)
     {
         glBindVertexArray(mesh->vao);
         renderer->currentVAO = mesh->vao;
     }
 
-    Shader_SendUniform(shader, "modelWorld", GL_FLOAT_MAT4, object.matrix);
-
     int i;
     for (i = 0 ; i < mesh->nb ; i++ )
     {
+        shader = mesh->material[i].shader;
+
+        if (renderer->depth_rendering == true)
+        {
+            shader = ShaderLibrary_Get("depth");
+            mondeToCam = renderer->depth_mondeToCam;
+            camToClip = renderer->depth_camToProj;
+        }
+
+        if (shader->id != renderer->currentShader)
+        {
+            glUseProgram(shader->id);
+            renderer->currentShader = shader->id;
+            Shader_SendUniform(shader, "worldCam", GL_FLOAT_MAT4, mondeToCam);
+            Shader_SendUniform(shader, "camClip", GL_FLOAT_MAT4, camToClip);
+        }
+
+        Shader_SendUniform(shader, "modelWorld", GL_FLOAT_MAT4, object.matrix);
+
         if (renderer->depth_rendering == false)
             SendMaterial(shader, &mesh->material[i], renderer);
 
-        if (mesh->material[0].hasNormal == true && (renderer->debug_tangents || renderer->debug_bitangents || renderer->debug_normals)
+        if (mesh->material[0].type & NORMAL_MAP && (renderer->debug_tangents || renderer->debug_bitangents || renderer->debug_normals)
             && mesh->vbo_indices == 0)
         {
             Shader* debug_shader = ShaderLibrary_Get("noTexNoLight");
@@ -151,11 +168,10 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
 
 }
 
-// Charge un fichier obj complet (mesh + texture) et en fait une object
-Object3D Object3D_Load(const char* objFile, const char* shader) {
+// Crée un object complet (mesh + matériaux + shaders) à partir d'un seul fichier .obj
+Object3D Object3D_Load(const char* objFile) {
 
     Object3D object = {};
-    object.shader = ShaderLibrary_Get(shader);
 
     char texFile[256] = "";
 
@@ -169,17 +185,26 @@ Object3D Object3D_Load(const char* objFile, const char* shader) {
     return object;
 }
 
+// Force tous les shaders des matériaux du mesh à un même shader
+void Object3D_ForceShader(Object3D* object, const char* shader_name) {
+
+    Shader* shader = ShaderLibrary_Get(shader_name);
+
+    int i;
+    for (i = 0 ; i < object->mesh->nb ; i++ )
+        object->mesh->material[i].shader = shader;
+
+}
+
 // Crée une object à partir d'un mesh et d'une texture déjà chargé en mémoire
 Object3D Object3D_Create(Mesh* mesh, const char* shader, GLuint texture) {
 
     Object3D object = {};
 
-    mesh->material[0].texture = texture;
-    mesh->material[0].hasTexture = true;
     object.mesh = mesh;
-    object.shader = ShaderLibrary_Get(shader);
+    object.mesh->material[0].shader = ShaderLibrary_Get(shader);
     object.mesh->material[0].texture = texture;
-    object.mesh->material[0].hasTexture = true;
+    object.mesh->material[0].type |= COLOR_MAP;
 
     loadIdentity(object.matrix);
 
@@ -189,13 +214,8 @@ Object3D Object3D_Create(Mesh* mesh, const char* shader, GLuint texture) {
 
 void Object3DGroupe_Draw(Object3DGroupe groupe, Renderer* renderer) {
 
-    if (groupe.shader->id != renderer->currentShader)
-    {
-        glUseProgram(groupe.shader->id);
-        renderer->currentShader = groupe.shader->id;
-        Shader_SendUniform(groupe.shader, "worldCam", GL_FLOAT_MAT4, renderer->scene->player.mondeToCam);
-        Shader_SendUniform(groupe.shader, "camClip", GL_FLOAT_MAT4, renderer->camToClip);
-    }
+    Shader* shader = NULL;
+
     if (groupe.mesh->vao != renderer->currentVAO)
     {
         glBindVertexArray(groupe.mesh->vao);
@@ -205,7 +225,15 @@ void Object3DGroupe_Draw(Object3DGroupe groupe, Renderer* renderer) {
     int i;
     for (i = 0 ; i < groupe.mesh->nb ; i++ )
     {
-        SendMaterial(groupe.shader, &groupe.mesh->material[i], renderer);
+        shader = groupe.mesh->material[i].shader;
+        if (shader->id != renderer->currentShader)
+        {
+            glUseProgram(shader->id);
+            renderer->currentShader = shader->id;
+            Shader_SendUniform(shader, "worldCam", GL_FLOAT_MAT4, renderer->scene->player.mondeToCam);
+            Shader_SendUniform(shader, "camClip", GL_FLOAT_MAT4, renderer->camToClip);
+        }
+        SendMaterial(shader, &groupe.mesh->material[i], renderer);
         if (groupe.mesh->vbo_indices != 0)
             glDrawElementsInstanced(groupe.mesh->primitiveType, groupe.mesh->drawCount[i], GL_UNSIGNED_INT, NULL+groupe.mesh->drawStart[i]*4, groupe.nbObject3Ds);
         else
@@ -218,11 +246,11 @@ Object3DGroupe Object3DGroupe_Create(Mesh* mesh, int nbObject3Ds, const char* sh
     Object3DGroupe groupe = {};
 
     groupe.mesh = mesh;
-    groupe.mesh->material[0].hasTexture = true;
+    groupe.mesh->material[0].type |= COLOR_MAP;
     groupe.mesh->material[0].texture = texture;
 
     groupe.nbObject3Ds = nbObject3Ds;
-    groupe.shader = ShaderLibrary_Get(shader);
+    groupe.mesh->material[0].shader = ShaderLibrary_Get(shader);
     groupe.texture = texture;
 
     groupe.matrix = malloc(sizeof(float*) * nbObject3Ds);
@@ -272,3 +300,4 @@ void uploadMatrix(Object3DGroupe groupe) {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
+

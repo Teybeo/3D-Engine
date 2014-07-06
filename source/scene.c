@@ -61,12 +61,12 @@ void Scene_Update(Scene* scene, float duree) {
         transpose(scene->groupe.matrix[i]);
     }
 
-//    scene->planes[0].collisionData->plan.angleZ = 5*cos(t/2.);
-//    scene->planes[0].collisionData->plan.angleX = 5*sin(t/2.);
-    scene->planes[2].collisionData->plan.angleZ -= .2;
-//    Plan_RotateBase(&scene->planes[0]);
+    scene->planes[0].collisionData->plan.angleZ = 20*cos(t*1.);
+    scene->planes[0].collisionData->plan.angleX = 20*sin(t*1.);
+//    scene->planes[2].collisionData->plan.angleZ -= .2;
+    Plan_RotateBase(&scene->planes[0]);
+    Plan_RotateBase(&scene->planes[1]);
     Plan_RotateBase(&scene->planes[2]);
-//    Plan_RotateBase(&scene->planes[3]);
 
     uploadMatrix(scene->groupe);
 
@@ -96,7 +96,7 @@ bool Scene_Init(Scene* scene) {
 ///////////////////// ROBOT
 
     scene->robot = malloc(sizeof(Robot));
-    if (Robot_init(scene->robot, "shadow") == false)
+    if (Robot_init(scene->robot) == false)
         return false;
 
     scene->player = Player_init(scene->robot);
@@ -122,10 +122,10 @@ bool Scene_Init(Scene* scene) {
     scale(scene->objects[1].matrix, 5, 5, 5);
     translate(scene->objects[1].matrix, 2.1, -1.1, -3);
 
-    scene->objects[0] = Object3D_Load("../models/totemok.obj", "normalMap");
-    loadIdentity(scene->objects[0].matrix);
-    scale(scene->objects[0].matrix, 10, 10, 10);
-    translate(scene->objects[0].matrix, 0, 0.01, 0);
+//    scene->objects[0] = Object3D_Load("../models/crytek_sponza.obj");
+//    loadIdentity(scene->objects[0].matrix);
+//    scale(scene->objects[0].matrix, 3, 3, 3);
+//    translate(scene->objects[0].matrix, 0, 0.01, 0);
 
 ////////////////////  GROUPE D'INSTANCES SANS INSTANCIATION GEOMETRIQUE
 
@@ -237,7 +237,7 @@ bool Scene_Init(Scene* scene) {
 
     plan[0].pos = (Vec3){ 0, 0, 0};
     plan[1].pos = (Vec3){-20, 0, -20};
-    plan[2].pos = (Vec3){-50, 100,  20};
+    plan[2].pos = (Vec3){-70, -5,  50};
 
     plan[0].x = (Vec3){1, 0,  0};
     plan[1].x = (Vec3){1, 0,  0};
@@ -247,11 +247,12 @@ bool Scene_Init(Scene* scene) {
     plan[1].z = (Vec3){0, 0, 1};
     plan[2].z = (Vec3){0, 0, 1};
 
-    plan[2].angleX = 90;
+    plan[2].angleX = -20;
+    plan[1].angleX = 100;
 
     plan[0].xLength = 500;
     plan[1].xLength = 20;
-    plan[2].xLength = 20;
+    plan[2].xLength = 10;
     plan[0].zLength = 500;
     plan[1].zLength = 20;
     plan[2].zLength = 20;
@@ -268,7 +269,7 @@ bool Scene_Init(Scene* scene) {
     {
         scene->planes[i] = Plan_Create(carre, plan[i], "shadow", planTex);
     }
-  //  scene->planes[0] = Plan_Create(carre20, plan[0], scene->perFragment, solTexture);
+    scene->planes[0] = Plan_Create(carre, plan[0], "fullset", solTexture);
 
     return true;
 }

@@ -5,6 +5,8 @@
 #include "utils/vec3.h"
 #include "utils/liste.h"
 #include "utils/listeString.h"
+#include "shader_library.h"
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -286,6 +288,7 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
     ElemString* pileName = NULL;
     ElemString* pileTexture = NULL;
     ElemString* pileNormalMap = NULL;
+    ElemString* pileSpecularMap = NULL;
     ElemVec3* pileAmbient = NULL;
     ElemVec3* pileDiffuse = NULL;
     ElemVec3* pileSpecular = NULL;
@@ -314,6 +317,7 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
             pileName = empilerStr(pileName, chaine);
             pileTexture = empilerStr(pileTexture, "");
             pileNormalMap = empilerStr(pileNormalMap, "");
+            pileSpecularMap = empilerStr(pileSpecularMap, "");
             pileExponent = empiler(pileExponent, (Vec3){20, 0, 0});
             pileSpecular = empiler(pileSpecular, (Vec3){1, 1, 1});
             pileDiffuse = empiler(pileDiffuse, (Vec3){1, 1, 1});
@@ -338,11 +342,18 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
                 strcpy(pileTexture->chaine, chaine);
             }
             // Normal map
-            else if ( strcmp( lineHeader, "map_bump" ) == 0 )
+            else if ( strcmp( lineHeader, "map_bump" ) == 0 || strcmp( lineHeader, "map_Disp" ) == 0 )
             {
                 fscanf(file, "%s", chaine);
                 strcpy(pileNormalMap->chaine, chaine);
             }
+            // Specular map
+            else if ( strcmp( lineHeader, "map_Ks" ) == 0)
+            {
+                fscanf(file, "%s", chaine);
+                strcpy(pileSpecularMap->chaine, chaine);
+            }
+
             // Couleur ambiante
             else if ( strcmp( lineHeader, "Ka") == 0)
             {
@@ -383,30 +394,47 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
     char** names = dumpListeToArrayStr(pileName);
     char** textures = dumpListeToArrayStr(pileTexture);
     char** normalMaps = dumpListeToArrayStr(pileNormalMap);
+    char** specularMaps = dumpListeToArrayStr(pileSpecularMap);
     Vec3* ambient = dumpVec3ListeToArray(pileAmbient);
     Vec3* diffuse = dumpVec3ListeToArray(pileDiffuse);
     Vec3* specular = dumpVec3ListeToArray(pileSpecular);
     unsigned int* exponent = dumpListeToArray(pileExponent);
 
     *material = malloc(sizeof(Material) * nb);
+
     for (i = 0 ; i < nb ; i++ )
     {
+        (*material)[i].type = NONE;
+
         strcpy((*material)[i].nom, names[i]);
         if (strlen(textures[i]) > 0)
         {
             (*material)[i].texture = chargerTexture(textures[i], GL_LINEAR);
-            (*material)[i].hasTexture = true;
+            (*material)[i].type |= COLOR_MAP;
         }
-        else
-            (*material)[i].hasTexture = false;
 
         if (strlen(normalMaps[i]) > 0)
         {
             (*material)[i].normalMap = chargerTexture(normalMaps[i], GL_LINEAR);
-            (*material)[i].hasNormal = true;
+            (*material)[i].type |= NORMAL_MAP;
+        }
+
+        if (strlen(specularMaps[i]) > 0)
+        {
+            (*material)[i].specularMap = chargerTexture(specularMaps[i], GL_LINEAR);
+            (*material)[i].type |= SPECULAR_MAP;
+        }
+
+        if ((*material)[i].type == NONE)
+        {
+            (*material)[i].shader = ShaderLibrary_Get("noTexNoLight");
+            printf("Shader noTexNoLight choosen for [%s]\n", names[i]);
         }
         else
-            (*material)[i].hasNormal = false;
+        {
+            (*material)[i].shader = ShaderLibrary_Get("fullset");
+            printf("Shader fullset choosen for [%s]\n", names[i]);
+        }
 
         (*material)[i].ambient = ambient[i];
         (*material)[i].diffuse = diffuse[i];
@@ -415,6 +443,8 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
     }
 
     *nbFinal = nb;
+
+    fclose(file);
 
     puts("Ok");
     printf("\t%d Matériaux chargés\n", nb);

@@ -15,6 +15,7 @@ typedef struct _Renderer {
     unsigned int currentShader;
     unsigned int currentColorTex;
     unsigned int currentNormalTex;
+    unsigned int currentSpecularTex;
     unsigned int currentVAO;
     bool depth_rendering;
     bool debug_bitangents;

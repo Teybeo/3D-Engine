@@ -36,7 +36,7 @@ typedef struct Robot {
 
 typedef struct _Renderer Renderer;
 
-bool Robot_init(Robot* robot, const char* shader);
+bool Robot_init(Robot* robot);
 void Robot_draw(Robot* robot, Renderer* renderer);
 
 #endif // ROBOT

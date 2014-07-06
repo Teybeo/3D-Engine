@@ -3,12 +3,13 @@
 
 #include "utils/vec3.h"
 #include "utils/vec2.h"
+#include "shader.h"
 
 #include "glew.h"
 
 #include <stdbool.h>
 
-#define INDEXED_GEOMETRY 1
+#define INDEXED_GEOMETRY 0
 
 typedef enum MeshType {
 
@@ -26,16 +27,22 @@ typedef enum MeshType {
 typedef struct Material {
 
     char nom[128];
+    Shader* shader;
     Vec3 ambient;
     Vec3 diffuse;
     Vec3 specular;
     unsigned int exponent;
-    bool hasTexture;
-    bool hasNormal;
+    short type;             // Chaque bit indique une type de map
     GLuint texture;
     GLuint normalMap;
+    GLuint specularMap;
 
 } Material;
+
+#define NONE         0x000
+#define COLOR_MAP    0x001
+#define NORMAL_MAP   0x010
+#define SPECULAR_MAP 0x100
 
 // Représente graphiquement 1 ou plusieurs objets.
 // La géométrie est stockée dans un seul vbo.

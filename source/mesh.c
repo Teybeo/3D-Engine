@@ -5,6 +5,7 @@
 #include "utils/vec3.h"
 #include "utils/vec2.h"
 #include "objLoader.h"
+#include "shader_library.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -143,7 +144,7 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
     int* indices = NULL;
     int nb_uniq_vertices = 0;
 
-    if (mesh->material[0].hasNormal == true)
+    if (mesh->material[0].type & NORMAL_MAP)
     {
         Vec3* tangents = malloc(sizeof(Vec3) * nbVertices);
         Vec3* bitangents = malloc(sizeof(Vec3) * nbVertices);
@@ -308,14 +309,15 @@ Material Material_GetDefault() {
     Material mat = {};
 
     strcpy(mat.nom, "Default");
+    mat.shader = ShaderLibrary_Get("noTexNoLight");
     mat.ambient = Vec3_Create(1, 1, 1);
     mat.diffuse = Vec3_Create(1, 1, 1);
     mat.specular = Vec3_Create(1, 1, 1);
     mat.exponent = 20;
-    mat.hasTexture = false;
-    mat.hasNormal = false;
+    mat.type = NONE;
     mat.texture = 0;
     mat.normalMap = 0;
+    mat.specularMap = 0;
 
     return mat;
 }
