@@ -112,11 +112,16 @@ bool Robot_init(Robot* robot) {
     Mesh* brasMesh = Mesh_Load("../models/bras.obj");
     if (brasMesh == NULL)
         return false;
+//    brasMesh = cubeMesh;
 
+    // Reduce polygon count for the head
+    // currently 45k triangles
+    // 1.5ms difference with just a cube !
     Object3D tete = Object3D_Load("../models/tete.obj");
-    Object3D cube = Object3D_Create(cubeMesh, "shadow", jambeTex);
+
+    Object3D cube = Object3D_Create(cubeMesh, "fullset", jambeTex);
     Object3D corps = Object3D_Load("../models/corps.obj");
-    Object3D bras = Object3D_Create(brasMesh, "shadow", skinTex);
+    Object3D bras = Object3D_Create(brasMesh, "fullset", skinTex);
 
     loadIdentity(robot->matrix);
 

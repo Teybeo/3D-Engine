@@ -7,6 +7,16 @@
 
 static ShaderLibrary* lib = NULL;
 
+const char shader_data[][3][128] =
+{
+    {"noLight",       "../source/vert_shaders/noLight.vert",             "../source/frag_shaders/noLight.frag"},
+    {"noTexNoLight",  "../source/vert_shaders/noTexNoLight.vert",        "../source/frag_shaders/noTexNoLight.frag"},
+    {"depth",         "../source/vert_shaders/depth.vert",               "../source/frag_shaders/depth.frag"},
+    {"depthInstance", "../source/vert_shaders/depthInstance.vert",       "../source/frag_shaders/depth.frag"},
+    {"instance",      "../source/vert_shaders/instancePerFragment.vert", "../source/frag_shaders/fullset.frag"},
+    {"fullset",       "../source/vert_shaders/fullset.vert",             "../source/frag_shaders/fullset.frag"}
+};
+
 void ShaderLibrary_Refresh() {
 
     ShaderLibrary* tmp = lib;
@@ -43,17 +53,6 @@ Shader* ShaderLibrary_Get(const char* shader) {
     return NULL;
 
 }
-const char shader_data[][3][128] =
-{
-    {"noLight",       "../source/vert_shaders/noLight.vert",             "../source/frag_shaders/noLight.frag"},
-    {"noTexNoLight",  "../source/vert_shaders/noTexNoLight.vert",        "../source/frag_shaders/noTexNoLight.frag"},
-    {"perFragment",   "../source/vert_shaders/perFragment.vert",         "../source/frag_shaders/perFragment.frag"},
-    {"perVertex",     "../source/vert_shaders/perVertex.vert",           "../source/frag_shaders/perVertex.frag"},
-    {"depth",         "../source/vert_shaders/depth.vert",               "../source/frag_shaders/depth.frag"},
-    {"shadow",        "../source/vert_shaders/shadow.vert",              "../source/frag_shaders/shadow.frag"},
-    {"instance",      "../source/vert_shaders/instancePerFragment.vert", "../source/frag_shaders/perFragment.frag"},
-    {"normalMap",     "../source/vert_shaders/normalMap.vert",           "../source/frag_shaders/normalMap.frag"}
-};
 
 bool ShaderLibrary_Init() {
 

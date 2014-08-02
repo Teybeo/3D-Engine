@@ -1,10 +1,10 @@
-#version 330 core
+#version 430 core
 
-out float depth;
+//layout (location = 0) out float depth;
 
 void main() {
 
-    gl_FragDepth = gl_FragCoord.z;
+//    depth = gl_FragCoord.z*;
 }
 
 

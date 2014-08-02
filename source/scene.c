@@ -51,24 +51,25 @@ void Scene_Update(Scene* scene, float duree) {
 //        translate(scene->objects[i].matrix, 0.1*i, 5, 5);
     }*/
 
-    float scaleFactor;
-    for (i = 0 ; i < scene->groupe.nbObject3Ds ; i++ )
-    {
-        scaleFactor = 3+(i/100);
-        loadIdentity(scene->groupe.matrix[i]);
-        translate(scene->groupe.matrix[i], 400*sin(0.1*i - t), 5 + i/10., 400*cos(i+-t));
-        scale(scene->groupe.matrix[i], scaleFactor, scaleFactor, scaleFactor);
-        transpose(scene->groupe.matrix[i]);
-    }
+//    float scaleFactor;
+//    for (i = 0 ; i < scene->groupe.nbObject3Ds ; i++ )
+//    {
+//        scaleFactor = 3+(i/100);
+//        loadIdentity(scene->groupe.matrix[i]);
+//        translate(scene->groupe.matrix[i], 400*sin(0.1*i - t), 5 + i/10., 400*cos(i+-t));
+//        scale(scene->groupe.matrix[i], scaleFactor, scaleFactor, scaleFactor);
+//        transpose(scene->groupe.matrix[i]);
+//    }
 
-    scene->planes[0].collisionData->plan.angleZ = 20*cos(t*1.);
-    scene->planes[0].collisionData->plan.angleX = 20*sin(t*1.);
+
+//    scene->planes[0].collisionData->plan.angleZ = 20*cos(t*1.);
+//    scene->planes[0].collisionData->plan.angleX = 20*sin(t*1.);
 //    scene->planes[2].collisionData->plan.angleZ -= .2;
-    Plan_RotateBase(&scene->planes[0]);
-    Plan_RotateBase(&scene->planes[1]);
-    Plan_RotateBase(&scene->planes[2]);
+//    Plan_RotateBase(&scene->planes[0]);
+//    Plan_RotateBase(&scene->planes[1]);
+//    Plan_RotateBase(&scene->planes[2]);
 
-    uploadMatrix(scene->groupe);
+//    uploadMatrix(scene->groupe);
 
     scene->robot->collisionObject.sphere.particule.position = scene->player.posRobot;
 
@@ -77,7 +78,6 @@ void Scene_Update(Scene* scene, float duree) {
     CollisionObject** container = malloc(sizeof(CollisionObject*) * nbObjects );
 
     Container_Clear();
-//    Container_AddCollisionsToCheck(container, scene->groupe.collisionData, scene->sphereGroupe.nbSpheres);
     Container_AddCollisionsToCheck(container, scene->sphere.collisionData, scene->sphere.nbSpheres);
     Container_AddCollisionsToCheck(container, scene->bullet.collisionData, scene->bullet.nbBullets);
    // Container_AddCollisionsToCheck(container, scene->wall, 5);
@@ -89,6 +89,7 @@ void Scene_Update(Scene* scene, float duree) {
     Container_Process(container, nbObjects, duree*0.01, false);
 
     SphereGroupe_Update(scene->sphere);
+
 
     free(container);
     t += 0.01;
@@ -125,10 +126,10 @@ bool Scene_Init(Scene* scene) {
     scale(scene->objects[1].matrix, 5, 5, 5);
     translate(scene->objects[1].matrix, 2.1, -1.1, -3);
 
-//    scene->objects[0] = Object3D_Load("../models/crytek_sponza.obj");
-//    loadIdentity(scene->objects[0].matrix);
-//    scale(scene->objects[0].matrix, 3, 3, 3);
-//    translate(scene->objects[0].matrix, 0, 0.01, 0);
+    scene->objects[0] = Object3D_Load("../models/Tests/sponza_muret.obj");
+    loadIdentity(scene->objects[0].matrix);
+    scale(scene->objects[0].matrix, 10, 10, 10);
+    translate(scene->objects[0].matrix, 0, 0.01, 0);
 
 ////////////////////  GROUPE D'INSTANCES SANS INSTANCIATION GEOMETRIQUE
 
@@ -154,7 +155,7 @@ bool Scene_Init(Scene* scene) {
 
 //////////////////////// SKYBOX
 
-    if ((skyboxTexture = chargerTexture("../images/miramar_large2.jpg", GL_NEAREST)) == 0)
+    if ((skyboxTexture = chargerTexture("../images/skybox.png", GL_NEAREST)) == 0)
         return false;
 
     Mesh* skyboxMesh = Mesh_LoadBuiltin(MESH_CUBE_TEX_FLIP);
@@ -170,7 +171,7 @@ bool Scene_Init(Scene* scene) {
     if (sphere == NULL)
         return false;
 
-    Object3D light = Object3D_Create(sphere, "normalMap", stoneTexture);
+    Object3D light = Object3D_Create(sphere, "fullset", stoneTexture);
 
     for (i = 0 ; i < 6 ; i++ )
         scene->lampe[i].object = light;
@@ -184,12 +185,7 @@ bool Scene_Init(Scene* scene) {
 
 //////////////////////// INSTANCIATION GEOMETRIQUE
 
-    Mesh* geomMesh = Mesh_Load("../models/sphere.obj");
-    if (geomMesh == 0)
-        return false;
-
-    scene->groupe = Object3DGroupe_Create(geomMesh, 200, "instance", stoneTexture);
-
+    scene->groupe = Object3DGroupe_Create(sphere, 200, "instance", stoneTexture);
 
 //////////// BALLES
 
@@ -207,7 +203,7 @@ bool Scene_Init(Scene* scene) {
     if (bulletTex == 0)
         return false;
 
-    scene->bullet = BulletGroupe_Create(NB_BULLETS_MAX, sphere, "normalMap", bulletTex);
+    scene->bullet = BulletGroupe_Create(NB_BULLETS_MAX, sphere, "fullset", bulletTex);
 
 ////////////////////////
 
@@ -271,7 +267,7 @@ bool Scene_Init(Scene* scene) {
 
     for (i = 0 ; i < 3 ; i++ )
     {
-        scene->planes[i] = Plan_Create(carre, plan[i], "shadow", planTex);
+        scene->planes[i] = Plan_Create(carre, plan[i], "fullset", planTex);
     }
     scene->planes[0] = Plan_Create(carre, plan[0], "fullset", solTexture);
 

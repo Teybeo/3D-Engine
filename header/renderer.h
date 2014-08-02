@@ -3,6 +3,9 @@
 
 #include "scene.h"
 
+#define SHADOWMAP_W 1024
+#define SHADOWMAP_H SHADOWMAP_W
+
 typedef struct _Renderer {
 
     Scene* scene;

@@ -4,9 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define SHADOWMAP_W 1024
-#define SHADOWMAP_H SHADOWMAP_W
-
 void updateShadowMatrix(Renderer* renderer);
 void Renderer_SetPerspective(Renderer* renderer);
 void Renderer_GenerateShadowMap(Renderer* renderer);
@@ -20,47 +17,12 @@ void Renderer_Render(Renderer* renderer) {
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    /*glUseProgram(scene->instancePerFragmentProgram);
-        for (i = 0 ; i < 6 ; i++ )
-        {
-            char name[50] = "";
-            sprintf(name, "lightPos[%d]", i);
-            glUniform3fv(glGetUniformLocation(scene->instancePerFragment, name), 1, &scene->lampe[i].pos.x);
-            sprintf(name, "lightColor[%d]", i);
-            glUniform3fv(glGetUniformLocation(scene->instancePerFragment, name), 1, &scene->lampe[i].color.x);
-        }
-    glUseProgram(0);
-    */
-//    glUseProgram(scene->perFragment.id);
-//        for (i = 0 ; i < 6 ; i++ )
-//        {
-//            char name[50] = "";
-//            sprintf(name, "lightPos[%d]", i);
-//            glUniform3fv(glGetUniformLocation(scene->perFragment.id, name), 1, &scene->lampe[i].pos.x);
-//            sprintf(name, "lightColor[%d]", i);
-//            glUniform3fv(glGetUniformLocation(scene->perFragment.id, name), 1, &scene->lampe[i].color.x);
-//        }
-
     Vec3* light = Light_Serialize(scene->lampe, 6);
-    Shader_SendUniformArray(ShaderLibrary_Get("perFragment"), "lightPos[0]", GL_FLOAT_VEC3, 6, &light->x);
-    Shader_SendUniformArray(ShaderLibrary_Get("perFragment"), "lightColor[0]", GL_FLOAT_VEC3, 6, &light[6].x);
     Shader_SendUniformArray(ShaderLibrary_Get("instance"), "lightPos[0]", GL_FLOAT_VEC3, 6, &light->x);
     Shader_SendUniformArray(ShaderLibrary_Get("instance"), "lightColor[0]", GL_FLOAT_VEC3, 6, &light[6].x);
-    Shader_SendUniformArray(ShaderLibrary_Get("shadow"), "lightPos[0]", GL_FLOAT_VEC3, 6, &light->x);
-    Shader_SendUniformArray(ShaderLibrary_Get("shadow"), "lightColor[0]", GL_FLOAT_VEC3, 6, &light[6].x);
-    Shader_SendUniformArray(ShaderLibrary_Get("normalMap"), "lightPos[0]", GL_FLOAT_VEC3, 6, &light->x);
-    Shader_SendUniformArray(ShaderLibrary_Get("normalMap"), "lightColor[0]", GL_FLOAT_VEC3, 6, &light[6].x);
+    Shader_SendUniformArray(ShaderLibrary_Get("fullset"), "lightPos[0]", GL_FLOAT_VEC3, 6, &light->x);
+    Shader_SendUniformArray(ShaderLibrary_Get("fullset"), "lightColor[0]", GL_FLOAT_VEC3, 6, &light[6].x);
     free(light);
-
-//        for (i = 0 ; i < 6 ; i++ )
-//        {
-//            char name[50] = "";
-//            sprintf(name, "lightInput[%d].pos", i);
-//            Shader_SendUniform(scene->perFragment, name, GL_FLOAT_VEC3, &scene->lampe[i].pos.x);
-//            sprintf(name, "lightInput[%d].color", i);
-//            Shader_SendUniform(scene->perFragment, name, GL_FLOAT_VEC3, &scene->lampe[i].color.x);
-//        }
-//    glUseProgram(0);
 
 //    for (i = 1 ; i <2 ; i++ )
 //        Plan_Draw(scene->planes[i], scene->player.mondeToCam, scene->fenetre.camToClip);
@@ -69,10 +31,6 @@ void Renderer_Render(Renderer* renderer) {
 
     Renderer_RenderMeshesShadowed(renderer);
 
-    // shadowmap texture to quad
-//    glDisable(GL_DEPTH_TEST);
-//        Object3D_Draw(scene->objects[1], false, identity, renderer->camToClip, NULL);
-//    glEnable(GL_DEPTH_TEST);
 
 //    for (i = 0 ; i < scene->nb ; i++ )
 //        Sphere_Draw(scene->balle[i], scene->player.mondeToCam, renderer->camToClip);
@@ -85,6 +43,10 @@ void Renderer_Render(Renderer* renderer) {
     scale(scene->skybox.matrix, 2000, 2000, 2000);
     Object3D_Draw(scene->skybox, renderer);
 
+    // shadowmap texture to quad
+    glDisable(GL_DEPTH_TEST);
+        Object3D_Draw(scene->objects[1], renderer);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void Renderer_GenerateShadowMap(Renderer* renderer) {
@@ -97,6 +59,10 @@ void Renderer_GenerateShadowMap(Renderer* renderer) {
     glCullFace(GL_FRONT);
         // Render shadowmap for object 0
         Object3D_Draw(renderer->scene->objects[0], renderer);
+        Robot_draw(renderer->scene->robot, renderer);
+        Plan_Draw(renderer->scene->planes[0], renderer);
+        Plan_Draw(renderer->scene->planes[1], renderer);
+        Plan_Draw(renderer->scene->planes[2], renderer);
         SphereGroupe_Draw(renderer->scene->sphere, renderer);
 
     renderer->depth_rendering = false;
@@ -111,20 +77,20 @@ void Renderer_RenderMeshesShadowed(Renderer* renderer) {
     Renderer_SetPerspective(renderer);
     glViewport(0, 0, renderer->largeur, renderer->hauteur);
 
-    glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glCullFace(GL_BACK);
 
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, renderer->shadowMap);
     glActiveTexture(GL_TEXTURE0);
 
-    Shader* shadow = ShaderLibrary_Get("shadow");
-    Shader_SendUniform(shadow, "depth_mvp", GL_FLOAT_MAT4, MatxMat_GaucheVersDroite(renderer->depth_mondeToCam, renderer->depth_camToProj));
-    Shader_SendUniform(ShaderLibrary_Get("normalMap"), "depth_mvp", GL_FLOAT_MAT4, MatxMat_GaucheVersDroite(renderer->depth_mondeToCam, renderer->depth_camToProj));
+    Shader_SendUniform(ShaderLibrary_Get("fullset"), "depth_mvp", GL_FLOAT_MAT4, MatxMat_GaucheVersDroite(renderer->depth_mondeToCam, renderer->depth_camToProj));
 
     // Render object 0 with shadows
     Object3D_Draw(scene->objects[0], renderer);
     Plan_Draw(scene->planes[0], renderer);
+    Plan_Draw(scene->planes[1], renderer);
+    Plan_Draw(scene->planes[2], renderer);
 
     int i;
     for (i = 0 ; i < 6 ; i++ )
@@ -134,15 +100,17 @@ void Renderer_RenderMeshesShadowed(Renderer* renderer) {
 
     SphereGroupe_Draw(scene->sphere, renderer);
     BulletGroupe_Draw(scene->bullet, renderer);
-    Object3DGroupe_Draw(scene->groupe, renderer);
+//    Object3DGroupe_Draw(scene->groupe, renderer);
 
 }
 
 void Renderer_Update(Renderer* renderer) {
 
-//    memcpy(&app->player.posRobot, &app->lampe[0].pos, sizeof(Vec3));
+//    memcpy(&renderer->scene->player.posRobot, &renderer->scene->lampe[0].pos, sizeof(Vec3));
     Player_update(&renderer->scene->player);
     updateShadowMatrix(renderer);
+//    memcpy(&renderer->scene->player.mondeToCam, &renderer->depth_mondeToCam, sizeof(float)*16);
+//    memcpy(&renderer->camToClip, &renderer->depth_camToProj, sizeof(float)*16);
 
     ShaderLibrary_Refresh();
 
@@ -161,7 +129,7 @@ bool Renderer_Init(Renderer* renderer, Scene* scene, int largeur, int hauteur) {
 
     glGenTextures(1, &renderer->shadowMap);
     glBindTexture(GL_TEXTURE_2D, renderer->shadowMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, SHADOWMAP_W, SHADOWMAP_H, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, SHADOWMAP_W, SHADOWMAP_H, 0, GL_DEPTH_COMPONENT, GL_HALF_FLOAT, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -180,6 +148,8 @@ bool Renderer_Init(Renderer* renderer, Scene* scene, int largeur, int hauteur) {
         return false;
     }
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     return true;
@@ -193,10 +163,8 @@ void updateShadowMatrix(Renderer* renderer) {
     loadIdentity(renderer->depth_mondeToCam);
     rotate(renderer->depth_mondeToCam, angleX, angleY, 0);
 
-    Shader_SendUniform(ShaderLibrary_Get("shadow"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
-    Shader_SendUniform(ShaderLibrary_Get("perFragment"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
     Shader_SendUniform(ShaderLibrary_Get("instance"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
-    Shader_SendUniform(ShaderLibrary_Get("normalMap"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
+    Shader_SendUniform(ShaderLibrary_Get("fullset"), "sunDirection", GL_FLOAT_VEC3, &renderer->depth_mondeToCam[8]);
 
     angleY += 0.1;
 //    angleX += 0.1;
@@ -205,6 +173,10 @@ void updateShadowMatrix(Renderer* renderer) {
 //            memcpy(renderer->depth_camToProj, renderer->fenetre.camToClip, sizeof(float)*16);
 //            ortho(renderer->depth_camToProj, -15, 15,-15, 15, -5, 10);
             ortho(renderer->depth_camToProj, -150, 150,-150, 150, -120, 150);
+//            ortho(renderer->depth_camToProj, -150, 150,-150, 150, -270, 150); // Sponza
+    Shader_SendUniform(ShaderLibrary_Get("fullset"), "depth_mvp", GL_FLOAT_MAT4, MatxMat_GaucheVersDroite(renderer->depth_mondeToCam, renderer->depth_camToProj));
+    Shader_SendUniform(ShaderLibrary_Get("instance"), "depth_mvp", GL_FLOAT_MAT4, MatxMat_GaucheVersDroite(renderer->depth_mondeToCam, renderer->depth_camToProj));
+
 }
 
 void Renderer_SetPerspective(Renderer* renderer) {
