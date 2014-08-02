@@ -2,9 +2,11 @@
 
 #include "utils/matrix.h"
 #include "shader_library.h"
+#include "renderer.h"
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, const char* shader, GLuint texture) {
 
@@ -17,6 +19,41 @@ SphereGroupe SphereGroupe_Create(int nbMax, Mesh* mesh, const char* shader, GLui
     groupe.nbSpheres = 0;
 
     groupe.collisionData = calloc(nbMax, sizeof(CollisionObject));
+
+
+    groupe.matrix = malloc(sizeof(float*) * nbMax);
+    int i;
+    for (i = 0 ; i < nbMax ; i++ )
+    {
+        groupe.matrix[i] = malloc(sizeof(float)*16);
+        loadIdentity(groupe.matrix[i]);
+//        translate(groupe.matrix[i], -400 + rand() % 800, rand() % 30, -400+rand() % 800);
+//        transpose(groupe.matrix[i]); // On transpose à la main
+    }
+
+    glGenBuffers(1, &groupe.matrixVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, groupe.matrixVBO);
+
+    glBufferData(GL_ARRAY_BUFFER, nbMax * 16 * sizeof(float), NULL, GL_DYNAMIC_DRAW);
+
+    // Avec un tableau dynamique, si on copie tout d'un coup (BufferData), 2 octets seront occupés entre chaque matrice
+    // Je ne sais pas pk, le seul moyen trouvé est d'envoyer chaque matrice séparément
+    for (i = 0 ; i < nbMax ; i++ )
+        glBufferSubData(GL_ARRAY_BUFFER, i * 16 * sizeof(float), 16 * sizeof(float), &(groupe.matrix[i][0]));
+
+    // On ajoute les matrices au vao déjà créé du modèle
+    // Comme les attributs ne peuvent être que des vec4, opengl distribue 4 index, 1 pour chaque colonne
+    glBindVertexArray(mesh->vao);
+
+    for (i = 0 ; i < 4 ; i++ )
+    {
+        glVertexAttribPointer(3 + i, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (void*)(i * 4 * sizeof(float)));
+        glVertexAttribDivisor(3 + i, 1);
+        glEnableVertexAttribArray(3 + i);
+    }
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return groupe;
 
@@ -43,28 +80,69 @@ void Sphere_Add(SphereGroupe* sphereGroupe, Vec3 position, Vec3 direction) {
     if (sphereGroupe->nbSpheres != sphereGroupe->nbMax)
         sphereGroupe->nbSpheres++;
 }
+void SphereGroupe_Draw(SphereGroupe groupe, Renderer* renderer) {
 
-void SphereGroupe_Draw(SphereGroupe sphereGroupe, Renderer* renderer) {
+    Shader* shader = NULL;
+    float* mondeToCam = renderer->scene->player.mondeToCam;
+    float* camToClip = renderer->camToClip;
 
-    Object3D balleObject3D = Object3D_Create(sphereGroupe.mesh, sphereGroupe.shader->name, sphereGroupe.texture);
+    if (groupe.mesh->vao != renderer->currentVAO)
+    {
+        glBindVertexArray(groupe.mesh->vao);
+        renderer->currentVAO = groupe.mesh->vao;
+    }
 
     int i;
-    for (i = 0 ; i < sphereGroupe.nbSpheres ; i++ )
+    for (i = 0 ; i < groupe.mesh->nb ; i++ )
     {
-        loadIdentity(balleObject3D.matrix);
-        translateByVec(balleObject3D.matrix, sphereGroupe.collisionData[i].sphere.particule.position);
-        scale(balleObject3D.matrix, sphereGroupe.collisionData[i].sphere.rayon, sphereGroupe.collisionData[i].sphere.rayon, sphereGroupe.collisionData[i].sphere.rayon);
+//        shader = groupe.mesh->material[i].shader;
+        shader = groupe.shader;
 
-        Object3D_Draw(balleObject3D, renderer);
+        if (renderer->depth_rendering == true)
+        {
+            shader = ShaderLibrary_Get("depthInstance");
+            mondeToCam = renderer->depth_mondeToCam;
+            camToClip = renderer->depth_camToProj;
+        }
+
+        if (shader->id != renderer->currentShader)
+        {
+            glUseProgram(shader->id);
+            renderer->currentShader = shader->id;
+            Shader_SendUniform(shader, "worldCam", GL_FLOAT_MAT4, mondeToCam);
+            Shader_SendUniform(shader, "camClip", GL_FLOAT_MAT4, camToClip);
+        }
+
+        if (renderer->depth_rendering == false)
+            SendMaterial(shader, &groupe.mesh->material[i], renderer);
+
+        if (groupe.mesh->vbo_indices != 0)
+            glDrawElementsInstanced(groupe.mesh->primitiveType, groupe.mesh->drawCount[i], GL_UNSIGNED_INT, NULL+groupe.mesh->drawStart[i]*4, groupe.nbSpheres);
+        else
+            glDrawArraysInstanced(groupe.mesh->primitiveType, groupe.mesh->drawStart[i], groupe.mesh->drawCount[i], groupe.nbSpheres);
     }
 }
 
-void Sphere_Draw(Sphere sphere, Renderer* renderer) {
+void SphereGroupe_Update(SphereGroupe groupe) {
 
-    loadIdentity(sphere.object.matrix);
-    translateByVec(sphere.object.matrix, sphere.collisionData.particule.position);
-    scale(sphere.object.matrix, sphere.collisionData.rayon, sphere.collisionData.rayon, sphere.collisionData.rayon);
-    Object3D_Draw(sphere.object, renderer);
+    float* matrices = malloc(groupe.nbMax*16*sizeof(float));
+    int i;
+    for (i = 0 ; i < groupe.nbSpheres ; i++ )
+    {
+        loadIdentity(&matrices[i*16]);
+        translateByVec(&matrices[i*16], groupe.collisionData[i].sphere.particule.position);
+        scale(&matrices[i*16], groupe.collisionData[i].sphere.rayon, groupe.collisionData[i].sphere.rayon, groupe.collisionData[i].sphere.rayon);
+        transpose(&matrices[i*16]);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, groupe.matrixVBO);
+//    for (i = 0 ; i < groupe.nbSpheres ; i++ )
+//        glBufferSubData(GL_ARRAY_BUFFER, ( i * 16 * 4), (16 * sizeof(float)), &(groupe.matrix[i][0]));
+    glBufferData(GL_ARRAY_BUFFER, groupe.nbMax * 16 * sizeof(float), matrices, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    free(matrices);
 }
 
 //Sphere* initGroupeSphere(Object3D object, int nombre) {

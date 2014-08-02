@@ -87,6 +87,9 @@ void Scene_Update(Scene* scene, float duree) {
 //    Container_AddCollisionsToCheck(container, &scene->robot.collisionObject, 1);
 
     Container_Process(container, nbObjects, duree*0.01, false);
+
+    SphereGroupe_Update(scene->sphere);
+
     free(container);
     t += 0.01;
 }
@@ -190,8 +193,9 @@ bool Scene_Init(Scene* scene) {
 
 //////////// BALLES
 
-    scene->sphere = SphereGroupe_Create(NB_BALLS_MAX, sphere, "shadow", solTexture);
+    scene->sphere = SphereGroupe_Create(NB_BALLS_MAX, sphere, "instance", solTexture);
     SphereGroupe_Randomize(&scene->sphere);
+    SphereGroupe_Update(scene->sphere);
 
 //////////// BULLETS
 

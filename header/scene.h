@@ -11,6 +11,7 @@
 #include "physics/collision.h"
 
 #define NB_BULLETS_MAX 4
+#define NB_BALLS_MAX 50
 
 typedef struct _Scene {
 
