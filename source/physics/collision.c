@@ -138,7 +138,7 @@ void Container_Process(CollisionObject** objet, int nb, float duree, bool const 
                 if (objet[i]->type == COLLISION_SPHERE && objet[j]->type == COLLISION_SPHERE)
                     contact = CollisionGenerator_SphereSphere(&objet[i]->sphere, &objet[j]->sphere);
 
-                if (objet[i]->type == COLLISION_SPHERE && objet[j]->type == COLLISION_PLAN_INFINI)
+                else if (objet[i]->type == COLLISION_SPHERE && objet[j]->type == COLLISION_PLAN_INFINI)
                     contact = CollisionGenerator_PlanInfiniSphere(&objet[j]->planInfini, &objet[i]->sphere);
 
                 else if (objet[i]->type == COLLISION_PLAN_INFINI && objet[j]->type == COLLISION_SPHERE)

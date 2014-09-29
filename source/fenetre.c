@@ -24,9 +24,6 @@ bool initFenetre(Fenetre* fen) {
     fen->hauteur = FEN_H;
 
     SDL_GL_SetSwapInterval(1);
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 3);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 3);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, GL_MINOR);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, GL_MAJOR);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
@@ -35,7 +32,7 @@ bool initFenetre(Fenetre* fen) {
 //    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 //    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
-    fen->ecran = SDL_CreateWindow("Vertex Sending", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, fen->largeur, fen->hauteur, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+    fen->ecran = SDL_CreateWindow("3D-Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, fen->largeur, fen->hauteur, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
     if (fen->ecran == NULL)
     {
         printf("La fenetre n'a pas pu etre creee\n");

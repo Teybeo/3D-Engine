@@ -8,7 +8,7 @@ in vec2 texCoord;
 in mat4 fWorldToView;
 in mat3 f_tangentToView;
 in vec3 f_position_view;
-in vec3 f_sunDirection_viewspace;
+in vec3 f_sunToSurface_viewspace;
 
 layout(binding = 0) uniform sampler2D colorTex;
 layout(binding = 1) uniform sampler2D normalTex;
@@ -25,19 +25,23 @@ uniform vec3 lightColor[10];
 uniform vec3 lightPos[10];
 
 float computeDiffuse(vec3 surfaceToLight, vec3 normal);
-float computeSpecular(vec3 surfaceToCamera, vec3 surfaceToLight_viewspace, vec3 normal);
+float computeSpecular(vec3 surfaceToCamera, vec3 lightToSurface_viewspace, vec3 normal);
 float calcAttenuation(vec3 lightToSurface);
 
 vec3 sun_color = vec3(1, .7, .6);
 vec3 normal;
-vec3 surfaceToLight_viewspace;
+vec3 lightToSurface_viewspace;
 
 out vec3 outputColor;
 
 void main() {
 
-    // On est en espace caméra, cad que la caméra est en (0, 0, 0), donc la direction vers la caméra est surface - (0, 0, 0)
-    vec3 surfaceToCamera = normalize(f_position_view);
+    float occlusion = 1.0;
+
+    // Compare what can be seen at the surface location from the light with the actual distance from the light
+    // If the sun see something nearer (smaller depth value) than the surface, this means there is occlusion
+    if (texture(shadowMap, vec2(fPosition_clip_fromLight) ).x < fPosition_clip_fromLight.z -0.0005)
+        occlusion = 0.0;
 
     vec3 diffColor = vec3(0);
     vec3 specColor = vec3(0);
@@ -59,64 +63,62 @@ void main() {
     else
         material_spec = matSpec;
 
-    for (int i = 0; i < 10; i++)
+    // On est en espace caméra, cad que la caméra est en (0, 0, 0),
+    // Donc la direction vers la caméra est: (0, 0, 0) - surface
+    vec3 surfaceToCamera = normalize(0 - f_position_view);
+
+    for (int i = 7; i < 8; i++)
     {
-        surfaceToLight_viewspace = vec3(fWorldToView * vec4(lightPos[i], 1)) - f_position_view;
+        lightToSurface_viewspace = f_position_view - vec3(fWorldToView * vec4(lightPos[i], 1));
 
-        vec3 baseColor = lightColor[i] * calcAttenuation(surfaceToLight_viewspace);
+        vec3 baseColor = lightColor[i] * calcAttenuation(lightToSurface_viewspace);
 
-        surfaceToLight_viewspace = normalize(surfaceToLight_viewspace);
+        lightToSurface_viewspace = normalize(lightToSurface_viewspace);
 
-        diffColor += baseColor * computeDiffuse(surfaceToLight_viewspace, normal);
-        specColor += baseColor * computeSpecular(surfaceToCamera, surfaceToLight_viewspace, normal);
+        diffColor += baseColor * computeDiffuse(lightToSurface_viewspace, normal);
+        specColor += baseColor * 2.0 * computeSpecular(surfaceToCamera, lightToSurface_viewspace, normal);
     }
 
-    float occlusion = 1;
-    // WTF Depuis 14.4, il faut prendre le x pour récup la profondeur dans la shadow map
-    if (texture(shadowMap, vec2(fPosition_clip_fromLight)).x < fPosition_clip_fromLight.z -0.0005)
-        occlusion = 0.1;
-
     if (occlusion == 1.0)
-        specColor += sun_color * computeSpecular(surfaceToCamera, f_sunDirection_viewspace, normal);
+        specColor += sun_color * 1.0 * computeSpecular(surfaceToCamera, f_sunToSurface_viewspace, normal);
 
-    diffColor += sun_color * computeDiffuse(f_sunDirection_viewspace, normal) * occlusion;
+    diffColor += sun_color * computeDiffuse(f_sunToSurface_viewspace, normal) * occlusion;
 
-    outputColor = material_diff * (diffColor  + (specColor * material_spec));
-//    outputColor = texture(normalTex, texCoord).rgb*2-1;
-//    outputColor = normal;
+    outputColor = material_diff * (0.02 + diffColor  + (specColor * material_spec));
+//    outputColor = texture(normalTex, texCoord).rgb;
+//    outputColor = vec3(specColor * material_spec);
 //    outputColor =  vec3(occlusion);
-//    outputColor =  vec3(f_position_view)* 1.0;
-
-//    outputColor = lightColor[0];
 //    outputColor = ((specColor * material_spec) + diffColor) * material_diff;
-//    outputColor = surfaceToLight_viewspace[2];
+//    outputColor = lightToSurface_viewspace[2];
 //    outputColor = normalize(f_tangentToView * surfaceToCamera);
 //    outputColor = texture(shadowMap, vec2(fPosition_clip_fromLight)).xyz;
-//    outputColor = (f_sunDirection_viewspace+1) / 2;
+//    outputColor = vec3(1.0);
 //    outputColor = vec3(fPosition_clip_fromLight.z+1)/2;
 //    outputColor = vec3(has_normal_map);
+//
+//    tonemap(outputColor);
 
-    outputColor = pow(outputColor, vec3(1/GAMMA));
+    outputColor = pow(outputColor, vec3(1.0/GAMMA));
 
 }
 
 float computeDiffuse(vec3 surfaceToLight, vec3 normal) {
 
-    return max(dot(surfaceToLight, normal), 0.);
+    return max(dot(-surfaceToLight, normal), 0.);
 }
 
-float computeSpecular(vec3 surfaceToCamera, vec3 surfaceToLight_viewspace, vec3 normal) {
+float computeSpecular(vec3 surfaceToCamera, vec3 lightToSurface_viewspace, vec3 normal) {
 
     // On fait rebondir le rayon de lumière sur la surface grâce à sa normale
-    vec3 reflectedLight = reflect(surfaceToLight_viewspace, normal);
+    vec3 reflectedLight = reflect(lightToSurface_viewspace, normal);
 
     // Plus les rayons refletés seront en direction de la caméra, plus il y aura de lumière à cet endroit
-    return pow( max( dot(reflectedLight, surfaceToCamera), 0.), clamp(matShininess, 70, 102));
+    return pow( max( dot(reflectedLight, surfaceToCamera), 0.), clamp(matShininess, 0, 1024));
 }
 
-#define ATTEN_CONST 1
-#define ATTEN_LINEAR 0.001
-#define ATTEN_QUADRA 0.001
+#define ATTEN_CONST .2
+#define ATTEN_LINEAR 0.1
+#define ATTEN_QUADRA 0.01
 
 float calcAttenuation(vec3 lightToSurface) {
 

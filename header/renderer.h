@@ -25,6 +25,7 @@ typedef struct _Renderer {
     bool debug_tangents;
     bool debug_normals;
     bool debug_wireframe;
+    bool draw_scene;
 
 } Renderer;
 

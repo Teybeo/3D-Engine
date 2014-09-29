@@ -15,8 +15,6 @@ void Renderer_Render(Renderer* renderer) {
 
     Scene* scene = renderer->scene;
 
-    glClear(GL_DEPTH_BUFFER_BIT);
-
     Vec3* light = Light_Serialize(scene->lampe, 6);
     Shader_SendUniformArray(ShaderLibrary_Get("instance"), "lightPos[0]", GL_FLOAT_VEC3, 6, &light->x);
     Shader_SendUniformArray(ShaderLibrary_Get("instance"), "lightColor[0]", GL_FLOAT_VEC3, 6, &light[6].x);
@@ -24,16 +22,9 @@ void Renderer_Render(Renderer* renderer) {
     Shader_SendUniformArray(ShaderLibrary_Get("fullset"), "lightColor[0]", GL_FLOAT_VEC3, 6, &light[6].x);
     free(light);
 
-//    for (i = 1 ; i <2 ; i++ )
-//        Plan_Draw(scene->planes[i], scene->player.mondeToCam, scene->fenetre.camToClip);
-
     Renderer_GenerateShadowMap(renderer);
 
     Renderer_RenderMeshesShadowed(renderer);
-
-
-//    for (i = 0 ; i < scene->nb ; i++ )
-//        Sphere_Draw(scene->balle[i], scene->player.mondeToCam, renderer->camToClip);
 
     loadIdentity(scene->skybox.matrix);
     if (scene->player.camMode == CAMERAMODE_FREE)
@@ -55,10 +46,11 @@ void Renderer_GenerateShadowMap(Renderer* renderer) {
 
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->framebuffer);
     glViewport(0, 0, SHADOWMAP_W, SHADOWMAP_H);
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear( GL_DEPTH_BUFFER_BIT);
     glCullFace(GL_FRONT);
         // Render shadowmap for object 0
-        Object3D_Draw(renderer->scene->objects[0], renderer);
+        if (renderer->draw_scene)
+            Object3D_Draw(renderer->scene->objects[0], renderer);
         Robot_draw(renderer->scene->robot, renderer);
         Plan_Draw(renderer->scene->planes[0], renderer);
         Plan_Draw(renderer->scene->planes[1], renderer);
@@ -91,6 +83,8 @@ void Renderer_RenderMeshesShadowed(Renderer* renderer) {
     Plan_Draw(scene->planes[0], renderer);
     Plan_Draw(scene->planes[1], renderer);
     Plan_Draw(scene->planes[2], renderer);
+    if (renderer->draw_scene)
+        Object3D_Draw(scene->objects[0], renderer);
 
     int i;
     for (i = 0 ; i < 6 ; i++ )
@@ -211,6 +205,10 @@ void Renderer_keyEvent(Renderer* renderer, SDL_KeyboardEvent key) {
 
         if (key.keysym.sym == SDLK_n)
             renderer->debug_normals = !renderer->debug_normals;
+
+        if (key.keysym.sym == SDLK_x)
+            renderer->draw_scene = !renderer->draw_scene;
+
     }
 
 }

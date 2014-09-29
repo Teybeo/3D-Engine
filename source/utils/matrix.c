@@ -91,7 +91,7 @@ void loadIdentity(float* mat) {
 // Dans un sens colonne, l'autre ligne...
 Vec4 Mat_Mul_Vec(float* mat, Vec4 pos) {
 
-    Vec4 res = {};
+    Vec4 res;
 
     res.x = ( pos.x * mat[0]  ) + ( pos.y * mat[1]  ) + ( pos.z * mat[2]  ) + ( pos.w * mat[3]  );
     res.y = ( pos.x * mat[4]  ) + ( pos.y * mat[5]  ) + ( pos.z * mat[6]  ) + ( pos.w * mat[7]  );

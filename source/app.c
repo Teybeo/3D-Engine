@@ -50,7 +50,6 @@ bool App_Init(App* app) {
         return false;
 
     GLenum err = glewInit();
-    glGetError(); // Fix l'erreur de glewInit
     if (GLEW_OK != err)
     {
         fprintf(stderr, "Error: %s\n", glewGetErrorString(err));

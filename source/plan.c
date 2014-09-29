@@ -28,7 +28,7 @@ void Plan_Draw(Plan plan, Renderer* renderer) {
 
 void Plan_RotateBase(Plan* plan) {
 
-    float base[16] = {};
+    float base[16];
     loadIdentity(base);
     rotate(base, plan->collisionData->plan.angleX, plan->collisionData->plan.angleY, plan->collisionData->plan.angleZ);
 
