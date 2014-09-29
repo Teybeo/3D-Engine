@@ -82,7 +82,21 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
 
         Shader_SendUniform(shader, "modelWorld", GL_FLOAT_MAT4, object.matrix);
 
-        if (renderer->depth_rendering == false)
+        // If we're depth rendering, we don't care about the materials
+        // So just draw the object in one big draw call and return
+        // This only works when all submeshes are contiguous and in the same vbo
+        if (renderer->depth_rendering == true) {
+            int j;
+            int count = 0;
+            for (j = 0 ; j < mesh->nb ; j++ )
+                count += mesh->drawCount[j];
+            if (mesh->vbo_indices != 0)
+                glDrawElements(mesh->primitiveType, count, GL_UNSIGNED_INT, NULL);
+            else
+                glDrawArrays(mesh->primitiveType, 0, count);
+            break;// Stop the sub-meshes drawing loop
+        }
+        else
             SendMaterial(shader, &mesh->material[i], renderer);
 
         if (mesh->material[0].type & NORMAL_MAP && (renderer->debug_tangents || renderer->debug_bitangents || renderer->debug_normals)
