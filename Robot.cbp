@@ -2,12 +2,12 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="Robot" />
+		<Option title="3D-Engine" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin/Debug/Robot" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Debug/3D-Engine" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="bin" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
@@ -17,7 +17,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Release/Robot" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Release/3D-Engine" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="bin" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
@@ -28,19 +28,17 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
 			</Target>
 			<Target title="Profile">
-				<Option output="bin/Profile/Robot" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Profile/3D-Engine" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="bin" />
 				<Option object_output="obj/Profile/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-march=corei7" />
+					<Add option="-O3" />
 					<Add option="-pg" />
-					<Add option="-g" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -80,6 +78,7 @@
 		<Unit filename="header/shader_library.h" />
 		<Unit filename="header/sphere.h" />
 		<Unit filename="header/texture.h" />
+		<Unit filename="header/utils/hashMap.h" />
 		<Unit filename="header/utils/liste.h" />
 		<Unit filename="header/utils/listeContact.h" />
 		<Unit filename="header/utils/listeString.h" />
@@ -97,12 +96,8 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/frag_shaders/depth.frag" />
-		<Unit filename="source/frag_shaders/noLight.frag" />
+		<Unit filename="source/frag_shaders/fullset.frag" />
 		<Unit filename="source/frag_shaders/noTexNoLight.frag" />
-		<Unit filename="source/frag_shaders/normalMap.frag" />
-		<Unit filename="source/frag_shaders/perFragment.frag" />
-		<Unit filename="source/frag_shaders/perVertex.frag" />
-		<Unit filename="source/frag_shaders/shadow.frag" />
 		<Unit filename="source/gl_debug.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -160,6 +155,9 @@
 		<Unit filename="source/texture.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="source/utils/hashMap.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="source/utils/liste.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -182,13 +180,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="source/vert_shaders/depth.vert" />
+		<Unit filename="source/vert_shaders/fullset.vert" />
 		<Unit filename="source/vert_shaders/instancePerFragment.vert" />
 		<Unit filename="source/vert_shaders/noLight.vert" />
 		<Unit filename="source/vert_shaders/noTexNoLight.vert" />
-		<Unit filename="source/vert_shaders/normalMap.vert" />
-		<Unit filename="source/vert_shaders/perFragment.vert" />
-		<Unit filename="source/vert_shaders/perVertex.vert" />
-		<Unit filename="source/vert_shaders/shadow.vert" />
 		<Extensions>
 			<code_completion />
 			<envvars />

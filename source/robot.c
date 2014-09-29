@@ -109,7 +109,7 @@ bool Robot_init(Robot* robot) {
     if (cubeMesh == NULL)
         return false;
 
-    Mesh* brasMesh = Mesh_Load("../models/bras.obj");
+    Mesh* brasMesh = Mesh_Load("../models/bras.obj", MESH_IGNORE_MTL);
     if (brasMesh == NULL)
         return false;
 //    brasMesh = cubeMesh;

@@ -173,9 +173,7 @@ Object3D Object3D_Load(const char* objFile) {
 
     Object3D object = {};
 
-    char texFile[256] = "";
-
-    object.mesh = Mesh_FullLoad(objFile, texFile);
+    object.mesh = Mesh_Load(objFile, MESH_LOAD_MTL);
     // TODO: meilleur gestion d'erreur
     if (object.mesh == NULL)
         return object;

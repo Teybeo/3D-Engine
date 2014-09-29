@@ -11,11 +11,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 bool loadObj(const char* filename, Vec3** vertices, Vec3** normals, Vec2** uvs, int* nb, Vec2** range, int* nbObjects, char*** matNames, char* texFile) {
-
-    puts("\n----------- Mesh ---------");
-    printf("Loading '%s'\n", filename);
 
     Vec3* _vertices = NULL;
     Vec3* _normals = NULL;
@@ -114,6 +112,8 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec3** normals, Vec2*
         return false;
     }
 
+    clock_t start = clock();
+
     bool faceConstruction = false;
 
     ElemVec3* listeVertex = NULL;
@@ -126,8 +126,8 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec3** normals, Vec2*
     ElemVec3* listeRange = NULL;
     ElemString* listeMatNames = NULL;
 
-    char lineHeader[128];
-    char currentMat[128];
+    char lineHeader[128] = "";
+    char currentMat[128] = "";
     int currentIndex = 0;
     int i;
     Vec3 vecTemp;
@@ -167,7 +167,7 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec3** normals, Vec2*
         }
         else
         {
-            if (faceConstruction == true)
+            if (faceConstruction == true && lineHeader[0] != 's')
             {
                 faceConstruction = false;
                 // x Stocke l'index de départ, y stocke le nombre d'éléments
@@ -252,31 +252,23 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec3** normals, Vec2*
     *range = dumpVec2ListeToArray(listeRange);
     *matNames = dumpListeToArrayStr(listeMatNames);
 
-
     free(vertexIndices);
     free(normalIndices);
     free(uvIndices);
     free(verticesDump);
     free(normalsDump);
     free(uvsDump);
-    liberePile(listeVertex);
-    liberePile(listeNormal);
-    liberePile(listeUv);
-    liberePile(listeVertexIndices);
-    liberePile(listeNormalIndices);
-    liberePile(listeUvIndices);
-    liberePile(listeRange);
-    liberePileStr(listeMatNames);
 
     puts("Ok");
-    printf("\t%d objects for %d vertices\n", *nbObjects, nbVertexUniques);
+    printf("\tRead %d vertices, %d objects\n", nbVertexUniques, *nbObjects);
+    printf("\tTime used: %f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
 
     return true;
 }
 
 bool loadMtl(char* filename, Material** material, int* nbFinal) {
 
-    printf("\tLoading MTL file '%s' ...", filename);
+    printf("\tLoading MTL file '%s'\n", filename);
 
     FILE* file = fopen(filename, "r");
     if (file == NULL)
@@ -284,6 +276,8 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
         puts("Error");
         return false;
     }
+
+    clock_t start = clock();
 
     ElemString* pileName = NULL;
     ElemString* pileTexture = NULL;
@@ -306,7 +300,7 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
         int res = fscanf(file, "%s", lineHeader);
 
         // Nouveau matériau, on stocke le nom
-        if ( strcmp( lineHeader, "newmtl" ) == 0 && res != EOF)
+        if ( stricmp( lineHeader, "newmtl" ) == 0 && res != EOF)
         {
             if (mtlIsBeingDefined == false)
             {
@@ -336,44 +330,44 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
                 break;
 
             // Texture diffuse
-            else if ( strcmp( lineHeader, "map_Kd" ) == 0 )
+            else if ( stricmp( lineHeader, "map_Kd" ) == 0 )
             {
                 fscanf(file, "%s", chaine);
                 strcpy(pileTexture->chaine, chaine);
             }
             // Normal map
-            else if ( strcmp( lineHeader, "map_bump" ) == 0 || strcmp( lineHeader, "map_Disp" ) == 0 )
+            else if ( stricmp( lineHeader, "map_bump" ) == 0 || stricmp( lineHeader, "map_Disp" ) == 0 )
             {
                 fscanf(file, "%s", chaine);
                 strcpy(pileNormalMap->chaine, chaine);
             }
             // Specular map
-            else if ( strcmp( lineHeader, "map_Ks" ) == 0)
+            else if ( stricmp( lineHeader, "map_Ks" ) == 0)
             {
                 fscanf(file, "%s", chaine);
                 strcpy(pileSpecularMap->chaine, chaine);
             }
 
             // Couleur ambiante
-            else if ( strcmp( lineHeader, "Ka") == 0)
+            else if ( stricmp( lineHeader, "Ka") == 0)
             {
                 fscanf(file, "%f %f %f", &vecTemp.x, &vecTemp.y, &vecTemp.z );
                 pileAmbient->vec = vecTemp;
             }
             // Couleur diffuse
-            else if ( strcmp( lineHeader, "Kd") == 0)
+            else if ( stricmp( lineHeader, "Kd") == 0)
             {
                 fscanf(file, "%f %f %f", &vecTemp.x, &vecTemp.y, &vecTemp.z );
                 pileDiffuse->vec = vecTemp;
             }
             // Couleur spéculaire
-            if ( strcmp( lineHeader, "Ks" ) == 0 )
+            if ( stricmp( lineHeader, "Ks" ) == 0 )
             {
                 fscanf(file, "%f %f %f\n", &vecTemp.x, &vecTemp.y, &vecTemp.z );
                 pileSpecular->vec = vecTemp;
             }
             // Exponent spéculaire
-            else if ( strcmp( lineHeader, "Ns" ) == 0 )
+            else if ( stricmp( lineHeader, "Ns" ) == 0 )
             {
                 fscanf(file, "%f", &vecTemp.x);
                 pileExponent->vec = vecTemp;
@@ -409,13 +403,13 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
         strcpy((*material)[i].nom, names[i]);
         if (strlen(textures[i]) > 0)
         {
-            (*material)[i].texture = chargerTexture(textures[i], GL_LINEAR);
+            (*material)[i].texture = chargerTexture(textures[i], GL_LINEAR_MIPMAP_LINEAR);
             (*material)[i].type |= COLOR_MAP;
         }
 
         if (strlen(normalMaps[i]) > 0)
         {
-            (*material)[i].normalMap = chargerTexture(normalMaps[i], GL_LINEAR);
+            (*material)[i].normalMap = chargerTexture(normalMaps[i], GL_LINEAR_MIPMAP_LINEAR);
             (*material)[i].type |= NORMAL_MAP;
         }
 
@@ -447,7 +441,8 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
     fclose(file);
 
     puts("Ok");
-    printf("\t%d Matériaux chargés\n", nb);
+    printf("\t%d Materials loaded, ", nb);
+    printf("time used: %f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
 
     return true;
 }

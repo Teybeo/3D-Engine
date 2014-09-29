@@ -65,7 +65,7 @@ char** dumpListeToArrayStr(ElemString* tetepile) {
         array[nb-1 - i] = malloc(sizeof(char) * 128);
         strcpy(array[nb-1 - i], curseur->chaine);
         i++;
-        curseur = curseur->suivant;
+        curseur = depilerStr(curseur);
     }
 
     return array;

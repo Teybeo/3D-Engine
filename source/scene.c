@@ -112,7 +112,7 @@ bool Scene_Init(Scene* scene) {
     if ((stoneTexture = chargerTexture("../images/stone.png", GL_NEAREST)) == 0)
         return false;
 
-    if ((solTexture = chargerTexture("../images/cyclopean.jpg", GL_LINEAR)) == 0)
+    if ((solTexture = chargerTexture("../images/7569-diffuse.jpg", GL_LINEAR_MIPMAP_LINEAR)) == 0)
         return false;
 
     int i;
@@ -167,7 +167,7 @@ bool Scene_Init(Scene* scene) {
 
 //////////////// LUMIERES
 
-    Mesh* sphere = Mesh_Load("../models/sphere.obj");
+    Mesh* sphere = Mesh_Load("../models/sphere.obj", MESH_IGNORE_MTL);
     if (sphere == NULL)
         return false;
 

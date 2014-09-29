@@ -84,7 +84,7 @@ unsigned int* dumpListeToArray(ElemVec3* tetepile) {
     while (curseur != NULL)
     {
         array[nb-1 - i] = curseur->vec.x;
-        curseur = curseur->suivant;
+        curseur = depiler(curseur);
         i++;
     }
 
@@ -104,7 +104,7 @@ Vec3* dumpVec3ListeToArray(ElemVec3* tetepile) {
     while (curseur != NULL)
     {
         array[nb-1 - i] = curseur->vec;
-        curseur = curseur->suivant;
+        curseur = depiler(curseur);
         i++;
     }
 
@@ -125,7 +125,7 @@ Vec2* dumpVec2ListeToArray(ElemVec3* tetepile) {
     {
         array[nb-1 - i].x = curseur->vec.x;
         array[nb-1 - i].y = curseur->vec.y;
-        curseur = curseur->suivant;
+        curseur = depiler(curseur);
         i++;
     }
 

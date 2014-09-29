@@ -4,12 +4,16 @@
 #include "carre.h"
 #include "utils/vec3.h"
 #include "utils/vec2.h"
+#include "utils/hashMap.h"
 #include "objLoader.h"
 #include "shader_library.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+
+char* correctMtlPath(const char* path, const char* base_path);
 
 void Mesh_CreateVAO(Mesh* mesh, int nbAttrib, int* attrib, int* offset, int* components) {
 
@@ -94,14 +98,12 @@ void Mesh_CreateIndexVBO(Mesh* mesh, int* indices, int nb) {
 
 }
 
-Mesh* Mesh_Load(const char* filename) {
-
-    return Mesh_FullLoad(filename, NULL);
-}
-
 // Charge et prépare directement un mesh
 // Ecrit le chemin du fichier mtl dans mtlFile
-Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
+Mesh* Mesh_Load(const char* objPath, bool loadMTL) {
+
+    puts("\n----------- Mesh ---------");
+    printf("Loading '%s'\n", objPath);
 
     Mesh* mesh = calloc(1, sizeof(Mesh));
 
@@ -109,22 +111,28 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
     Vec3* normals = NULL;
     Vec2* uvs = NULL;
     Vec2* range = NULL;
+    char mtlFile[256] = "";
     char** matNames = NULL;
     int nbVertices = 0, nbObjects = 0, nbMat = 0;
     Material* materialList = NULL;
 
-    if (loadObj(filename, &vertices, &normals, &uvs, &nbVertices, &range, &nbObjects, &matNames, mtlFile) == false)
+    if (loadObj(objPath, &vertices, &normals, &uvs, &nbVertices, &range, &nbObjects, &matNames, mtlFile) == false)
         return NULL;
 
-    if (mtlFile != NULL && strlen(mtlFile) != 0)
-        if (loadMtl(mtlFile, &materialList, &nbMat) == false)
+    if (loadMTL == MESH_LOAD_MTL && strlen(mtlFile) != 0)
+    {
+        char* mtlPath = correctMtlPath(objPath, mtlFile);
+
+        if (loadMtl(mtlPath, &materialList, &nbMat) == false)
             return NULL;
-    if (materialList != NULL && matNames != NULL)
-        mesh->material = desindexeMaterial(materialList, nbMat, matNames, nbObjects);
+
+        if (materialList != NULL && matNames != NULL)
+            mesh->material = desindexeMaterial(materialList, nbMat, matNames, nbObjects);
+    }
     else
     {
-        int i;
         mesh->material = malloc(sizeof(Material) * nbObjects);
+        int i;
         for (i = 0 ; i < nbObjects ; i++ )
             mesh->material[i] = Material_GetDefault();
     }
@@ -134,6 +142,7 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
     int i;
     for (i = 0 ; i < nbObjects ; i++ )
     {
+//        printf("subObject %d: %d vertices\n", i, (int)range[i].y);
         mesh->drawStart[i] = range[i].x;
         mesh->drawCount[i] = range[i].y;
     }
@@ -144,7 +153,7 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
     int* indices = NULL;
     int nb_uniq_vertices = 0;
 
-    if (mesh->material[0].type & NORMAL_MAP)
+    if (true || mesh->material[0].type & NORMAL_MAP)
     {
         Vec3* tangents = malloc(sizeof(Vec3) * nbVertices);
         Vec3* bitangents = malloc(sizeof(Vec3) * nbVertices);
@@ -152,6 +161,8 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
 
         if (INDEXED_GEOMETRY)
         {
+            puts("indexAttribsTBN");
+//            indexAttribs_TBNSlow(&vertices, &normals, &uvs, &tangents, &bitangents, nbVertices, &indices, &nb_uniq_vertices);
             indexAttribs_TBN(&vertices, &normals, &uvs, &tangents, &bitangents, nbVertices, &indices, &nb_uniq_vertices);
             Mesh_CreateVBO3(mesh, vertices, normals, tangents, bitangents, uvs, nb_uniq_vertices);
             Mesh_CreateVAO(mesh, 5, (int[5]){0, 1, 3, 4, 2}, (int[5]){0, sizeof(Vec3)*nb_uniq_vertices, sizeof(Vec3)*nb_uniq_vertices*2, sizeof(Vec3)*nb_uniq_vertices*3, sizeof(Vec3)*nb_uniq_vertices*4}, (int[5]){3, 3, 3, 3, 2});
@@ -170,6 +181,7 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
     }
     else if (INDEXED_GEOMETRY)
     {
+//        indexAttribsSlow(&vertices, &normals, &uvs, nbVertices, &indices, &nb_uniq_vertices);
         indexAttribs(&vertices, &normals, &uvs, nbVertices, &indices, &nb_uniq_vertices);
         Mesh_CreateVBO2(mesh, vertices, normals, uvs, nb_uniq_vertices);
         Mesh_CreateVAO(mesh, 3, (int[3]){0, 1, 2}, (int[3]){0, sizeof(Vec3)*nb_uniq_vertices, sizeof(Vec3)*nb_uniq_vertices * 2}, (int[3]){3, 3, 2});
@@ -189,6 +201,8 @@ Mesh* Mesh_FullLoad(const char* filename, char* mtlFile) {
     free(uvs);
     free(range);
 //    free(indices);
+
+    puts("\n---------");
 
     return mesh;
 }
@@ -322,39 +336,9 @@ Material Material_GetDefault() {
     return mat;
 }
 
-int search_vertex(Vec3* new_vertices, Vec3* new_normals, Vec2* new_uvs, Vec3 vertex, Vec3 normal, Vec2 uv, int uniq_vertices)
-{
-
-    int i;
-    for (i = 0 ; i < uniq_vertices ; i++ )
-    {
-        if (Vec3_Equal(new_vertices[i], vertex) &&
-            Vec3_Equal(new_normals[i], normal) &&
-            Vec2_Equal(new_uvs[i], uv))
-                return i;
-    }
-
-    return -1;
-}
-
-int search_vertex_TBN(Vec3* new_vertices, Vec3* new_normals, Vec2* new_uvs, Vec3* new_tangents, Vec3* new_bitangents, Vec3 vertex, Vec3 normal, Vec2 uv, Vec3 tangent, Vec3 bitangent, int uniq_vertices)
-{
-
-    int i;
-    for (i = 0 ; i < uniq_vertices ; i++ )
-    {
-        if (Vec3_Equal(new_vertices[i], vertex) &&
-            Vec3_Equal(new_normals[i], normal) &&
-            Vec2_Equal(new_uvs[i], uv) &&
-            Vec3_Equal(new_tangents[i], tangent) &&
-            Vec3_Equal(new_bitangents[i], bitangent))
-                return i;
-    }
-
-    return -1;
-}
-
 void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, int** indices_out, int* uniq_vertices_out) {
+
+    clock_t start = clock();
 
     // On crée des nouveaux tableaux de même taille que les anciens pour être sur que les données rentreront
     // Au final seulement 70-80% de l'espace sera utilisé mais ils seront redimensionnés à la fin de la fonction
@@ -366,6 +350,9 @@ void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, i
     // Par contre cette taille est correcte
     int* indices = malloc(sizeof(int) * nbVertices);
 
+    HashMap* hashmap = HashMap_create(nbVertices);
+
+    Vertex vertex = {};
     int index;
 
     int uniq_vertices = 0;
@@ -374,7 +361,9 @@ void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, i
     for (i = 0 ; i < nbVertices ; i++ )
     {
         // On cherche la combinaison des 3 attributs d'un vertex dans les nouveaux tableaux
-        index = search_vertex(new_vertices, new_normals, new_uvs, (*vertices)[i], (*normals)[i], (*uvs)[i], uniq_vertices);
+        vertex = (Vertex){(*vertices)[i], (*normals)[i], (*uvs)[i]};
+
+        index = HashMap_get(hashmap, vertex);
 
         // Si pas trouvé, on rentre cette combinaison dans les nouveaux tableaux et on rentre son index
         if (index == -1)
@@ -383,6 +372,7 @@ void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, i
             new_normals[uniq_vertices] = (*normals)[i];
             new_uvs[uniq_vertices] = (*uvs)[i];
             indices[i] = uniq_vertices;
+            HashMap_add(hashmap, vertex, indices[i]);
             uniq_vertices++;
         }
         // Si trouvé, alors on a juste à rentrer l'index de la combinaison
@@ -393,7 +383,6 @@ void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, i
 
     }
 
-    printf("\t%d vertices indexed out of %d -> %.2f%%\n", uniq_vertices, i, ((float)uniq_vertices/i)*100);
 
     new_vertices = realloc(new_vertices, sizeof(Vec3) * uniq_vertices);
     new_normals = realloc(new_normals, sizeof(Vec3) * uniq_vertices);
@@ -408,9 +397,14 @@ void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, i
     *normals = new_normals;
     *uvs = new_uvs;
 
+    printf("\tVertex reuse: %d of %d => %.2f%% reutilisation rate\n", uniq_vertices, i, ((float)uniq_vertices/i)*100);
+    printf("\tTime used: %f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
+    HashMap_printStats(hashmap);
 }
 
 void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangents, Vec3** bitangents, int nbVertices, int** indices_out, int* uniq_vertices_out/*, int const* const vertex_offsets*/) {
+
+    clock_t start = clock();
 
     // On crée des nouveaux tableaux de même taille que les anciens pour être sur que les données rentreront
     // Au final seulement 70-80% de l'espace sera utilisé mais ils seront redimensionnés à la fin de la fonction
@@ -424,6 +418,9 @@ void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangen
     // Par contre cette taille est correcte
     int* indices = malloc(sizeof(int) * nbVertices);
 
+    HashMap* hashmap = HashMap_create(nbVertices);
+
+    Vertex vertex = {};
     int index;
 
     int uniq_vertices = 0;
@@ -432,10 +429,10 @@ void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangen
     for (i = 0 ; i < nbVertices ; i++ )
     {
         // On cherche la combinaison des 3 attributs d'un vertex dans les nouveaux tableaux
+        vertex = (Vertex){(*vertices)[i], (*normals)[i], (*uvs)[i]};
 
-        index = search_vertex(new_vertices, new_normals, new_uvs, (*vertices)[i], (*normals)[i], (*uvs)[i], uniq_vertices);
+        index = HashMap_get(hashmap, vertex);
 
-        printf("end search %d\n", i);
         // Si pas trouvé, on rentre cette combinaison dans les nouveaux tableaux et on rentre son index
         if (index == -1)
         {
@@ -445,6 +442,7 @@ void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangen
             new_tangents[uniq_vertices] = (*tangents)[i];
             new_bitangents[uniq_vertices] = (*bitangents)[i];
             indices[i] = uniq_vertices;
+            HashMap_add(hashmap, vertex, indices[i]);
             uniq_vertices++;
         }
         // Si trouvé, alors on a juste à rentrer l'index de la combinaison
@@ -454,8 +452,6 @@ void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangen
         }
 
     }
-
-    printf("\t%d vertices indexed out of %d -> %.2f%%\n", uniq_vertices, i, ((float)uniq_vertices/i)*100);
 
     new_vertices = realloc(new_vertices, sizeof(Vec3) * uniq_vertices);
     new_normals = realloc(new_normals, sizeof(Vec3) * uniq_vertices);
@@ -476,4 +472,45 @@ void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangen
     *tangents = new_tangents;
     *bitangents = new_bitangents;
 
+    printf("\tVertex reuse: %d of %d => %.2f%% reutilisation rate\n", uniq_vertices, i, ((float)uniq_vertices/i)*100);
+    printf("\tTime used: %f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
+    HashMap_printStats(hashmap);
+}
+
+char* getDirectoryPath(const char* path);
+
+// Get the directory path of the obj file (relative to models/) and insert it to the mtl filename
+// The .obj can be in a directory and we expect the .mtl to be along it
+// But we must reconstruct the mtl path because the .obj typically only gives the name of the .mtl, without its path
+// TODO: detect and fix the case where the .obj gives the correct .mtl path
+char* correctMtlPath(const char* objPath, const char* mtlFile) {
+
+    char* objDirPath = getDirectoryPath(objPath);
+
+	char final_length = strlen(objDirPath) + strlen(mtlFile);
+
+	char* final_path = (char*)calloc(sizeof(char), final_length + 1);
+
+	strncpy(final_path, objDirPath, strlen(objDirPath));
+	strcat(final_path, mtlFile);
+
+    free(objDirPath);
+
+	return final_path;
+}
+
+char* getDirectoryPath(const char* path) {
+
+    char* pointer = strrchr(path, '/');
+
+    if (pointer == NULL)
+    	return NULL;
+
+    int base_path_length = pointer - path + 1;
+
+    char* base_path = (char*)calloc(sizeof(char) , base_path_length + 1);
+
+    strncpy(base_path, path, base_path_length);
+
+    return base_path;
 }

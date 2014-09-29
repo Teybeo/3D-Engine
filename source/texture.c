@@ -6,12 +6,13 @@
 #include "SDL_image.h"
 
 #include <stdio.h>
+#include <string.h>
 
 SDL_Surface* inverserPixels(SDL_Surface *src);
 
 GLuint chargerTexture(const char* filename, GLenum filter) {
 
-    puts("\n----------- Texture -------");
+    printf("[Texture] ");
     printf("Loading '%s' ... ", filename);
 
     SDL_Surface* raw = NULL;
@@ -22,8 +23,13 @@ GLuint chargerTexture(const char* filename, GLenum filter) {
 
     if (raw == NULL)
     {
-        puts("Error");
-        return 0;
+        char tmp[256] = "../images/";
+        raw = IMG_Load(strcat(tmp, filename));
+        if (raw == NULL)
+        {
+            puts("Error");
+            return 0;
+        }
     }
 
     SDL_Surface* img = inverserPixels(raw);
@@ -68,9 +74,13 @@ GLuint chargerTexture(const char* filename, GLenum filter) {
 //    glGenSamplers(1, &sampler);
 //    glBindSampler(1, sampler);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 
+    if (filter == GL_LINEAR_MIPMAP_LINEAR)
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
@@ -98,13 +108,13 @@ SDL_Surface* inverserPixels(SDL_Surface *src)
 
 
     // Inversion des pixels
-
+    int bytesPerLine = src->w * src->format->BytesPerPixel;
     int i;
     for(i = 0; i < src->h; i++)
     {
         int j;
-        for(j = 0; j < src->w * src->format->BytesPerPixel; j++)
-            pixelsInverses[(src->w * src->format->BytesPerPixel * (src->h - 1 - i)) + j] = pixelsSources[(src->w * src->format->BytesPerPixel * i) + j];
+        for(j = 0; j < bytesPerLine; j++)
+            pixelsInverses[(bytesPerLine * (src->h - 1 - i)) + j] = pixelsSources[(bytesPerLine * i) + j];
     }
 
 

@@ -9,7 +9,7 @@
 
 #include <stdbool.h>
 
-#define INDEXED_GEOMETRY 0
+#define INDEXED_GEOMETRY 1
 
 typedef enum MeshType {
 
@@ -64,9 +64,11 @@ typedef struct Mesh {
 
 } Mesh;
 
+#define MESH_LOAD_MTL true
+#define MESH_IGNORE_MTL false
+
 Mesh* Mesh_LoadBuiltin(int type);
-Mesh* Mesh_Load(const char* filename);
-Mesh* Mesh_FullLoad(const char* filename, char* texFile);
+Mesh* Mesh_Load(const char* filename, bool loadMTL);
 void Mesh_Draw(Mesh* model);
 Material Material_GetDefault();
 Material* desindexeMaterial(Material* material, int nbMat, char** mtlRef, int nbRef);
