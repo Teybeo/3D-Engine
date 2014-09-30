@@ -11,6 +11,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
+void Object3D_DrawDepth(Object3D object, Renderer* renderer);
 
 void SendMaterial(Shader* shader, Material* material, Renderer* renderer) {
 
@@ -48,6 +51,9 @@ void SendMaterial(Shader* shader, Material* material, Renderer* renderer) {
 
 void Object3D_Draw(Object3D object, Renderer* renderer) {
 
+    if (renderer->depth_rendering == true)
+        return Object3D_DrawDepth(object, renderer);
+
     Shader* shader = NULL;
     Mesh* mesh = object.mesh;
 
@@ -63,14 +69,8 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
     int i;
     for (i = 0 ; i < mesh->nb ; i++ )
     {
-        shader = mesh->material[i].shader;
 
-        if (renderer->depth_rendering == true)
-        {
-            shader = ShaderLibrary_Get("depth");
-            mondeToCam = renderer->depth_mondeToCam;
-            camToClip = renderer->depth_camToProj;
-        }
+        shader = mesh->material[i].shader;
 
         if (shader->id != renderer->currentShader)
         {
@@ -82,22 +82,9 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
 
         Shader_SendUniform(shader, "modelWorld", GL_FLOAT_MAT4, object.matrix);
 
-        // If we're depth rendering, we don't care about the materials
-        // So just draw the object in one big draw call and return
-        // This only works when all submeshes are contiguous and in the same vbo
-        if (renderer->depth_rendering == true) {
-            int j;
-            int count = 0;
-            for (j = 0 ; j < mesh->nb ; j++ )
-                count += mesh->drawCount[j];
-            if (mesh->vbo_indices != 0)
-                glDrawElements(mesh->primitiveType, count, GL_UNSIGNED_INT, NULL);
-            else
-                glDrawArrays(mesh->primitiveType, 0, count);
-            break;// Stop the sub-meshes drawing loop
         }
-        else
-            SendMaterial(shader, &mesh->material[i], renderer);
+
+        SendMaterial(shader, &mesh->material[i], renderer);
 
         if (mesh->material[0].type & NORMAL_MAP && (renderer->debug_tangents || renderer->debug_bitangents || renderer->debug_normals)
             && mesh->vbo_indices == 0)
@@ -180,6 +167,46 @@ void Object3D_Draw(Object3D object, Renderer* renderer) {
             glDrawArrays(mesh->primitiveType, mesh->drawStart[i], mesh->drawCount[i]);
     }
 
+}
+
+void Object3D_DrawDepth(Object3D object, Renderer* renderer) {
+
+    Shader* shader = ShaderLibrary_Get("depth");
+    Mesh* mesh = object.mesh;
+
+    float* mondeToCam = renderer->depth_mondeToCam;
+    float* camToClip = renderer->depth_camToProj;
+
+    if (mesh->vao != renderer->currentVAO)
+    {
+        glBindVertexArray(mesh->vao);
+        renderer->currentVAO = mesh->vao;
+    }
+
+    if (shader->id != renderer->currentShader)
+    {
+        glUseProgram(shader->id);
+        renderer->currentShader = shader->id;
+        Shader_SendUniform(shader, "worldCam", GL_FLOAT_MAT4, mondeToCam);
+        Shader_SendUniform(shader, "camClip", GL_FLOAT_MAT4, camToClip);
+    }
+
+    Shader_SendUniform(shader, "modelWorld", GL_FLOAT_MAT4, object.matrix);
+
+    // If we're depth rendering, we don't care about the materials
+    // So just draw the object in one big draw call and return
+    // This only works when all submeshes are contiguous and in the same vbo
+    int j;
+    int count = 0;
+    for (j = 0 ; j < mesh->nb ; j++ )
+        count += mesh->drawCount[j];
+
+    if (mesh->vbo_indices != 0)
+        glDrawElements(mesh->primitiveType, count, GL_UNSIGNED_INT, NULL);
+    else
+        glDrawArrays(mesh->primitiveType, 0, count);
+
+    return;
 }
 
 // Crée un object complet (mesh + matériaux + shaders) à partir d'un seul fichier .obj
