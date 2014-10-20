@@ -7,19 +7,18 @@
 
 #define WIDENING_FACTOR 10
 
+static void HashMap_printSize(HashMap* hashmap);
+
 HashMap* HashMap_create(unsigned int max_size) {
 
     HashMap* hashmap = malloc(sizeof(HashMap));
-    hashmap->domain_size = max_size;
-    hashmap->real_size = max_size * WIDENING_FACTOR;
-    hashmap->current_size = 0;
+    hashmap->size = max_size;
+    hashmap->wide_size = max_size * WIDENING_FACTOR;
+    hashmap->used_buckets = 0;
     hashmap->collisions = 0;
-    hashmap->buckets = calloc(sizeof(Bucket), hashmap->real_size );
+    hashmap->buckets = calloc(sizeof(Bucket), hashmap->wide_size );
 
-    int hashmap_size = (sizeof(Bucket) * hashmap->domain_size) / 1000000;
-
-    printf("\tNew hashmap: %d k elements, widening factor: %dx\n", hashmap->domain_size/1000, WIDENING_FACTOR);
-    printf("\tSize %d Mo, Real size %d Mo\n", hashmap_size, hashmap_size * WIDENING_FACTOR);
+    HashMap_printSize(hashmap);
 
     return hashmap;
 }
@@ -32,7 +31,8 @@ unsigned int Vec3_hash(Vec3 vec, unsigned int max_size) {
     hash ^= (((unsigned int) vec.z) * 83492791);
 
     return hash % max_size;
-}unsigned int Vertex_hash(Vertex key, unsigned int max_size) {
+}
+unsigned int Vertex_hash(Vertex key, unsigned int max_size) {
 
     unsigned int hash;
     hash =  (unsigned int) (key.pos.x * 73856093);
@@ -85,7 +85,7 @@ Bucket* getLastBucket(Bucket* bucket) {
 
 void HashMap_add(HashMap* hashmap, Vertex key, int value) {
 
-    unsigned int hash = Vertex_hash(key, hashmap->real_size);
+    unsigned int hash = Vertex_hash(key, hashmap->wide_size);
 
     // The bucket for this hash is already used for this hash, so there is a collision
     if (hashmap->buckets[hash].used == true)
@@ -102,7 +102,7 @@ void HashMap_add(HashMap* hashmap, Vertex key, int value) {
         hashmap->buckets[hash].value = value;
         hashmap->buckets[hash].key = key;
         hashmap->buckets[hash].used = true;
-        hashmap->current_size++;
+        hashmap->used_buckets++;
     }
 
 }
@@ -113,7 +113,7 @@ static inline int Vertex_Cmp(Vertex a, Vertex b) {
 
 int HashMap_get(HashMap* hashmap, Vertex key) {
 
-    unsigned int hash = Vertex_hash(key, hashmap->real_size);
+    unsigned int hash = Vertex_hash(key, hashmap->wide_size);
 
     // We found a bucket for the hash of this key
     if (hashmap->buckets[hash].used == true)
@@ -143,9 +143,57 @@ int HashMap_get(HashMap* hashmap, Vertex key) {
         return -1;
     }
 }
+void HashMap_Delete(HashMap* hashmap) {
 
-void HashMap_printStats(HashMap* hashmap) {
+    Bucket* buckets = hashmap->buckets;
+    Bucket* node;
+    Bucket* tmp;
 
-    printf("\tCollisions: %d of %d => ", hashmap->collisions, hashmap->domain_size);
-    printf("%f%% collision rate\n", ((float)hashmap->collisions)/hashmap->domain_size * 100.0);
+    unsigned int i;
+    for (i = 0; i < hashmap->used_buckets; i++) {
+
+        node = buckets[i].next;
+
+        while (node != NULL) {
+            tmp = node->next;
+            free(node);
+            node = tmp;
+        }
+    }
+    free(hashmap->buckets);
+    free(hashmap);
+}
+
+char getSuffix(int nb) {
+
+    if (nb > 1000000)
+        return 'M';
+    else if (nb > 1000)
+        return 'K';
+    else
+        return 0;
+}
+float formatBy1000(int nb) {
+
+    if (nb > 1000000)
+        return nb / 1000000.;
+    else if (nb > 1000)
+        return nb / 1000.;
+    else
+        return nb;
+}
+
+static void HashMap_printSize(HashMap* hashmap) {
+
+    int max_size = (sizeof(Bucket) * hashmap->size);
+
+    printf("\tNew hashmap: %.2f %c elements, widening factor: %dx\n", formatBy1000(hashmap->size), getSuffix(hashmap->size), WIDENING_FACTOR);
+    printf("\tSize: %.2f %co, wide size: %.2f %co\n", formatBy1000(max_size), getSuffix(max_size), formatBy1000(max_size * WIDENING_FACTOR), getSuffix(max_size * WIDENING_FACTOR));
+
+}
+
+void HashMap_printCollisions(HashMap* hashmap) {
+
+    printf("\tCollisions: %d of %d => ", hashmap->collisions, hashmap->size);
+    printf("%.2f%% collision rate\n", ((float)hashmap->collisions)/hashmap->size * 100.0);
 }

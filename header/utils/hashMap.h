@@ -26,17 +26,18 @@ typedef struct _Bucket {
 typedef struct _HashMap {
 
     Bucket* buckets;
-    unsigned int domain_size;
-    unsigned int real_size;
-    unsigned int current_size;
-    unsigned int collisions;
+    unsigned int size;         // Max number of buckets
+    unsigned int wide_size;    // Max number of buckets * factor, to reduce collisions
+    unsigned int used_buckets; // Number of buckets currently used
+    unsigned int collisions;   // Number of collision
 
 } HashMap;
 
 HashMap* HashMap_create(unsigned int max_size);
 void HashMap_add(HashMap* hashmap, Vertex key, int value);
 int HashMap_get(HashMap* hashmap, Vertex key);
-void HashMap_printStats(HashMap* hashmap);
+void HashMap_Delete(HashMap* hashmap);
+void HashMap_printCollisions(HashMap* hashmap);
 
 #endif // HASH_MAP
 

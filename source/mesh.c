@@ -399,7 +399,10 @@ void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, i
 
     printf("\tVertex reuse: %d of %d => %.2f%% reutilisation rate\n", uniq_vertices, i, ((float)uniq_vertices/i)*100);
     printf("\tTime used: %f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
-    HashMap_printStats(hashmap);
+    HashMap_printCollisions(hashmap);
+
+    HashMap_Delete(hashmap);
+
 }
 
 void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangents, Vec3** bitangents, int nbVertices, int** indices_out, int* uniq_vertices_out/*, int const* const vertex_offsets*/) {
@@ -474,7 +477,9 @@ void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangen
 
     printf("\tVertex reuse: %d of %d => %.2f%% reutilisation rate\n", uniq_vertices, i, ((float)uniq_vertices/i)*100);
     printf("\tTime used: %f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
-    HashMap_printStats(hashmap);
+    HashMap_printCollisions(hashmap);
+
+    HashMap_Delete(hashmap);
 }
 
 char* getDirectoryPath(const char* path);
