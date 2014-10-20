@@ -80,7 +80,7 @@ GLuint chargerTexture(const char* filename, GLenum filter) {
     if (filter == GL_LINEAR_MIPMAP_LINEAR)
         glGenerateMipmap(GL_TEXTURE_2D);
 
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 

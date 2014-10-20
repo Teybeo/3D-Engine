@@ -1,0 +1,16 @@
+    /*
+    QUERY_RESULT attend la fin de l'exécution des commandes
+    QUERY_RESULT_NO_WAIT attend aussi. Il n'a pas de garantie de non flush/blocage/sync
+    QUERY_RESULT_AVAILABLE effectue un flush
+
+    3) Is there any guarantee that GetQueryObject* will not wait for the
+    query results to become available if <pname> is QUERY_RESULT_NO_WAIT?
+
+    RESOLVED: There is no need to have such guarantee. An implementation may
+    choose to wait for the results even in case of QUERY_RESULT_NO_WAIT,
+    however, that may incur a potential performance hit in case the
+    application expects it to not wait.
+    */
+
+Sur ma carte, no wait attends.
+J'ai essayé en double buffering mais les query n'étaient jamais prêtes...

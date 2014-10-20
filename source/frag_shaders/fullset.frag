@@ -113,7 +113,7 @@ float computeSpecular(vec3 surfaceToCamera, vec3 lightToSurface_viewspace, vec3 
     vec3 reflectedLight = reflect(lightToSurface_viewspace, normal);
 
     // Plus les rayons refletés seront en direction de la caméra, plus il y aura de lumière à cet endroit
-    return pow( max( dot(reflectedLight, surfaceToCamera), 0.), clamp(matShininess, 0, 1024));
+    return pow( max( dot(reflectedLight, surfaceToCamera), 0.), clamp(matShininess, 1, 1024));
 }
 
 #define ATTEN_CONST .2

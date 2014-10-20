@@ -7,10 +7,13 @@
 #include <stdio.h>
 #include <string.h>
 #include "SDL_timer.h"
+
+#define WIN32_LEAN_AND_MEAN 1
+#define VC_EXTRALEAN 1
+
 #include <windows.h>
 
 uint32_t GetLastWriteTime(const char* filename);
-
 void cache_uniforms(Shader* shader);
 
 Shader* Shader_Create(const char* name, const char* vertexFile, const char* fragmentFile) {

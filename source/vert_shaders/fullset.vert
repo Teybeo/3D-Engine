@@ -43,8 +43,8 @@ void main(void){
 
     f_position_view = vec3(worldCam * position_worldspace);
 
-//    f_normal_view = normalize(vec3(modelCam * vec4(normalize(attrNormal), 0)));
-    f_normal_view = normalize(vec3((transpose(inverse(worldCam * modelWorld))) * vec4(attrNormal, 0) ));
+    f_normal_view = normalize(vec3(modelCam * vec4(normalize(attrNormal), 0)));
+//    f_normal_view = normalize(vec3((transpose(inverse(worldCam * modelWorld))) * vec4(attrNormal, 0) ));
 
     if (has_normal_map == true)
     {

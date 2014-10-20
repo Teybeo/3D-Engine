@@ -140,7 +140,6 @@ Mesh* Mesh_Load(const char* objPath, bool loadMTL) {
     mesh->drawStart = malloc(sizeof(int) * nbObjects);
     mesh->drawCount = malloc(sizeof(int) * nbObjects);
     int i;
-    int s = 0;
     for (i = 0 ; i < nbObjects ; i++ )
     {
 //        printf("%d: [%s] start: %d count: %d vertices\n", i, mesh->material[i].nom, (int)range[i].x, (int)range[i].y);
