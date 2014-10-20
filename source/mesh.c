@@ -140,9 +140,10 @@ Mesh* Mesh_Load(const char* objPath, bool loadMTL) {
     mesh->drawStart = malloc(sizeof(int) * nbObjects);
     mesh->drawCount = malloc(sizeof(int) * nbObjects);
     int i;
+    int s = 0;
     for (i = 0 ; i < nbObjects ; i++ )
     {
-//        printf("subObject %d: %d vertices\n", i, (int)range[i].y);
+//        printf("%d: [%s] start: %d count: %d vertices\n", i, mesh->material[i].nom, (int)range[i].x, (int)range[i].y);
         mesh->drawStart[i] = range[i].x;
         mesh->drawCount[i] = range[i].y;
     }
@@ -312,7 +313,10 @@ Material* desindexeMaterial(Material* material, int nbMat, char** mtlRef, int nb
         for (j = 0 ; j < nbMat ; j++ )
 
             if (strcmp(mtlRef[i], material[j].nom) == 0)
+            {
                 res[i] = material[j];
+                break;
+            }
     }
 
     return res;
@@ -398,7 +402,7 @@ void indexAttribs(Vec3** vertices, Vec3** normals, Vec2** uvs, int nbVertices, i
     *uvs = new_uvs;
 
     printf("\tVertex reuse: %d of %d => %.2f%% reutilisation rate\n", uniq_vertices, i, ((float)uniq_vertices/i)*100);
-    printf("\tTime used: %f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
+    printf("\tTime used: %.3f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
     HashMap_printCollisions(hashmap);
 
     HashMap_Delete(hashmap);
@@ -476,7 +480,7 @@ void indexAttribs_TBN(Vec3** vertices, Vec3** normals, Vec2** uvs, Vec3** tangen
     *bitangents = new_bitangents;
 
     printf("\tVertex reuse: %d of %d => %.2f%% reutilisation rate\n", uniq_vertices, i, ((float)uniq_vertices/i)*100);
-    printf("\tTime used: %f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
+    printf("\tTime used: %.3f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
     HashMap_printCollisions(hashmap);
 
     HashMap_Delete(hashmap);

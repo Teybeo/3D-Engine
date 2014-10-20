@@ -57,47 +57,6 @@ bool loadObj(const char* filename, Vec3** vertices, Vec3** normals, Vec2** uvs, 
     return true;
 }
 
-// Lecture d'un fichier en mode binaire, très rapide
-bool loadRawObj(const char* filename, Vec3** vertices, Vec3** normals, Vec2** uvs, int* nbVertices, char* texFile) {
-
-    char nameUnpacked[128] = "";
-    strcpy(nameUnpacked, filename);
-    strcat(nameUnpacked, "raw");
-
-    printf("\tLoading raw OBJ file '%s' ... ", nameUnpacked);
-
-    FILE* file = fopen(nameUnpacked, "rb");
-    if (file == NULL)
-    {
-        puts("Error");
-        return false;
-    }
-
-    char buffer[256] = "";
-
-    fscanf(file, "%s\n", buffer);
-
-    if (texFile != NULL)
-        strcpy(texFile, buffer);
-
-    fscanf(file, "%d\n", nbVertices);
-
-    *vertices = malloc(sizeof(Vec3) * *nbVertices);
-    *uvs = malloc(sizeof(Vec2) * *nbVertices);
-    *normals = malloc(sizeof(Vec3) * *nbVertices);
-
-    fread(*vertices, sizeof(Vec3), *nbVertices, file);
-    fread(*uvs, sizeof(Vec2), *nbVertices, file);
-    fread(*normals, sizeof(Vec3), *nbVertices, file);
-
-    fclose(file);
-
-//    printf("%d vertices in %d triangles\n", *nb, *nb/3);
-    puts("Ok");
-
-    return true;
-}
-
 // Lecture d'un fichier obj en mode texte, rapide
 // Ces fichiers peuvent contenir des indices différents pour chaque attribut (vertex, uv, normal)
 // OpenGl ne supporte pas cela, donc on désindexe les attributs en les mettant les uns à la suite des autres
@@ -261,7 +220,7 @@ bool loadIndexedObj(const char* filename, Vec3** vertices, Vec3** normals, Vec2*
 
     puts("Ok");
     printf("\tRead %d vertices, %d objects\n", nbVertexUniques, *nbObjects);
-    printf("\tTime used: %f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
+    printf("\tTime used: %.3f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
 
     return true;
 }
@@ -361,7 +320,7 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
                 pileDiffuse->vec = vecTemp;
             }
             // Couleur spéculaire
-            if ( stricmp( lineHeader, "Ks" ) == 0 )
+            else if ( stricmp( lineHeader, "Ks" ) == 0 )
             {
                 fscanf(file, "%f %f %f\n", &vecTemp.x, &vecTemp.y, &vecTemp.z );
                 pileSpecular->vec = vecTemp;
@@ -442,172 +401,7 @@ bool loadMtl(char* filename, Material** material, int* nbFinal) {
 
     puts("Ok");
     printf("\t%d Materials loaded, ", nb);
-    printf("time used: %f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
-
-    return true;
-}
-
-// Les performances des .obj sont relativement suffisantes, ce code est à réparer
-#if 0
-// Enregistre un modèle dans un fichier sous forme binaire, très rapide
-bool writeRawObj(const char* filename, Vec3* vertices, Vec3* normals, Vec2* uvs, int nbVertices, const char* texFile) {
-
-    char nameUnpacked[128] = "";
-    strcpy(nameUnpacked, filename);
-    strcat(nameUnpacked, "raw");
-
-    printf("\tWriting raw OBJ file '%s' ...", nameUnpacked);
-
-    FILE* file = fopen(nameUnpacked, "wb");
-    if (file == NULL)
-    {
-        puts("Error");
-        return false;
-    }
-
-//    char ligne[128] = "";
-    if (texFile == NULL)
-        fputs("NULL\n", file);
-    else
-        fprintf(file, "%s\n", texFile);
-    fprintf(file, "%d %d\n", nbVertices, nb);
-
-    fwrite(ranges, sizeof(Vec2), nb, file);
-    fwrite(vertices, sizeof(Vec3), nbVertices, file);
-    fwrite(uvs, sizeof(Vec2), nbVertices, file);
-    fwrite(normals, sizeof(Vec3), nbVertices, file);
-
-    fclose(file);
-    puts("Ok");
-
-    return true;
-
-}
-
-
-// Lecture d'un fichier en mode binaire, très rapide
-bool loadRawObj(const char* filename, Vec3** vertices, Vec2** uvs, Vec3** normals, Vec2** ranges, int* nb, int* nbVertices, char* texFile) {
-
-    char nameUnpacked[128] = "";
-    strcpy(nameUnpacked, filename);
-    strcat(nameUnpacked, "raw");
-
-    printf("\tLoading raw OBJ file '%s' ... ", nameUnpacked);
-
-    FILE* file = fopen(nameUnpacked, "rb");
-    if (file == NULL)
-    {
-        puts("Error");
-        return false;
-    }
-
-    char buffer[256] = "";
-
-    fscanf(file, "%s\n", buffer);
-
-    if (texFile != NULL)
-        strcpy(texFile, buffer);
-
-    fscanf(file, "%d %d\n", nbVertices, nb);
-
-    *ranges = malloc(sizeof(Vec2) * *nb);
-    *vertices = malloc(sizeof(Vec3) * *nbVertices);
-    *uvs = malloc(sizeof(Vec2) * *nbVertices);
-    *normals = malloc(sizeof(Vec3) * *nbVertices);
-
-    fread(*ranges, sizeof(Vec2), *nb, file);
-    fread(*vertices, sizeof(Vec3), *nbVertices, file);
-    fread(*uvs, sizeof(Vec2), *nbVertices, file);
-    fread(*normals, sizeof(Vec3), *nbVertices, file);
-
-    fclose(file);
-
-    puts("Ok");
-    printf("\t%d objects for %d triangles\n", *nb, *nbVertices);
-
-    return true;
-}
-#endif
-// Enregistre un modèle dans un fichier sous forme texte
-// Ce format est différent du .obj original car les attributs ne sont pas indexés, lent
-bool writeUnindexedObj(const char* filename, Vec3* vertices, Vec3* normals, Vec2* uvs, int nbVertices) {
-
-    char nameUnpacked[128] = "";
-    strcpy(nameUnpacked, filename);
-    strcat(nameUnpacked, "unpacked");
-
-    printf("\tWriting unindexed OBJ file '%s' ...", nameUnpacked);
-
-    FILE* file = fopen(nameUnpacked, "w");
-    if (file == NULL)
-    {
-        puts("Error");
-        return false;
-    }
-
-//    char ligne[128] = "";
-    fprintf(file, "%d\n", nbVertices);
-
-    int i;
-    for (i = 0 ; i < nbVertices ; i++ )
-    {
-        fprintf(file, "%.4f %.4f %.4f | %.4f %.4f | %.4f %.4f %.4f\n", vertices[i].x, vertices[i].y, vertices[i].z, uvs[i].x, uvs[i].y, normals[i].x, normals[i].y, normals[i].z);
-        if ((i+1) % 3 == 0)
-            fputs("\n", file);
-    }
-
-    fclose(file);
-    puts("Ok");
-
-    return true;
-
-}
-
-// Charge un modèle à partir d'un fichier texte généré avec writeUnidexedObj
-// Attributs non-indexés, lent
-bool loadUnindexedObj(const char* filename, Vec3** vertices, Vec3** normals, Vec2** uvs, int* nbVertices) {
-
-    char nameUnpacked[128] = "";
-    strcpy(nameUnpacked, filename);
-    strcat(nameUnpacked, "unpacked");
-
-    printf("\tLoading OBJ unindexed file '%s' ...", nameUnpacked);
-
-    FILE* file = fopen(nameUnpacked, "r");
-    if (file == NULL)
-    {
-        puts("Error");
-        return false;
-    }
-
-    fscanf(file, "%d\n", nbVertices);
-
-    *vertices = malloc(sizeof(Vec3) * *nbVertices);
-    *uvs = malloc(sizeof(Vec2) * *nbVertices);
-    *normals = malloc(sizeof(Vec3) * *nbVertices);
-
-    int matches;
-
-    int i;
-    for (i = 0 ; i < *nbVertices ; i++ )
-    {
-        matches = fscanf(file, "%f %f %f | %f %f | %f %f %f\n", &(*vertices)[i].x, &(*vertices)[i].y, &(*vertices)[i].z, &(*uvs)[i].x, &(*uvs)[i].y, &(*normals)[i].x, &(*normals)[i].y, &(*normals)[i].z);
-
-        if (matches != 8)
-        {
-            printf("File can't be read by parser :-(\n");
-            return false;
-        }
-    }
-
-//    fseek(file, 0, SEEK_END);
-//
-//    printf("%ld\n", ftell(file));
-
-    fclose(file);
-
-//    printf("%d vertices in %d triangles\n", *nb, *nb/3);
-    puts("Ok");
+    printf("time used: %.3f seconds\n", ((float)clock() - start) / CLOCKS_PER_SEC);
 
     return true;
 }
