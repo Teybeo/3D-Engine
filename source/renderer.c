@@ -48,6 +48,8 @@ void Renderer_GenerateShadowMap(Renderer* renderer) {
     glViewport(0, 0, SHADOWMAP_W, SHADOWMAP_H);
     glClear( GL_DEPTH_BUFFER_BIT);
     glCullFace(GL_FRONT);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
         // Render shadowmap for object 0
         if (renderer->draw_scene)
             Object3D_Draw(renderer->scene->objects[0], renderer);
@@ -58,6 +60,7 @@ void Renderer_GenerateShadowMap(Renderer* renderer) {
         SphereGroupe_Draw(renderer->scene->sphere, renderer);
 
     renderer->depth_rendering = false;
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
 
 }
 
