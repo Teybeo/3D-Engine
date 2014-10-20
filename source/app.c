@@ -177,40 +177,57 @@ void App_Event(App* app) {
     }
 
 }
+#define NB_TIMES (50)
+float avg_time(float* times);
 
 void App_Run(App* app) {
 
     Uint32 debut = SDL_GetTicks();
-    float duree = 0, precedenteDuree = 0;
+    float cpu_times[NB_TIMES] = {};
+    float gpu_times[NB_TIMES] = {};
+    int index_cpu = 0;
+    int index_gpu = 0;
+    float lastUpdate = 0;
     Uint64 gpuDuration = 0;
     unsigned int query;
     glGenQueries(1, &query);
-    int done;
+    char title[60] = "";
 
     while (app->fenetre.arret == false) {
 
         App_Event(app);
-        App_Logic(app, duree);
+        App_Logic(app, cpu_times[index_cpu]);
 
         glBeginQuery(GL_TIME_ELAPSED, query);
             App_Draw(app);
         glEndQuery(GL_TIME_ELAPSED);
-        while (!done) {
-            glGetQueryObjectiv(query, GL_QUERY_RESULT_AVAILABLE, &done);
-        }
 
-        glGetQueryObjectui64v(query, GL_QUERY_RESULT, &gpuDuration);
-        char title[20] = "";
-        duree = SDL_GetTicks() - debut;
-        if (fabsf(duree - precedenteDuree) >= 1)
+        // Get GPU time
+        glGetQueryObjectui64v(query, GL_QUERY_RESULT_NO_WAIT, &gpuDuration);
+        gpu_times[index_gpu++] = gpuDuration;
+        index_gpu %= NB_TIMES;
+
+        // Get CPU time
+        cpu_times[index_cpu++] = (SDL_GetTicks() - debut);
+        index_cpu %= NB_TIMES;
+
+        // Limit the title bar update rate to 0.1/s to keep it readable and not spam dwm.exe
+        if (fabsf(SDL_GetTicks() - lastUpdate) >= 100)
         {
-            sprintf(title, "%.0f ms / GPU %f", duree, ((float)gpuDuration)/1000000.);
+            sprintf(title, "CPU: %.2f ms / GPU: %.2f ms", avg_time(cpu_times), avg_time(gpu_times)/1000000);
             SDL_SetWindowTitle(app->fenetre.ecran, title);
-            precedenteDuree = duree;
+            lastUpdate = SDL_GetTicks();
         }
 
         debut = SDL_GetTicks();
-
     }
 
+}
+
+float avg_time(float* times) {
+    float avg = 0;
+    int i;
+    for (i = 0 ; i < NB_TIMES ; i++ )
+        avg += times[i];
+    return (avg / NB_TIMES);
 }
