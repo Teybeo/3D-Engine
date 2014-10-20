@@ -20,6 +20,9 @@ Shader* Shader_Create(const char* name, const char* vertexFile, const char* frag
     if (initProgram(&shader->id, vertexFile, fragmentFile) == false)
         return NULL;
 
+    shader->name = malloc(sizeof(char) * strlen(name) + 1);
+    shader->vertexFile = malloc(sizeof(char) * strlen(vertexFile) + 1);
+    shader->fragmentFile = malloc(sizeof(char) * strlen(fragmentFile) + 1);
     strcpy(shader->name, name);
     strcpy(shader->vertexFile, vertexFile);
     strcpy(shader->fragmentFile, fragmentFile);

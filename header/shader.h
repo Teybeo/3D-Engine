@@ -4,7 +4,7 @@
 typedef struct Shader {
 
     unsigned int id;
-    char name[128];
+    char* name;
     int nbUniform;
     char** uniformName;
     int* uniformLoc;
@@ -12,8 +12,8 @@ typedef struct Shader {
     char** attribName;
     int* attribLoc;
     unsigned int lastWrite[2];
-    char vertexFile[128];
-    char fragmentFile[128];
+    char* vertexFile;
+    char* fragmentFile;
 
 } Shader;
 
