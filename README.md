@@ -1,11 +1,9 @@
 3D-Engine
 =========
 
-Projet personnel d'apprentissage et d'expérimentation.
+Compilé sous Windows avec MinGW et CodeBlocks.
 
-Réalisé en C sous Windows avec MinGW et CodeBlocks.
-
-###Fonctionnalités
+### Fonctionnalités
 
 - OpenGL moderne 3.x/4.x
 - Lumières dynamiques ponctuelles et directionnelles
@@ -16,17 +14,19 @@ Réalisé en C sous Windows avec MinGW et CodeBlocks.
 - Edition et rechargement à la volée des shaders
 - Moteur physique avec collisions de sphères et de plans
 
-###Librairies
+### Librairies
 - SDL2
 - SDL2_image
 - GLEW
 
 ---
 
-**Rendu du modèle Sponza:**
+#### Rendus####
 
-![](http://image.bayimg.com/28b2f2e74bb53b40604512fb7953d3f35780f2f1.jpg)
+![](gh-pages/sponza.jpg)
+*Sponza model from Crytek*
 
-**200 sphères réagissant entre elles et avec des plans dynamiques (sol) et statiques:**
+---
 
-![](http://image.bayimg.com/798c798637dde8b4afbd4daa82fbd76d88cf6396.jpg)
+![](gh-pages/physics.jpg)
+*200 sphères avec des plans statiques et dynamiques*
