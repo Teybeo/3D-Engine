@@ -1,6 +1,3 @@
-3D-Engine
-=========
-
 Compilé sous Windows avec MinGW et CodeBlocks.
 
 ### Fonctionnalités
