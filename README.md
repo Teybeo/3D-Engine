@@ -5,7 +5,7 @@ Projet personnel d'apprentissage et d'expérimentation.
 
 Réalisé en C sous Windows avec MinGW et CodeBlocks.
 
-###Fonctionnalités
+### Fonctionnalités
 
 - OpenGL moderne 3.x/4.x
 - Lumières dynamiques ponctuelles et directionnelles
@@ -16,7 +16,7 @@ Réalisé en C sous Windows avec MinGW et CodeBlocks.
 - Edition et rechargement à la volée des shaders
 - Moteur physique avec collisions de sphères et de plans
 
-###Librairies
+### Librairies
 - SDL2
 - SDL2_image
 - GLEW
